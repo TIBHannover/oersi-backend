@@ -3,7 +3,6 @@ package eu.tib.oersi.controller;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Base64;
-import java.util.Enumeration;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,7 +90,7 @@ public class SearchController {
       final HttpMethod method, final HttpServletRequest request) {
     try {
       URI uri = buildElasticsearchUri(request);
-      HttpHeaders headers = buildElasticsearchHeaders(request);
+      HttpHeaders headers = buildElasticsearchHeaders();
       HttpEntity<String> entity = new HttpEntity<>(body, headers);
       LOG.debug("process elasticsearch {}-request to {}", method, uri);
 
@@ -117,19 +116,10 @@ public class SearchController {
         originalRequest.getQueryString(), null);
   }
 
-  private HttpHeaders buildElasticsearchHeaders(final HttpServletRequest originalRequest) {
+  private HttpHeaders buildElasticsearchHeaders() {
     HttpHeaders headers = new HttpHeaders();
-
-    // use headers from original request
-    Enumeration<String> headerNames = originalRequest.getHeaderNames();
-    while (headerNames.hasMoreElements()) {
-      String headerName = headerNames.nextElement();
-      String headerValue = originalRequest.getHeader(headerName);
-      headers.add(headerName, headerValue);
-    }
-
+    headers.add("Content-Type", "application/json");
     headers.add("Authorization", "Basic " + getOerViewerBase64Credentials());
-
     return headers;
   }
 
