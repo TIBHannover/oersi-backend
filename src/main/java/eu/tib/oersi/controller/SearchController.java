@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.HandlerMapping;
 
 /**
  * Controller that handles search requests to the OER index.
@@ -110,7 +111,10 @@ public class SearchController {
 
   private URI buildElasticsearchUri(final HttpServletRequest originalRequest)
       throws URISyntaxException {
-    String requestPath = originalRequest.getRequestURI().replaceFirst(BASE_PATH, "");
+    final String originalPath = (String) originalRequest.getAttribute(
+        HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
+    String requestPath = originalPath.substring(originalPath.indexOf(BASE_PATH) + BASE_PATH
+        .length());
     String path = elasticsearchBasePath + requestPath;
     return new URI(elasticsearchScheme, null, elasticsearchHost, elasticsearchPort, path,
         originalRequest.getQueryString(), null);
