@@ -8,6 +8,9 @@ cache:
   paths:
     - .m2/repository/
     - target/
+    
+include:
+  - local: '.gitlab-ci-sonar.yml'
 
 build:
   stage: build
