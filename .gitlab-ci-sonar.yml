@@ -5,4 +5,7 @@ sonar:
   cache:
     paths:
     - .m2/repository
+  only:
+    - master
+
     
