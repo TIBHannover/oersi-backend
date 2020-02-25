@@ -1,11 +1,11 @@
 package eu.tib.oersi;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
-//@PropertySource(value = "file:${envConfigDir:envConf/default/}profileservice.properties")
 public class WebConfig {
 
   @Bean
@@ -13,4 +13,8 @@ public class WebConfig {
     return new RestTemplate();
   }
 
+  @Bean
+  public ModelMapper modelMapper() {
+    return new ModelMapper();
+  }
 }

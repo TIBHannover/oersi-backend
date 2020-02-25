@@ -1,26 +1,53 @@
 package eu.tib.oersi;
 
+import eu.tib.oersi.controller.OerMetadataController;
 import eu.tib.oersi.controller.SearchController;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 @Configuration
 @EnableWebSecurity
+@PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+  private static final String ROLE_MANAGE_OERMETADATA = "MANAGE_OERMETADATA";
+
+  @Value("${oermetadata.manage.user}")
+  private String oermetadataUser;
+
+  @Value("${oermetadata.manage.password}")
+  private String oermetadataPassword;
 
   @Override
   protected void configure(final HttpSecurity http) throws Exception {
     http.csrf().disable().authorizeRequests()
-        .antMatchers(SearchController.BASE_PATH + "/**").permitAll();
+        .antMatchers(SearchController.BASE_PATH + "/**").permitAll()
+        .and().httpBasic()
+        .and().authorizeRequests()
+        .antMatchers(OerMetadataController.BASE_PATH).hasRole(ROLE_MANAGE_OERMETADATA);
   }
 
+  @Bean
   @Override
-  protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
-    // TODO
-    auth.inMemoryAuthentication().withUser("test").password("test").roles("TEST");
+  public UserDetailsService userDetailsService() {
+    UserDetails oerMetadataUser = User.withUsername(oermetadataUser)
+        .passwordEncoder(PasswordEncoderFactories.createDelegatingPasswordEncoder()::encode)
+        .password(oermetadataPassword)
+        .roles(ROLE_MANAGE_OERMETADATA).build();
+
+    InMemoryUserDetailsManager userDetailsManager = new InMemoryUserDetailsManager();
+    userDetailsManager.createUser(oerMetadataUser);
+    return userDetailsManager;
   }
 
 }
