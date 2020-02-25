@@ -8,10 +8,10 @@ import lombok.Data;
  * Data transfer object for OER metadata.
  */
 @Data
-public class OerMetadataDto {
+public class MetadataDto {
   private Long id;
   private List<AuthorDto> authors;
-  private WorkDto work;
+  private EducationalResourceDto educationalResource;
   private InstitutionDto institution;
   private DidacticsDto didactics;
   private String source;

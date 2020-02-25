@@ -8,7 +8,7 @@ import lombok.Data;
  * Represents the description of the oer material.
  */
 @Data
-public class WorkDto {
+public class EducationalResourceDto {
   private Long id;
   private String name;
   private String description;

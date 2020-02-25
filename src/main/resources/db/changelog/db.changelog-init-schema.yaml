@@ -1,6 +1,6 @@
 databaseChangeLog:
 - changeSet:
-    id: 1582640565486-1
+    id: 1582643030045-1
     author: hoffmann (generated)
     changes:
     - createTable:
@@ -31,11 +31,11 @@ databaseChangeLog:
         - column:
             constraints:
               nullable: false
-            name: oer_metadata_id
+            name: metadata_id
             type: BIGINT
         tableName: author
 - changeSet:
-    id: 1582640565486-2
+    id: 1582643030045-2
     author: hoffmann (generated)
     changes:
     - createTable:
@@ -69,7 +69,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: didactics
 - changeSet:
-    id: 1582640565486-3
+    id: 1582643030045-3
     author: hoffmann (generated)
     changes:
     - createTable:
@@ -78,62 +78,7 @@ databaseChangeLog:
             autoIncrement: true
             constraints:
               primaryKey: true
-              primaryKeyName: institutionPK
-            name: id
-            type: BIGINT
-        - column:
-            name: name
-            type: VARCHAR(255)
-        - column:
-            name: ror
-            type: VARCHAR(255)
-        tableName: institution
-- changeSet:
-    id: 1582640565486-4
-    author: hoffmann (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            autoIncrement: true
-            constraints:
-              primaryKey: true
-              primaryKeyName: oer_metadataPK
-            name: id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: date_modified_internal
-            type: datetime
-        - column:
-            constraints:
-              nullable: false
-            name: source
-            type: VARCHAR(255)
-        - column:
-            name: didactics_id
-            type: BIGINT
-        - column:
-            name: institution_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: work_id
-            type: BIGINT
-        tableName: oer_metadata
-- changeSet:
-    id: 1582640565486-5
-    author: hoffmann (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            autoIncrement: true
-            constraints:
-              primaryKey: true
-              primaryKeyName: workPK
+              primaryKeyName: educational_resourcePK
             name: id
             type: BIGINT
         - column:
@@ -187,9 +132,9 @@ databaseChangeLog:
         - column:
             name: version
             type: VARCHAR(255)
-        tableName: work
+        tableName: educational_resource
 - changeSet:
-    id: 1582640565486-6
+    id: 1582643030045-4
     author: hoffmann (generated)
     changes:
     - createTable:
@@ -197,78 +142,133 @@ databaseChangeLog:
         - column:
             constraints:
               nullable: false
-            name: work_id
+            name: educational_resource_id
             type: BIGINT
         - column:
             name: keywords
             type: VARCHAR(255)
-        tableName: work_keywords
+        tableName: educational_resource_keywords
 - changeSet:
-    id: 1582640565486-7
+    id: 1582643030045-5
+    author: hoffmann (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: institutionPK
+            name: id
+            type: BIGINT
+        - column:
+            name: name
+            type: VARCHAR(255)
+        - column:
+            name: ror
+            type: VARCHAR(255)
+        tableName: institution
+- changeSet:
+    id: 1582643030045-6
+    author: hoffmann (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: metadataPK
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: date_modified_internal
+            type: datetime
+        - column:
+            constraints:
+              nullable: false
+            name: source
+            type: VARCHAR(255)
+        - column:
+            name: didactics_id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: educational_resource_id
+            type: BIGINT
+        - column:
+            name: institution_id
+            type: BIGINT
+        tableName: metadata
+- changeSet:
+    id: 1582643030045-7
     author: hoffmann (generated)
     changes:
     - addUniqueConstraint:
-        columnNames: work_id
-        constraintName: UK_962wsbfua4jr2f5jq4ak4x91b
-        tableName: oer_metadata
+        columnNames: educational_resource_id
+        constraintName: UK_7w1srk89raqkq20tgm2pk5ucu
+        tableName: metadata
 - changeSet:
-    id: 1582640565486-8
+    id: 1582643030045-8
+    author: hoffmann (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: metadata_id
+        baseTableName: author
+        constraintName: FK2ttnxvtd39ne07ug18cud5esr
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: metadata
+- changeSet:
+    id: 1582643030045-9
     author: hoffmann (generated)
     changes:
     - addForeignKeyConstraint:
         baseColumnNames: institution_id
-        baseTableName: oer_metadata
-        constraintName: FK86x33a0jchv1ogv723y4o5iip
+        baseTableName: metadata
+        constraintName: FK7mgvtoyuoqu8dc77491atv65y
         deferrable: false
         initiallyDeferred: false
         referencedColumnNames: id
         referencedTableName: institution
 - changeSet:
-    id: 1582640565486-9
+    id: 1582643030045-10
+    author: hoffmann (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: educational_resource_id
+        baseTableName: educational_resource_keywords
+        constraintName: FKkksd0i0wj08idvxb0gaes4ymv
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: educational_resource
+- changeSet:
+    id: 1582643030045-11
+    author: hoffmann (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: educational_resource_id
+        baseTableName: metadata
+        constraintName: FKrbm9c85h11exogtfnp599uj55
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: educational_resource
+- changeSet:
+    id: 1582643030045-12
     author: hoffmann (generated)
     changes:
     - addForeignKeyConstraint:
         baseColumnNames: didactics_id
-        baseTableName: oer_metadata
-        constraintName: FKahjbp41vapy3mt60vukkwvbis
+        baseTableName: metadata
+        constraintName: FKrrjjs6am2gwf1fthxgdaj01kb
         deferrable: false
         initiallyDeferred: false
         referencedColumnNames: id
         referencedTableName: didactics
-- changeSet:
-    id: 1582640565486-10
-    author: hoffmann (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: work_id
-        baseTableName: work_keywords
-        constraintName: FKelrkf3f05t92cn6b3qa1p2q42
-        deferrable: false
-        initiallyDeferred: false
-        referencedColumnNames: id
-        referencedTableName: work
-- changeSet:
-    id: 1582640565486-11
-    author: hoffmann (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: oer_metadata_id
-        baseTableName: author
-        constraintName: FKmllcd163ardmu1aqi3sddddia
-        deferrable: false
-        initiallyDeferred: false
-        referencedColumnNames: id
-        referencedTableName: oer_metadata
-- changeSet:
-    id: 1582640565486-12
-    author: hoffmann (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: work_id
-        baseTableName: oer_metadata
-        constraintName: FKs1w37mdo7wgy6hmkw6sbx2dgy
-        deferrable: false
-        initiallyDeferred: false
-        referencedColumnNames: id
-        referencedTableName: work
 

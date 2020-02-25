@@ -1,7 +1,7 @@
 package eu.tib.oersi.service;
 
-import eu.tib.oersi.domain.OerMetadata;
-import eu.tib.oersi.repository.OerMetadataRepository;
+import eu.tib.oersi.domain.Metadata;
+import eu.tib.oersi.repository.MetadataRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -11,19 +11,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Implementation of {@link OerMetadataService}.
+ * Implementation of {@link MetadataService}.
  */
 @Service
 @Slf4j
-public class OerMetadataServiceImpl implements OerMetadataService {
+public class MetadataServiceImpl implements MetadataService {
 
   @Autowired
-  private OerMetadataRepository oerMeatadataRepository;
+  private MetadataRepository oerMeatadataRepository;
 
   @Transactional
   @Override
-  public OerMetadata createOrUpdate(final OerMetadata metadata) {
-    OerMetadata existingMetadata = findMatchingMetadata(metadata);
+  public Metadata createOrUpdate(final Metadata metadata) {
+    Metadata existingMetadata = findMatchingMetadata(metadata);
     if (existingMetadata != null) {
       log.debug("existing data: {}", existingMetadata);
       metadata.setId(existingMetadata.getId());
@@ -33,16 +33,17 @@ public class OerMetadataServiceImpl implements OerMetadataService {
   }
 
   /**
-   * Find an existing {@link OerMetadata} that matches the given {@link OerMetadata}.
+   * Find an existing {@link Metadata} that matches the given {@link Metadata}.
    * @param metadata existing data has to match this data
    * @return existing data or null, if not existing
    */
-  private OerMetadata findMatchingMetadata(final OerMetadata metadata) {
-    OerMetadata existingMetadata = findById(metadata.getId());
+  private Metadata findMatchingMetadata(final Metadata metadata) {
+    Metadata existingMetadata = findById(metadata.getId());
     if (existingMetadata == null) {
-      String url = metadata.getWork().getUrl();
+      String url = metadata.getEducationalResource().getUrl();
       if (url != null) {
-        List<OerMetadata> metadataMatchingUrl = oerMeatadataRepository.findByWorkUrl(url);
+        List<Metadata> metadataMatchingUrl = oerMeatadataRepository.findByEducationalResourceUrl(
+            url);
         if (!metadataMatchingUrl.isEmpty()) {
           existingMetadata = metadataMatchingUrl.get(0);
         }
@@ -53,17 +54,17 @@ public class OerMetadataServiceImpl implements OerMetadataService {
 
   @Transactional
   @Override
-  public void delete(final OerMetadata metadata) {
+  public void delete(final Metadata metadata) {
     oerMeatadataRepository.delete(metadata);
   }
 
   @Transactional(readOnly = true)
   @Override
-  public OerMetadata findById(final Long id) {
+  public Metadata findById(final Long id) {
     if (id == null) {
       return null;
     }
-    Optional<OerMetadata> optional = oerMeatadataRepository.findById(id);
+    Optional<Metadata> optional = oerMeatadataRepository.findById(id);
     if (optional.isPresent()) {
       return optional.get();
     }

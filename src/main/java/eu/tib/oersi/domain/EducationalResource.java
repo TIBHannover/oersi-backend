@@ -17,7 +17,7 @@ import org.hibernate.validator.constraints.URL;
  */
 @Data
 @Entity
-public class Work {
+public class EducationalResource {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -33,7 +33,7 @@ public class Work {
   private String subject;
 
   @ElementCollection
-  @CollectionTable(name = "work_keywords")
+  @CollectionTable(name = "educational_resource_keywords")
   private List<String> keywords;
 
   @Column(nullable = false)

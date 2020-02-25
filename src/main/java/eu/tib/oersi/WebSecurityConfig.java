@@ -1,6 +1,6 @@
 package eu.tib.oersi;
 
-import eu.tib.oersi.controller.OerMetadataController;
+import eu.tib.oersi.controller.MetadataController;
 import eu.tib.oersi.controller.SearchController;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -34,7 +34,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(SearchController.BASE_PATH + "/**").permitAll()
         .and().httpBasic()
         .and().authorizeRequests()
-        .antMatchers(OerMetadataController.BASE_PATH).hasRole(ROLE_MANAGE_OERMETADATA);
+        .antMatchers(MetadataController.BASE_PATH).hasRole(ROLE_MANAGE_OERMETADATA);
   }
 
   @Bean

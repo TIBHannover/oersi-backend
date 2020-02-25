@@ -17,21 +17,21 @@ import lombok.Data;
  * Contains the metadata for an oer document
  */
 @Data
-@Entity(name = OerMetadata.ENTITY_NAME)
-public class OerMetadata {
+@Entity(name = Metadata.ENTITY_NAME)
+public class Metadata {
 
-  public static final String ENTITY_NAME = "oer_metadata";
+  public static final String ENTITY_NAME = "metadata";
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-  @JoinColumn(name = "oer_metadata_id", nullable = false)
+  @JoinColumn(name = "metadata_id", nullable = false)
   private List<Author> authors;
 
   @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, optional = false)
-  private Work work;
+  private EducationalResource educationalResource;
 
   @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
   private Institution institution;
