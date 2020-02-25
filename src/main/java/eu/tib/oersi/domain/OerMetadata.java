@@ -34,6 +34,9 @@ public class OerMetadata {
   private Work work;
 
   @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+  private Institution institution;
+
+  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
   private Didactics didactics;
 
   @Column(nullable = false)

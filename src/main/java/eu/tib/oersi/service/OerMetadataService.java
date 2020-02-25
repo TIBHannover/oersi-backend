@@ -1,7 +1,6 @@
 package eu.tib.oersi.service;
 
 import eu.tib.oersi.domain.OerMetadata;
-import java.util.List;
 
 /**
  * Manage {@link OerMetadata}s.
@@ -22,13 +21,6 @@ public interface OerMetadataService {
    * @param metadata metadata
    */
   void delete(OerMetadata metadata);
-
-  /**
-   * Retrieve all {@link OerMetadata}s.
-   *
-   * @return all data
-   */
-  List<OerMetadata> findAll();
 
   /**
    * Retrieve {@link OerMetadata} for the given id.

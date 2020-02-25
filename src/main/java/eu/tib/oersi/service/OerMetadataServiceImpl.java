@@ -59,12 +59,6 @@ public class OerMetadataServiceImpl implements OerMetadataService {
 
   @Transactional(readOnly = true)
   @Override
-  public List<OerMetadata> findAll() {
-    return oerMeatadataRepository.findAll();
-  }
-
-  @Transactional(readOnly = true)
-  @Override
   public OerMetadata findById(final Long id) {
     if (id == null) {
       return null;
