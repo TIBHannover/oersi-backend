@@ -84,6 +84,28 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!--Add swagger Dependency-->
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>2.9.2</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger-ui</artifactId>
+			<version>2.9.2</version>
+		</dependency>
+		<dependency>
+			<groupId>io.swagger</groupId>
+			<artifactId>swagger-annotations</artifactId>
+			<version>1.5.13</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+		</dependency>
+
+
 	</dependencies>
 
 	<build>
@@ -101,7 +123,7 @@
 					<!-- NOTE: h2 does not work here! -->
 					<!-- you can setup local mariadb via docker: docker run -e MYSQL_DATABASE=test -e MYSQL_USER=test -e MYSQL_PASSWORD=test -e MYSQL_ROOT_PASSWORD=xxx -p 3306:3306 -d mariadb:10.1 -->
 					<!-- Generate changelog from domain objects via 'mvn clean compile' + 'mvn liquibase:diff' -->
-					<changeLogFile>src/main/resources/db/changelog/db.changelog-master.xml</changeLogFile>
+					<changeLogFile>src/main/resources/db/changelog/db.changelog-master.yaml</changeLogFile>
 					<driver>org.mariadb.jdbc.Driver</driver>
 					<url>jdbc:mariadb://localhost:3306/test</url>
 					<username>test</username>
@@ -155,6 +177,36 @@
 						<version>2.0.1.Final</version>
 					</dependency>
 				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>io.swagger</groupId>
+				<artifactId>swagger-codegen-maven-plugin</artifactId>
+				<version>2.4.12</version>
+				<executions>
+					<execution>
+						<id>generate-Api-V2</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/model/api2.yaml</inputSpec>
+							<output>src/main/java</output>
+							<language>spring</language>
+							<generateSupportingFiles>false</generateSupportingFiles>
+							<invokerPackage>entities</invokerPackage>
+							<apiPackage>eu.tib.oersi.v2</apiPackage>
+							<modelPackage>eu.tib.oersi.dto</modelPackage>
+							<modelNameSuffix>Dto</modelNameSuffix>
+							<configOptions>
+								<sourceFolder>/</sourceFolder>
+								<java8>true</java8>
+								<interfaceOnly>true</interfaceOnly>
+								<delegatePattern>true</delegatePattern>
+								<useTags>true</useTags>
+							</configOptions>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

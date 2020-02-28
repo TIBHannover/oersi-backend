@@ -34,3 +34,23 @@ Backend / API of the OER Search Index. Provides access to the oer index data. Re
 * **project lombok** - Automatically generate code like getter, setter, equals, hashcode,...
      * Set up your IDE: [https://projectlombok.org/setup/overview](https://projectlombok.org/setup/overview)
 * **modelmapper** - Automatic mapping between DTOs and Entities
+* **swagger** -  design, build, document, and consume RESTful web services
+                                    
+
+
+
+#Rest Api swagger Configuration
+
+##### Swagger is an open-source software framework backed by a large ecosystem of tools that helps developers design, build, document, and consume RESTful web services
+
+##### Swagger Generate DTO (Model) and Controller , so if you want to modify , or create a new one (Model or Controller ), add in **Yaml**  
+##### 
+ *  **Yam fIle is in :**
+      
+          > ./src/main/resorces/model/api2.yaml 
+
+*  **After each time the yaml file is changed , need to run the command**
+          
+          > mvn compile 
+          
+

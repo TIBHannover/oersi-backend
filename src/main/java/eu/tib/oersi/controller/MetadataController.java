@@ -3,35 +3,31 @@ package eu.tib.oersi.controller;
 import eu.tib.oersi.domain.Metadata;
 import eu.tib.oersi.dto.MetadataDto;
 import eu.tib.oersi.service.MetadataService;
+import eu.tib.oersi.v2.MetadataControllerApi;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Controller that handles crud requests to the OER index.
  */
 @RestController
-@RequestMapping(value = MetadataController.BASE_PATH)
 @Slf4j
-public class MetadataController {
+public class MetadataController implements MetadataControllerApi {
 
   /** base path of the {@link MetadataController} */
   public static final String BASE_PATH = "/api/metadata";
 
-  @Autowired
-  private MetadataService metadataService;
+  private final ModelMapper modelMapper;
+  private final MetadataService metadataService;
 
-  @Autowired
-  private ModelMapper modelMapper;
+  public MetadataController(MetadataService metadataService, ModelMapper modelMapper) {
+    this.metadataService = metadataService;
+    this.modelMapper = modelMapper;
+  }
 
   private Metadata convertToEntity(final MetadataDto dto) {
     return modelMapper.map(dto, Metadata.class);
@@ -41,13 +37,8 @@ public class MetadataController {
     return modelMapper.map(entity, MetadataDto.class);
   }
 
-  /**
-   * Retrieve the {@link Metadata} with the given id.
-   * @param id id of the data
-   * @return data
-   */
-  @GetMapping("/{id}")
-  public ResponseEntity<MetadataDto> findById(@PathVariable final Long id) {
+  @Override
+  public ResponseEntity<MetadataDto> findById(Long id) {
     Metadata metadata = metadataService.findById(id);
     if (metadata == null) {
       return getResponseForNonExistingData(id);
@@ -60,12 +51,7 @@ public class MetadataController {
     return ResponseEntity.badRequest().build();
   }
 
-  /**
-   * Create or update an {@link Metadata}
-   * @param metadataDto data to create or update
-   * @return response
-   */
-  @PostMapping
+  @Override
   public ResponseEntity<MetadataDto> createOrUpdate(
       @RequestBody final MetadataDto metadataDto) {
     Metadata metadata = metadataService.createOrUpdate(convertToEntity(metadataDto));
@@ -73,13 +59,7 @@ public class MetadataController {
     return ResponseEntity.ok(convertToDto(metadata));
   }
 
-  /**
-   * Update an {@link Metadata}.
-   * @param id id of the data
-   * @param metadataDto data to update
-   * @return response
-   */
-  @PutMapping("/{id}")
+  @Override
   public ResponseEntity<MetadataDto> update(@PathVariable final Long id,
       @RequestBody final MetadataDto metadataDto) {
     Metadata metadata = metadataService.findById(id);
@@ -94,13 +74,8 @@ public class MetadataController {
     return ResponseEntity.ok(convertToDto(metadata));
   }
 
-  /**
-   * Delete an {@link Metadata}.
-   * @param id id of the data to delete
-   * @return response
-   */
-  @DeleteMapping("/{id}")
-  public ResponseEntity<MetadataDto> delete(@PathVariable final Long id) {
+  @Override
+   public ResponseEntity<MetadataDto> delete(@PathVariable final Long id) {
     Metadata metadata = metadataService.findById(id);
     if (metadata == null) {
       return getResponseForNonExistingData(id);
