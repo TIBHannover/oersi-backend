@@ -7,10 +7,15 @@
 		</encoder>
 	</appender>
 
-	<logger name="org.springframework" level="ERROR" />
-	<logger name="eu.tib" level="DEBUG" />
-	<!-- <logger name="org.hibernate" level="DEBUG" /> -->
-	<root level="error">
-		<appender-ref ref="STDOUT" />
+	<appender name = "FILE" class = "ch.qos.logback.core.FileAppender">
+		<File>/var/tmp/mylog.log</File>
+		<encoder>
+			<pattern>[%d{yyyy-MM-dd'T'HH:mm:ss.sss'Z'}] [%C] [%t] [%L] [%-5p] %m%n</pattern>
+		</encoder>
+	</appender>
+
+	<root level = "INFO">
+		<appender-ref ref = "FILE"/>
+		<appender-ref ref = "STDOUT"/>
 	</root>
 </configuration>
