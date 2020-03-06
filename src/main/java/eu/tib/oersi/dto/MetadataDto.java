@@ -20,7 +20,7 @@ import javax.validation.constraints.*;
  * MetadataDto
  */
 @Validated
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2020-02-28T15:26:38.321+01:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2020-03-05T12:39:28.323+01:00")
 
 public class MetadataDto   {
   @JsonProperty("id")
@@ -34,16 +34,13 @@ public class MetadataDto   {
   private OffsetDateTime dateModifiedInternal = null;
 
   @JsonProperty("didactics")
-  @Valid
-  private List<DidacticsDto> didactics = null;
+  private DidacticsDto didactics = null;
 
   @JsonProperty("educationalResource")
-  @Valid
-  private List<EducationalResourceDto> educationalResource = null;
+  private EducationalResourceDto educationalResource = null;
 
   @JsonProperty("institution")
-  @Valid
-  private List<InstitutionDto> institution = null;
+  private InstitutionDto institution = null;
 
   @JsonProperty("source")
   private String source = null;
@@ -118,16 +115,8 @@ public class MetadataDto   {
     this.dateModifiedInternal = dateModifiedInternal;
   }
 
-  public MetadataDto didactics(List<DidacticsDto> didactics) {
+  public MetadataDto didactics(DidacticsDto didactics) {
     this.didactics = didactics;
-    return this;
-  }
-
-  public MetadataDto addDidacticsItem(DidacticsDto didacticsItem) {
-    if (this.didactics == null) {
-      this.didactics = new ArrayList<>();
-    }
-    this.didactics.add(didacticsItem);
     return this;
   }
 
@@ -139,24 +128,16 @@ public class MetadataDto   {
 
   @Valid
 
-  public List<DidacticsDto> getDidactics() {
+  public DidacticsDto getDidactics() {
     return didactics;
   }
 
-  public void setDidactics(List<DidacticsDto> didactics) {
+  public void setDidactics(DidacticsDto didactics) {
     this.didactics = didactics;
   }
 
-  public MetadataDto educationalResource(List<EducationalResourceDto> educationalResource) {
+  public MetadataDto educationalResource(EducationalResourceDto educationalResource) {
     this.educationalResource = educationalResource;
-    return this;
-  }
-
-  public MetadataDto addEducationalResourceItem(EducationalResourceDto educationalResourceItem) {
-    if (this.educationalResource == null) {
-      this.educationalResource = new ArrayList<>();
-    }
-    this.educationalResource.add(educationalResourceItem);
     return this;
   }
 
@@ -168,24 +149,16 @@ public class MetadataDto   {
 
   @Valid
 
-  public List<EducationalResourceDto> getEducationalResource() {
+  public EducationalResourceDto getEducationalResource() {
     return educationalResource;
   }
 
-  public void setEducationalResource(List<EducationalResourceDto> educationalResource) {
+  public void setEducationalResource(EducationalResourceDto educationalResource) {
     this.educationalResource = educationalResource;
   }
 
-  public MetadataDto institution(List<InstitutionDto> institution) {
+  public MetadataDto institution(InstitutionDto institution) {
     this.institution = institution;
-    return this;
-  }
-
-  public MetadataDto addInstitutionItem(InstitutionDto institutionItem) {
-    if (this.institution == null) {
-      this.institution = new ArrayList<>();
-    }
-    this.institution.add(institutionItem);
     return this;
   }
 
@@ -197,11 +170,11 @@ public class MetadataDto   {
 
   @Valid
 
-  public List<InstitutionDto> getInstitution() {
+  public InstitutionDto getInstitution() {
     return institution;
   }
 
-  public void setInstitution(List<InstitutionDto> institution) {
+  public void setInstitution(InstitutionDto institution) {
     this.institution = institution;
   }
 

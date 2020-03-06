@@ -339,16 +339,10 @@ definitions:
         format: "date-time"
         example: "2017-07-21T17:32:28Z"
       didactics:
-        type: "array"
-        items:
           $ref: '#/definitions/Didactics'
       educationalResource:
-        type: "array"
-        items:
           $ref: '#/definitions/EducationalResource'
       institution:
-        type: "array"
-        items:
           $ref: '#/definitions/Institution'
       source:
         type: "string"
