@@ -50,6 +50,7 @@ paths:
           description: Unauthorized
         '403':
           description: Forbidden
+  /metadata/{id}:
     put:
       tags:
         - "metadata-controller"
@@ -61,8 +62,8 @@ paths:
       produces:
         - "application/json"
       parameters:
-        - name: "Id"
-          in: "path"
+        - name: id
+          in: path
           description: "Id to update Metadata"
           required: true
           type: "integer"
@@ -93,8 +94,8 @@ paths:
       produces:
         - "application/json"
       parameters:
-        - name: "Id"
-          in: "path"
+        - name: id
+          in: path
           description: "ID of the metadata that needs to be deleted"
           required: true
           type: "integer"
@@ -110,7 +111,6 @@ paths:
           description: Unauthorized
         '403':
           description: Forbidden
-  /metadata/{id}:
     get:
       tags:
         - "metadata-controller"
