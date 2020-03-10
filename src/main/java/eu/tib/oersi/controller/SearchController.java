@@ -1,20 +1,28 @@
 package eu.tib.oersi.controller;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Base64;
+import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.http.*;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.HandlerMapping;
-
-import javax.servlet.http.HttpServletRequest;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Base64;
 
 /**
  * Controller that handles search requests to the OER index.
@@ -32,7 +40,8 @@ public class SearchController {
   /** base path of the search controller */
   public static final String BASE_PATH = "/api/search";
 
-  private final RestTemplate restTemplate;
+  @Autowired
+  private RestTemplate restTemplate;
 
   @Value("${elasticsearch.scheme}")
   private String elasticsearchScheme;
@@ -51,10 +60,6 @@ public class SearchController {
 
   @Value("${elasticsearch.oersi_viewer_password}")
   private String elasticsearchPassword;
-
-  public SearchController(RestTemplate restTemplate) {
-    this.restTemplate = restTemplate;
-  }
 
   /**
    * Perform the given GET-request on the configured elasticsearch instance with the configured oer-readonly-user.

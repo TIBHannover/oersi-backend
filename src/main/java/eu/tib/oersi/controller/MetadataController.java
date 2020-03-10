@@ -19,9 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class MetadataController implements MetadataControllerApi {
 
-  /** base path of the {@link MetadataController} */
-  public static final String BASE_PATH = "/api/metadata";
-
   @Autowired
   private MetadataService metadataService;
 
@@ -61,8 +58,7 @@ public class MetadataController implements MetadataControllerApi {
    * @return response
    */
   @Override
-  public ResponseEntity<MetadataDto> createOrUpdate(
-      @RequestBody final MetadataDto metadataDto) {
+  public ResponseEntity<MetadataDto> createOrUpdate(@RequestBody final MetadataDto metadataDto) {
     Metadata metadata = metadataService.createOrUpdate(convertToEntity(metadataDto));
     log.debug("Created/Updated Metadata: {}", metadata);
     return ResponseEntity.ok(convertToDto(metadata));
