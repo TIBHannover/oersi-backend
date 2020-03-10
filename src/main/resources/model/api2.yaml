@@ -213,44 +213,53 @@ definitions:
       id:
         type: "integer"
         format: "int64"
-        description: "Id of Author"
+        description: "internal Id of Author"
       orcid:
         type: "string"
-        description: "Id of "
+        description: "Open Researcher and Contributor ID"
       gnd:
         type: "string"
-        description: " "
+        description: "Integrated Authority File (German: Gemeinsame Normdatei)"
       givenName:
         type: "string"
         description: "First Name"
       familyName:
         type: "string"
         description: "Family Name"
+    required:
+      - givenName
+      - familyName
   Didactics:
     type: "object"
     properties:
       id:
         type: "integer"
         format: "int64"
-        description: "Id Object"
+        description: "internal Id Object"
       audience:
         type: "string"
-        description: "Audience "
+        description: "Audience / interactivity level"
       educationalUse:
         type: "string"
-        description: "Education  "
+        description: "Educational use / interactivity type"
       interactivityType:
         type: "string"
-        description: "IterActive Type "
+        description: "interactivity Type / educational description"
       timeRequired:
         type: "string"
-        description: "Time Required "
+        description: "Time Required / typical learning time"
+    required:
+      - audience
+      - educationalUse
+      - interactivityType
+      - timeRequired
   EducationalResource:
     type: "object"
     properties:
       id:
         type: "integer"
         format: "int64"
+        description: "internal Id"
       dateCreated:
         type: "string"
         format: "date-time"
@@ -272,7 +281,7 @@ definitions:
       inLanguage:
         type: "string"
         description: "Language "
-        example: "English"
+        example: "en"
       keywords:
         type: "array"
         items:
@@ -303,11 +312,17 @@ definitions:
       #        example: "PDF"
       url:
         type: "string"
-        description: "Url"
-      #        example: "PDF"
+        description: "Url of the educational resource"
       version:
         type: "string"
         description: "Version"
+    required:
+      - name
+      - subject
+      - license
+      - url
+      - inLanguage
+      - learningResourceType
 
   Institution:
     type: "object"
@@ -315,13 +330,13 @@ definitions:
       id:
         type: "integer"
         format: "int64"
-        description: "Id Object"
+        description: "internal Id Object"
       name:
         type: "string"
-      #        description: "TIB Hannover "
+        description: "name of the institution"
       ror:
         type: "string"
-  #        description: "Education  "
+        description: "unique identifier for research organization (Research Organization Registry)"
 
   Metadata:
     type: "object"
@@ -346,6 +361,10 @@ definitions:
           $ref: '#/definitions/Institution'
       source:
         type: "string"
+    required:
+      - authors
+      - educationalResource
+      - source
 
 externalDocs:
   description: "Find out more about Swagger"
