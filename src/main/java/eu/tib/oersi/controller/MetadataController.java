@@ -1,11 +1,12 @@
 package eu.tib.oersi.controller;
 
+import eu.tib.oersi.api.MetadataControllerApi;
 import eu.tib.oersi.domain.Metadata;
 import eu.tib.oersi.dto.MetadataDto;
 import eu.tib.oersi.service.MetadataService;
-import eu.tib.oersi.v2.MetadataControllerApi;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,13 +22,11 @@ public class MetadataController implements MetadataControllerApi {
   /** base path of the {@link MetadataController} */
   public static final String BASE_PATH = "/api/metadata";
 
-  private final ModelMapper modelMapper;
-  private final MetadataService metadataService;
+  @Autowired
+  private MetadataService metadataService;
 
-  public MetadataController(MetadataService metadataService, ModelMapper modelMapper) {
-    this.metadataService = metadataService;
-    this.modelMapper = modelMapper;
-  }
+  @Autowired
+  private ModelMapper modelMapper;
 
   private Metadata convertToEntity(final MetadataDto dto) {
     return modelMapper.map(dto, Metadata.class);
@@ -37,8 +36,13 @@ public class MetadataController implements MetadataControllerApi {
     return modelMapper.map(entity, MetadataDto.class);
   }
 
+  /**
+   * Retrieve the {@link Metadata} with the given id.
+   * @param id id of the data
+   * @return data
+   */
   @Override
-  public ResponseEntity<MetadataDto> findById(Long id) {
+  public ResponseEntity<MetadataDto> findById(final Long id) {
     Metadata metadata = metadataService.findById(id);
     if (metadata == null) {
       return getResponseForNonExistingData(id);
@@ -51,6 +55,11 @@ public class MetadataController implements MetadataControllerApi {
     return ResponseEntity.badRequest().build();
   }
 
+  /**
+   * Create or update an {@link Metadata}
+   * @param metadataDto data to create or update
+   * @return response
+   */
   @Override
   public ResponseEntity<MetadataDto> createOrUpdate(
       @RequestBody final MetadataDto metadataDto) {
@@ -59,6 +68,12 @@ public class MetadataController implements MetadataControllerApi {
     return ResponseEntity.ok(convertToDto(metadata));
   }
 
+  /**
+   * Update an {@link Metadata}.
+   * @param id id of the data
+   * @param metadataDto data to update
+   * @return response
+   */
   @Override
   public ResponseEntity<MetadataDto> update(@PathVariable final Long id,
       @RequestBody final MetadataDto metadataDto) {
@@ -74,8 +89,13 @@ public class MetadataController implements MetadataControllerApi {
     return ResponseEntity.ok(convertToDto(metadata));
   }
 
+  /**
+   * Delete an {@link Metadata}.
+   * @param id id of the data to delete
+   * @return response
+   */
   @Override
-   public ResponseEntity<MetadataDto> delete(@PathVariable final Long id) {
+  public ResponseEntity<MetadataDto> delete(@PathVariable final Long id) {
     Metadata metadata = metadataService.findById(id);
     if (metadata == null) {
       return getResponseForNonExistingData(id);

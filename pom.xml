@@ -84,7 +84,7 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<!--Add swagger Dependency-->
+		<!--Add swagger Dependency -->
 		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger2</artifactId>
@@ -179,6 +179,23 @@
 				</dependencies>
 			</plugin>
 			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${project.build.directory}/generated-sources/swagger</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>io.swagger</groupId>
 				<artifactId>swagger-codegen-maven-plugin</artifactId>
 				<version>2.4.12</version>
@@ -190,11 +207,10 @@
 						</goals>
 						<configuration>
 							<inputSpec>${project.basedir}/src/main/resources/model/api2.yaml</inputSpec>
-							<output>src/main/java</output>
 							<language>spring</language>
 							<generateSupportingFiles>false</generateSupportingFiles>
 							<invokerPackage>entities</invokerPackage>
-							<apiPackage>eu.tib.oersi.v2</apiPackage>
+							<apiPackage>eu.tib.oersi.api</apiPackage>
 							<modelPackage>eu.tib.oersi.dto</modelPackage>
 							<modelNameSuffix>Dto</modelNameSuffix>
 							<configOptions>
@@ -211,7 +227,7 @@
 		</plugins>
 		<pluginManagement>
 			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself. -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>
