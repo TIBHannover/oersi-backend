@@ -1,0 +1,363 @@
+swagger: "2.0"
+info:
+  description: "This is Swagger Documentation for OERSI_BACKEND"
+  version: "1.0.0"
+  title: "OERSI-BACKEND"
+  termsOfService: " "
+  contact:
+    email: "edmond.kacaj@tib.eu"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "localhost:8080"
+basePath: "/api"
+tags:
+  - name: "search-Controller"
+    description: "Every EndPoint for Search Controller "
+  - name: "metadata-controller"
+    description: "Every EndPoint for Metadata Controller"
+
+schemes:
+  - "https"
+  - "http"
+paths:
+  /metadata:
+    post:
+      tags:
+        - "metadata-controller"
+      summary: "Create or Update "
+      description: "With this end-point we can create or update  Metadata "
+      operationId: "createOrUpdate"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Metadata Object needs to be added   "
+          required: true
+          schema:
+            $ref: "#/definitions/Metadata"
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: "#/definitions/Metadata"
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  /metadata/{id}:
+    put:
+      tags:
+        - "metadata-controller"
+      summary: "Update an existing Metadata"
+      description: "With this end-point we can  update an existing  Metadata "
+      operationId: "update"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - name: id
+          in: path
+          description: "Id to update Metadata"
+          required: true
+          type: "integer"
+          format: "int64"
+        - in: "body"
+          name: "body"
+          description: "Metadata Object needs to be added "
+          required: true
+          schema:
+            $ref: "#/definitions/Metadata"
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: "#/definitions/Metadata"
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    delete:
+      tags:
+        - "metadata-controller"
+      summary: "Delete metadata by ID"
+      description: "For valid response try integer IDs with positive integer value.         Negative or non-integer values will generate API errors"
+      operationId: "delete"
+      produces:
+        - "application/json"
+      parameters:
+        - name: id
+          in: path
+          description: "ID of the metadata that needs to be deleted"
+          required: true
+          type: "integer"
+          format: "int64"
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: "#/definitions/Metadata"
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    get:
+      tags:
+        - "metadata-controller"
+      summary: "Find Metadata by Id"
+      description: "With this end-point we can  get by Id  an existing  Metadata"
+      operationId: "findById"
+      produces:
+        - "application/json"
+      parameters:
+        - name: id
+          in: path
+          description: id
+          required: true
+          type: integer
+          format: "int64"
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: "#/definitions/Metadata"
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
+#  /search/**:
+#    post:
+#      tags:
+#        - "search-Controller"
+#      summary: "Find Metadata by Id"
+#      description: "With this end-point we can search in Elastic Search"
+#      operationId: "processElasticsearchPostRequest"
+#      produces:
+#        - "application/json"
+#      parameters:
+#        - name: Json String
+#          in: body
+#          description: "Json type String "
+#          required: false
+#          schema:
+#            type: string
+#
+#      responses:
+#        '200':
+#          description: OK
+#          schema:
+#            type: string
+#        '201':
+#          description: Created
+#        '401':
+#          description: Unauthorized
+#        '403':
+#          description: Forbidden
+#        '404':
+#          description: Not Found
+#    get:
+#      tags:
+#        - "search-Controller"
+#      summary: "Find Metadata by Id"
+#      description: "With this end-point we can search in Elastic Search"
+#      operationId: "processElasticsearchGetRequest"
+#      produces:
+#        - "application/json"
+#      parameters:
+#        - name: string
+#          in: path
+#          description: "Json type String "
+#          required: true
+#          type: string
+#      responses:
+#        '200':
+#          description: OK
+#          schema:
+#            type: string
+#        '201':
+#          description: Created
+#        '401':
+#          description: Unauthorized
+#        '403':
+#          description: Forbidden
+#        '404':
+#          description: Not Found
+#
+
+
+definitions:
+  Author:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+        description: "internal Id of Author"
+      orcid:
+        type: "string"
+        description: "Open Researcher and Contributor ID"
+      gnd:
+        type: "string"
+        description: "Integrated Authority File (German: Gemeinsame Normdatei)"
+      givenName:
+        type: "string"
+        description: "First Name"
+      familyName:
+        type: "string"
+        description: "Family Name"
+    required:
+      - givenName
+      - familyName
+  Didactics:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+        description: "internal Id Object"
+      audience:
+        type: "string"
+        description: "Audience / interactivity level"
+      educationalUse:
+        type: "string"
+        description: "Educational use / interactivity type"
+      interactivityType:
+        type: "string"
+        description: "interactivity Type / educational description"
+      timeRequired:
+        type: "string"
+        description: "Time Required / typical learning time"
+    required:
+      - audience
+      - educationalUse
+      - interactivityType
+      - timeRequired
+  EducationalResource:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+        description: "internal Id"
+      dateCreated:
+        type: "string"
+        format: "date-time"
+        example: "2017-07-21T17:32:28Z"
+      dateLastUpdated:
+        type: "string"
+        format: "date-time"
+        example: "2017-07-21T17:32:28Z"
+      datePublished:
+        type: "string"
+        format: "date-time"
+        example: "2017-07-21T17:32:28Z"
+      description:
+        type: "string"
+        description: "Long Text "
+      identifier:
+        type: "string"
+        description: "Identify Number "
+      inLanguage:
+        type: "string"
+        description: "Language "
+        example: "en"
+      keywords:
+        type: "array"
+        items:
+          type: string
+          description: "Keywoard Name"
+          example: "Math"
+        description: "List Of Keywords "
+        example: [Math,Sience,Lesson]
+      learningResourceType:
+        type: "string"
+        description: "Learning Type"
+        example: "PDF"
+      license:
+        type: "string"
+        description: "License "
+      #        example: "PDF"
+      name:
+        type: "string"
+        description: "Name"
+      #        example: "PDF"
+      subject:
+        type: "string"
+        description: "Subject"
+      #        example: "PDF"
+      thumbnailUrl:
+        type: "string"
+        description: "Photo URL"
+      #        example: "PDF"
+      url:
+        type: "string"
+        description: "Url of the educational resource"
+      version:
+        type: "string"
+        description: "Version"
+    required:
+      - name
+      - subject
+      - license
+      - url
+      - inLanguage
+      - learningResourceType
+
+  Institution:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+        description: "internal Id Object"
+      name:
+        type: "string"
+        description: "name of the institution"
+      ror:
+        type: "string"
+        description: "unique identifier for research organization (Research Organization Registry)"
+
+  Metadata:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+        description: "Id Object"
+      authors:
+        type: "array"
+        items:
+          $ref: '#/definitions/Author'
+      dateModifiedInternal:
+        type: "string"
+        format: "date-time"
+        example: "2017-07-21T17:32:28Z"
+      didactics:
+          $ref: '#/definitions/Didactics'
+      educationalResource:
+          $ref: '#/definitions/EducationalResource'
+      institution:
+          $ref: '#/definitions/Institution'
+      source:
+        type: "string"
+    required:
+      - authors
+      - educationalResource
+      - source
+
+externalDocs:
+  description: "Find out more about Swagger"
+  url: "http://swagger.io"

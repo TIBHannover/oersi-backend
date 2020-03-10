@@ -9,6 +9,7 @@
 
 	<logger name="org.springframework" level="ERROR" />
 	<logger name="eu.tib" level="DEBUG" />
+	<!-- <logger name="org.hibernate" level="DEBUG" /> -->
 	<root level="error">
 		<appender-ref ref="STDOUT" />
 	</root>

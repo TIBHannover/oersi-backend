@@ -1,0 +1,274 @@
+databaseChangeLog:
+- changeSet:
+    id: 1582643030045-1
+    author: hoffmann (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: authorPK
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: family_name
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: given_name
+            type: VARCHAR(255)
+        - column:
+            name: gnd
+            type: VARCHAR(255)
+        - column:
+            name: orcid
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: metadata_id
+            type: BIGINT
+        tableName: author
+- changeSet:
+    id: 1582643030045-2
+    author: hoffmann (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: didacticsPK
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: audience
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: educational_use
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: interactivity_type
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: time_required
+            type: VARCHAR(255)
+        tableName: didactics
+- changeSet:
+    id: 1582643030045-3
+    author: hoffmann (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: educational_resourcePK
+            name: id
+            type: BIGINT
+        - column:
+            name: date_created
+            type: datetime
+        - column:
+            name: date_last_updated
+            type: datetime
+        - column:
+            name: date_published
+            type: datetime
+        - column:
+            name: description
+            type: VARCHAR(5000)
+        - column:
+            name: identifier
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: in_language
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: learning_resource_type
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: license
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: name
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: subject
+            type: VARCHAR(255)
+        - column:
+            name: thumbnail_url
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: url
+            type: VARCHAR(255)
+        - column:
+            name: version
+            type: VARCHAR(255)
+        tableName: educational_resource
+- changeSet:
+    id: 1582643030045-4
+    author: hoffmann (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: educational_resource_id
+            type: BIGINT
+        - column:
+            name: keywords
+            type: VARCHAR(255)
+        tableName: educational_resource_keywords
+- changeSet:
+    id: 1582643030045-5
+    author: hoffmann (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: institutionPK
+            name: id
+            type: BIGINT
+        - column:
+            name: name
+            type: VARCHAR(255)
+        - column:
+            name: ror
+            type: VARCHAR(255)
+        tableName: institution
+- changeSet:
+    id: 1582643030045-6
+    author: hoffmann (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: metadataPK
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: date_modified_internal
+            type: datetime
+        - column:
+            constraints:
+              nullable: false
+            name: source
+            type: VARCHAR(255)
+        - column:
+            name: didactics_id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: educational_resource_id
+            type: BIGINT
+        - column:
+            name: institution_id
+            type: BIGINT
+        tableName: metadata
+- changeSet:
+    id: 1582643030045-7
+    author: hoffmann (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: educational_resource_id
+        constraintName: UK_7w1srk89raqkq20tgm2pk5ucu
+        tableName: metadata
+- changeSet:
+    id: 1582643030045-8
+    author: hoffmann (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: metadata_id
+        baseTableName: author
+        constraintName: FK2ttnxvtd39ne07ug18cud5esr
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: metadata
+- changeSet:
+    id: 1582643030045-9
+    author: hoffmann (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: institution_id
+        baseTableName: metadata
+        constraintName: FK7mgvtoyuoqu8dc77491atv65y
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: institution
+- changeSet:
+    id: 1582643030045-10
+    author: hoffmann (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: educational_resource_id
+        baseTableName: educational_resource_keywords
+        constraintName: FKkksd0i0wj08idvxb0gaes4ymv
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: educational_resource
+- changeSet:
+    id: 1582643030045-11
+    author: hoffmann (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: educational_resource_id
+        baseTableName: metadata
+        constraintName: FKrbm9c85h11exogtfnp599uj55
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: educational_resource
+- changeSet:
+    id: 1582643030045-12
+    author: hoffmann (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: didactics_id
+        baseTableName: metadata
+        constraintName: FKrrjjs6am2gwf1fthxgdaj01kb
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: didactics
+
