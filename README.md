@@ -26,20 +26,7 @@ Backend / API of the OER Search Index. Provides access to the oer index data. Re
 * Read-Access to the index data via _SearchController_ **/api/search**
 * CRUD-operations via _MetadataController_ **/api/metadata**
 
-## Technologies
-
-* **springboot** - The backend is a springboot application, provided as war file
-* **liquibase** - Automatically manage database updates
-* **spring-security** - Secure write-operations to oer index data
-* **project lombok** - Automatically generate code like getter, setter, equals, hashcode,...
-     * Set up your IDE: [https://projectlombok.org/setup/overview](https://projectlombok.org/setup/overview)
-* **modelmapper** - Automatic mapping between DTOs and Entities
-* **swagger** -  design, build, document, and consume RESTful web services
-                                    
-
-
-
-#Rest Api swagger Configuration
+#### Rest API Swagger Configuration
 
 ##### Swagger is an open-source software framework backed by a large ecosystem of tools that helps developers design, build, document, and consume RESTful web services
 
@@ -54,3 +41,13 @@ Backend / API of the OER Search Index. Provides access to the oer index data. Re
           > mvn compile 
           
 
+## Technologies
+
+* **springboot** - The backend is a springboot application, provided as war file
+* **liquibase** - Automatically manage database updates
+* **spring-security** - Secure write-operations to oer index data
+* **project lombok** - Automatically generate code like getter, setter, equals, hashcode,...
+     * Set up your IDE: [https://projectlombok.org/setup/overview](https://projectlombok.org/setup/overview)
+* **modelmapper** - Automatic mapping between DTOs and Entities
+* **swagger** -  design, build, document, and consume RESTful web services
+                                    
