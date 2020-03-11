@@ -1,8 +1,8 @@
 swagger: "2.0"
 info:
-  description: "This is Swagger Documentation for OERSI_BACKEND"
+  description: "This is the Swagger Documentation of the OER Search Index REST API."
   version: "1.0.0"
-  title: "OERSI-BACKEND"
+  title: "OER Search Index REST API"
   termsOfService: " "
   contact:
     email: "edmond.kacaj@tib.eu"
