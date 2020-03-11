@@ -9,7 +9,6 @@ info:
   license:
     name: "Apache 2.0"
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
-host: "localhost:8080"
 basePath: "/api"
 tags:
   - name: "search-Controller"
@@ -17,9 +16,6 @@ tags:
   - name: "metadata-controller"
     description: "Every EndPoint for Metadata Controller"
 
-schemes:
-  - "https"
-  - "http"
 paths:
   /metadata:
     post:
