@@ -118,7 +118,6 @@
 				<groupId>org.liquibase</groupId>
 				<artifactId>liquibase-maven-plugin</artifactId>
 				<version>3.5.5</version>
-				<!-- <version>3.8.6</version> -->
 				<configuration>
 					<!-- NOTE: h2 does not work here! -->
 					<!-- you can setup local mariadb via docker: docker run -e MYSQL_DATABASE=test -e MYSQL_USER=test -e MYSQL_PASSWORD=test -e MYSQL_ROOT_PASSWORD=xxx -p 3306:3306 -d mariadb:10.1 -->
@@ -136,7 +135,6 @@
 						<groupId>org.liquibase.ext</groupId>
 						<artifactId>liquibase-hibernate5</artifactId>
 						<version>3.6</version>
-						<!-- <version>3.8</version> -->
 					</dependency>
 
 					<!-- updated hibernate dependencies for correct handling of LocalDates -->
