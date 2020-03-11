@@ -1,19 +1,24 @@
 package eu.tib.oersi.service;
 
-import eu.tib.oersi.domain.*;
-import eu.tib.oersi.repository.MetadataRepository;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import eu.tib.oersi.domain.Author;
+import eu.tib.oersi.domain.Didactics;
+import eu.tib.oersi.domain.EducationalResource;
+import eu.tib.oersi.domain.Institution;
+import eu.tib.oersi.domain.Metadata;
+import eu.tib.oersi.repository.MetadataRepository;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 @SpringBootTest
 public class MetadataServiceTest {
@@ -63,6 +68,14 @@ public class MetadataServiceTest {
   @Test
   public void testCreateOrUpdateWithoutExistingData() {
     Metadata metadata = newMetadata();
+    service.createOrUpdate(metadata);
+    verify(repository, times(1)).save(metadata);
+  }
+
+  @Test
+  public void testCreateOrUpdateWithoutUrl() {
+    Metadata metadata = newMetadata();
+    metadata.getEducationalResource().setUrl(null);
     service.createOrUpdate(metadata);
     verify(repository, times(1)).save(metadata);
   }
