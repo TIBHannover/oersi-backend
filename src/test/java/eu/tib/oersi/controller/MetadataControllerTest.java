@@ -81,9 +81,9 @@ public class MetadataControllerTest {
     educationalResource.setDescription("description");
     educationalResource.setName("name");
     educationalResource.setSubject("subject");
-    educationalResource.setLicense("license");
+    educationalResource.setLicense("https://creativecommons.org/licenses/by/4.0/deed.de");
     educationalResource.setUrl("http://example.url");
-    educationalResource.setInLanguage("inLanguage");
+    educationalResource.setInLanguage("en");
     educationalResource.setLearningResourceType("learningResourceType");
     metadata.setEducationalResource(educationalResource);
     Institution institution = new Institution();
@@ -126,7 +126,7 @@ public class MetadataControllerTest {
         .content(asJson(metadata)))
         .andExpect(status().isOk())
         .andExpect(content().json(
-            "{\"authors\":[{\"givenName\":\"GivenName\",\"familyName\":\"FamilyName\"}],\"didactics\":{\"audience\":\"audience\",\"educationalUse\":\"educationalUse\",\"interactivityType\":\"interactivityType\",\"timeRequired\":\"timeRequired\"},\"educationalResource\":{\"description\":\"description\",\"inLanguage\":\"inLanguage\",\"learningResourceType\":\"learningResourceType\",\"license\":\"license\",\"name\":\"name\",\"subject\":\"subject\",\"url\":\"http://example.url\"},\"institution\":{\"name\":\"name\"},\"source\":\"TEST\"}"));
+            "{\"authors\":[{\"givenName\":\"GivenName\",\"familyName\":\"FamilyName\"}],\"didactics\":{\"audience\":\"audience\",\"educationalUse\":\"educationalUse\",\"interactivityType\":\"interactivityType\",\"timeRequired\":\"timeRequired\"},\"educationalResource\":{\"description\":\"description\",\"inLanguage\":\"en\",\"learningResourceType\":\"learningResourceType\",\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"name\":\"name\",\"subject\":\"subject\",\"url\":\"http://example.url\"},\"institution\":{\"name\":\"name\"},\"source\":\"TEST\"}"));
   }
 
   @Test
@@ -152,7 +152,7 @@ public class MetadataControllerTest {
         .content(asJson(metadata)))
         .andExpect(status().isOk())
         .andExpect(content().json(
-            "{\"authors\":[{\"givenName\":\"GivenName\",\"familyName\":\"FamilyName\"}],\"didactics\":{\"audience\":\"audience\",\"educationalUse\":\"educationalUse\",\"interactivityType\":\"interactivityType\",\"timeRequired\":\"timeRequired\"},\"educationalResource\":{\"description\":\"description\",\"inLanguage\":\"inLanguage\",\"learningResourceType\":\"learningResourceType\",\"license\":\"license\",\"name\":\"name\",\"subject\":\"subject\",\"url\":\"http://example.url\"},\"institution\":{\"name\":\"name\"},\"source\":\"TEST2\"}"));
+            "{\"authors\":[{\"givenName\":\"GivenName\",\"familyName\":\"FamilyName\"}],\"didactics\":{\"audience\":\"audience\",\"educationalUse\":\"educationalUse\",\"interactivityType\":\"interactivityType\",\"timeRequired\":\"timeRequired\"},\"educationalResource\":{\"description\":\"description\",\"inLanguage\":\"en\",\"learningResourceType\":\"learningResourceType\",\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"name\":\"name\",\"subject\":\"subject\",\"url\":\"http://example.url\"},\"institution\":{\"name\":\"name\"},\"source\":\"TEST2\"}"));
 
     Assert.assertEquals(1, repository.count());
   }

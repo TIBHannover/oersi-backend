@@ -252,31 +252,35 @@ definitions:
         type: "string"
         format: "date-time"
         example: "2017-07-21T17:32:28Z"
+        description: "date on which the educational resource was created"
       dateLastUpdated:
         type: "string"
         format: "date-time"
         example: "2017-07-21T17:32:28Z"
+        description: "date of the last update of the educational resource"
       datePublished:
         type: "string"
         format: "date-time"
         example: "2017-07-21T17:32:28Z"
+        description: "date on which the educational resource was published"
       description:
         type: "string"
-        description: "Long Text "
+        description: "Long Text / abstract"
       identifier:
         type: "string"
-        description: "Identify Number "
+        description: "Identifier of the educational resource. For example DOI / URN"
       inLanguage:
         type: "string"
-        description: "Language "
+        description: "Language code ISO 639-1"
         example: "en"
+        pattern: "^[a-z]{2}$"
       keywords:
         type: "array"
         items:
           type: string
-          description: "Keywoard Name"
+          description: "Keyword Name"
           example: "Math"
-        description: "List Of Keywords "
+        description: "List Of Keywords"
         example: [Math,Sience,Lesson]
       learningResourceType:
         type: "string"
@@ -284,26 +288,24 @@ definitions:
         example: "PDF"
       license:
         type: "string"
-        description: "License "
-      #        example: "PDF"
+        description: "URL of the License. Has to match the pattern '^https://creativecommons.org/(licenses|licences|publicdomain)/.*'"
+        example: "https://creativecommons.org/licenses/by/4.0/deed.de"
+        pattern: '^https://creativecommons.org/(licenses|licences|publicdomain)/.*'
       name:
         type: "string"
-        description: "Name"
-      #        example: "PDF"
+        description: "Title of the educational resource"
       subject:
         type: "string"
-        description: "Subject"
-      #        example: "PDF"
+        description: "Classification of the educational resource"
       thumbnailUrl:
         type: "string"
         description: "Photo URL"
-      #        example: "PDF"
       url:
         type: "string"
-        description: "Url of the educational resource"
+        description: "URL of the educational resource"
       version:
         type: "string"
-        description: "Version"
+        description: "Version of the educational resource"
     required:
       - name
       - subject
@@ -332,7 +334,7 @@ definitions:
       id:
         type: "integer"
         format: "int64"
-        description: "Id Object"
+        description: "internal Id Object"
       authors:
         type: "array"
         items:
@@ -341,6 +343,7 @@ definitions:
         type: "string"
         format: "date-time"
         example: "2017-07-21T17:32:28Z"
+        description: "Last modification date of the object (internal). Will be set internally."
       didactics:
           $ref: '#/definitions/Didactics'
       educationalResource:
@@ -349,6 +352,8 @@ definitions:
           $ref: '#/definitions/Institution'
       source:
         type: "string"
+        description: "Identifies the source of this resource"
+        example: "OERNDS"
     required:
       - authors
       - educationalResource
