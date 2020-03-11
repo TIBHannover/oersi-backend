@@ -36,7 +36,7 @@ Backend / API of the OER Search Index. Provides access to the oer index data. Re
  
     *  **Yam fIle is in :**
             
-            > ./src/main/resorces/model/api2.yaml
+          > ./src/main/resorces/model/api2.yaml
 
     *  **After each time the yaml file is changed , need to run the command**
           
