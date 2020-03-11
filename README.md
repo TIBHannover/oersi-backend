@@ -25,7 +25,7 @@ Backend / API of the OER Search Index. Provides access to the oer index data. Re
 
 * Read-Access to the index data via _SearchController_ **/api/search**
 * CRUD-operations via _MetadataController_ **/api/metadata**
-* The documentation of the API can be found at [APP-BASE-URL/swagger-ui.html](http://YOUR-HOST:YOUR-PORT/YOUR-APP-ROOT/swagger-ui.html)
+* The documentation of the API can be found at _http://<YOUR-HOST>/<YOUR-APP-ROOT>/swagger-ui.html_
     * use [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) for an application started with ``mvn spring-boot:run``
 
 ### Rest API Swagger Configuration
