@@ -25,20 +25,22 @@ Backend / API of the OER Search Index. Provides access to the oer index data. Re
 
 * Read-Access to the index data via _SearchController_ **/api/search**
 * CRUD-operations via _MetadataController_ **/api/metadata**
+* The documentation of the API can be found at [http://<your-host>:<your-port>/<your-app-root>/swagger-ui.html](http://<your-host>:<your-port>/<your-app-root>/swagger-ui.html)
+    * use [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) for an application started with ``mvn spring-boot:run``
 
-#### Rest API Swagger Configuration
+### Rest API Swagger Configuration
 
-##### Swagger is an open-source software framework backed by a large ecosystem of tools that helps developers design, build, document, and consume RESTful web services
+* Swagger is an open-source software framework backed by a large ecosystem of tools that helps developers design, build, document, and consume RESTful web services
 
-##### Swagger Generate DTO (Model) and Controller , so if you want to modify , or create a new one (Model or Controller ), add in **Yaml**  
-##### 
- *  **Yam fIle is in :**
-      
-          > ./src/main/resorces/model/api2.yaml 
+* Swagger Generate DTO (Model) and Controller , so if you want to modify , or create a new one (Model or Controller ), add in **Yaml**  
+ 
+    *  **Yam fIle is in :**
+            
+            > ./src/main/resorces/model/api2.yaml
 
-*  **After each time the yaml file is changed , need to run the command**
+    *  **After each time the yaml file is changed , need to run the command**
           
-          > mvn compile 
+          > mvn compile
           
 
 ## Technologies
