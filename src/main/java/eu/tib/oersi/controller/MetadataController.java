@@ -6,7 +6,6 @@ import eu.tib.oersi.dto.MetadataDto;
 import eu.tib.oersi.service.MetadataService;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,11 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class MetadataController implements MetadataControllerApi {
 
-  @Autowired
-  private MetadataService metadataService;
+  private final MetadataService metadataService;
 
-  @Autowired
-  private ModelMapper modelMapper;
+  private final ModelMapper modelMapper;
+
+  public MetadataController(MetadataService metadataService, ModelMapper modelMapper) {
+    this.metadataService = metadataService;
+    this.modelMapper = modelMapper;
+  }
 
   private Metadata convertToEntity(final MetadataDto dto) {
     return modelMapper.map(dto, Metadata.class);
