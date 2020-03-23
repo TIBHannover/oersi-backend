@@ -1,28 +1,23 @@
 package eu.tib.oersi.controller;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Base64;
-import javax.servlet.http.HttpServletRequest;
+import eu.tib.oersi.api.SearchControllerApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.HandlerMapping;
+
+import javax.servlet.http.HttpServletRequest;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Base64;
 
 /**
  * Controller that handles search requests to the OER index.
@@ -31,17 +26,15 @@ import org.springframework.web.servlet.HandlerMapping;
  * </p>
  */
 @RestController
-@RequestMapping(value = SearchController.BASE_PATH)
 @PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
-public class SearchController {
+public class SearchController implements SearchControllerApi {
 
   private static final Logger LOG = LoggerFactory.getLogger(SearchController.class);
 
   /** base path of the search controller */
   public static final String BASE_PATH = "/api/search";
 
-  @Autowired
-  private RestTemplate restTemplate;
+  private final RestTemplate restTemplate;
 
   @Value("${elasticsearch.scheme}")
   private String elasticsearchScheme;
@@ -52,39 +45,44 @@ public class SearchController {
   @Value("${elasticsearch.port}")
   private int elasticsearchPort;
 
-  @Value("${elasticsearch.basepath}")
+  @Value("${elasticsearch.base-path}")
   private String elasticsearchBasePath;
 
-  @Value("${elasticsearch.oersi_viewer_username}")
+  @Value("${elasticsearch.oer-si_viewer_username}")
   private String elasticsearchUser;
 
-  @Value("${elasticsearch.oersi_viewer_password}")
+  @Value("${elasticsearch.oer-si_viewer_password}")
   private String elasticsearchPassword;
+
+  private final HttpServletRequest request;
+
+  @Autowired
+  public SearchController(HttpServletRequest httpServletRequest, RestTemplate restTemplate) {
+    this.request = httpServletRequest;
+    this.restTemplate = restTemplate;
+  }
+
 
   /**
    * Perform the given GET-request on the configured elasticsearch instance with the configured oer-readonly-user.
    *
    * @param body body of the request
-   * @param request request
-   * @return response from elasticsearch
+   * @return response from elasticsearch.
    */
-  @GetMapping("/**")
-  public ResponseEntity<String> processElasticsearchGetRequest(
-      @RequestBody(required = false) final String body, final HttpServletRequest request) {
-    return processElasticsearchRequest(body, HttpMethod.GET, request);
+  @Override
+  public ResponseEntity<String> processElasticsearchGetRequest(final Object body) {
+    return processElasticsearchRequest(body.toString(), HttpMethod.GET, this.request);
   }
 
   /**
    * Perform the given POST-request on the configured elasticsearch instance with the configured oer-readonly-user.
    *
    * @param body body of the request
-   * @param request request
-   * @return response from elasticsearch
+   * @return response from elasticsearch.
    */
-  @PostMapping("/**")
-  public ResponseEntity<String> processElasticsearchPostRequest(@RequestBody final String body,
-      final HttpServletRequest request) {
-    return processElasticsearchRequest(body, HttpMethod.POST, request);
+  @Override
+  public ResponseEntity<String> processElasticsearchPostRequest(@RequestBody final String body) {
+    return processElasticsearchRequest(body, HttpMethod.POST,this.request);
   }
 
   private ResponseEntity<String> processElasticsearchRequest(final String body,
@@ -128,9 +126,9 @@ public class SearchController {
   }
 
   private String getOerViewerBase64Credentials() {
-    String plainCreds = elasticsearchUser + ":" + elasticsearchPassword;
-    byte[] plainCredsBytes = plainCreds.getBytes();
-    return Base64.getEncoder().encodeToString(plainCredsBytes);
+    String plainCred = elasticsearchUser + ":" + elasticsearchPassword;
+    byte[] plainCredBytes = plainCred.getBytes();
+    return Base64.getEncoder().encodeToString(plainCredBytes);
   }
 
 }
