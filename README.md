@@ -6,7 +6,7 @@ Backend / API of the OER Search Index. Provides access to the oer index data. Re
 
 * Set up the configuration directory
     * _logback.xml_ - Logging-configuration
-    * oersi.properties_ - configuration of the application
+    * _oersi.properties_ - configuration of the application
     * see example in _envConf/default_
 
 * set configuration directory with _envConfigDir=PATH_
