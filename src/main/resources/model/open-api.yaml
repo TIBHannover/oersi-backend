@@ -1,0 +1,418 @@
+openapi: 3.0.0
+## Description Part
+info:
+  description: This is the Swagger Documentation of the OER Search Index REST API.
+  version: "1.1"
+  title: OER Search Index REST API
+  termsOfService: ''
+  contact:
+    email: edmond.kacaj@tib.eu
+  license:
+    name: MIT License
+    url: 'https://opensource.org/licenses/MIT'
+tags:
+  - name: search-controller
+    description: "Every EndPoint for Search Controller "
+  - name: metadata-controller
+    description: "Every EndPoint for Metadata Controller"
+## End Description Part
+## SERVER  PART
+servers:
+  - url: 'http://localhost:8080/api/'
+    description: "localhost server work when run the project"
+  - url: 'http://example-test/'
+    description: "example test server"
+  - url: 'http://example-prod/'
+    description: "example production server"
+## End Server Part
+## Path Part
+paths:
+  /api/metadata:
+    post:
+      tags:
+        - metadata-controller
+      summary: 'Create or Update '
+      description: 'With this end-point we can create or update  Metadata '
+      operationId: createOrUpdate
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Metadata'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Metadata'
+        description: 'Metadata Object needs to be added   '
+        required: true
+      security:
+        - basicAuth: []
+  '/api/metadata/{id}':
+    put:
+      tags:
+        - metadata-controller
+      summary: Update an existing Metadata
+      description: 'With this end-point we can  update an existing  Metadata '
+      operationId: update
+      parameters:
+        - name: id
+          in: path
+          description: Id to update Metadata
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Metadata'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Metadata'
+        description: 'Metadata Object needs to be added '
+        required: true
+      security:
+        - basicAuth: []
+    delete:
+      tags:
+        - metadata-controller
+      summary: Delete metadata by ID
+      description: >-
+        For valid response try integer IDs with positive integer value.
+        Negative or non-integer values will generate API errors
+      operationId: delete
+      parameters:
+        - name: id
+          in: path
+          description: ID of the metadata that needs to be deleted
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Metadata'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    get:
+      tags:
+        - metadata-controller
+      summary: Find Metadata by Id
+      description: With this end-point we can  get by Id  an existing  Metadata
+      operationId: findById
+      parameters:
+        - name: id
+          in: path
+          description: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Metadata'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      security:
+        - basicAuth: []
+  /api/search/**:
+    post:
+      tags:
+        - search-controller
+      summary: Find Metadata by Id
+      description: With this end-point we can search in Elastic Search
+      operationId: processElasticsearchPostRequest
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+                description: "Here can be the JSON schema from Elastic Search"
+                example: "Dynamic JSON come from ElasticSearch"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              default: |
+                {
+                  "query": {
+                    "match_all": {}
+                  }
+                }
+              example: |
+                {
+                  "query": {
+                    "match_all": {}
+                  }
+                }
+        description: 'Json String '
+  '/api/search/**/':
+    get:
+      tags:
+        - search-controller
+      summary: Find Metadata by Id
+      description: With this end-point we can search in Elastic Search
+      operationId: processElasticsearchGetRequest
+      parameters:
+        - in: query
+          name: params
+          required: true
+          schema:
+            type: object
+            description: >-
+              can be any elasticSearch params
+            default: '{\"size\": 10,\"pretty\":true}'
+          style: form
+          explode: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "don't have an example, because come dynamic by elasticsearch"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+## End Path Part
+## External Part
+externalDocs:
+  description: Find out more about Swagger
+  url: 'http://swagger.io'
+## End External Part
+## Components Part
+components:
+  securitySchemes:
+    bearerAuth:            # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+    basicAuth:     # <-- arbitrary name for the security scheme
+      type: http
+      scheme: basic
+  schemas:
+    Author:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: internal Id of Author
+        orcid:
+          type: string
+          description: Open Researcher and Contributor ID
+        gnd:
+          type: string
+          description: 'Integrated Authority File (German: Gemeinsame Normdatei)'
+        givenName:
+          type: string
+          description: First Name
+        familyName:
+          type: string
+          description: Family Name
+      required:
+        - givenName
+        - familyName
+    Didactics:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: internal Id Object
+        audience:
+          type: string
+          description: Audience / interactivity level
+        educationalUse:
+          type: string
+          description: Educational use / interactivity type
+        interactivityType:
+          type: string
+          description: interactivity Type / educational description
+        timeRequired:
+          type: string
+          description: Time Required / typical learning time
+      required:
+        - audience
+        - educationalUse
+        - interactivityType
+        - timeRequired
+    EducationalResource:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: internal Id
+        dateCreated:
+          type: string
+          format: date-time
+          example: '2017-07-21T17:32:28Z'
+          description: date on which the educational resource was created
+        dateLastUpdated:
+          type: string
+          format: date-time
+          example: '2017-07-21T17:32:28Z'
+          description: date of the last update of the educational resource
+        datePublished:
+          type: string
+          format: date-time
+          example: '2017-07-21T17:32:28Z'
+          description: date on which the educational resource was published
+        description:
+          type: string
+          description: Long Text / abstract
+        identifier:
+          type: string
+          description: Identifier of the educational resource. For example DOI / URN
+        inLanguage:
+          type: string
+          description: Language code ISO 639-1
+          example: en
+          pattern: '^[a-z]{2}$'
+        keywords:
+          type: array
+          items:
+            type: string
+            description: Keyword Name
+            example: Math
+          description: List Of Keywords
+          example:
+            - Math
+            - Sience
+            - Lesson
+        learningResourceType:
+          type: string
+          description: Learning Type
+          example: PDF
+        license:
+          type: string
+          description: >-
+            URL of the License. Has to match the pattern
+            '^https://creativecommons.org/(licenses|licences|publicdomain)/.*'
+          example: 'https://creativecommons.org/licenses/by/4.0/deed.de'
+          pattern: '^https://creativecommons.org/(licenses|licences|publicdomain)/.*'
+        name:
+          type: string
+          description: Title of the educational resource
+        subject:
+          type: string
+          description: Classification of the educational resource
+        thumbnailUrl:
+          type: string
+          description: Photo URL
+        url:
+          type: string
+          description: URL of the educational resource
+        version:
+          type: string
+          description: Version of the educational resource
+      required:
+        - name
+        - subject
+        - license
+        - url
+        - inLanguage
+        - learningResourceType
+    Institution:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: internal Id Object
+        name:
+          type: string
+          description: name of the institution
+        ror:
+          type: string
+          description: >-
+            unique identifier for research organization (Research Organization
+            Registry)
+    Metadata:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: internal Id Object
+        authors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Author'
+        dateModifiedInternal:
+          type: string
+          format: date-time
+          example: '2017-07-21T17:32:28Z'
+          description: >-
+            Last modification date of the object (internal). Will be set
+            internally.
+        didactics:
+          $ref: '#/components/schemas/Didactics'
+        educationalResource:
+          $ref: '#/components/schemas/EducationalResource'
+        institution:
+          $ref: '#/components/schemas/Institution'
+        source:
+          type: string
+          description: Identifies the source of this resource
+          example: OERNDS
+      required:
+        - authors
+        - educationalResource
+        - source
+## End Components Part
+## Security Part Gobal
+# security:
+# - basicAuth: []
+## End Security Part
