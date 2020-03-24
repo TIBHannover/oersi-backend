@@ -1,23 +1,27 @@
 package eu.tib.oersi.controller;
 
 import eu.tib.oersi.api.SearchControllerApi;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Base64;
+import javax.servlet.http.HttpServletRequest;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.HandlerMapping;
-
-import javax.servlet.http.HttpServletRequest;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Base64;
 
 /**
  * Controller that handles search requests to the OER index.
@@ -27,14 +31,16 @@ import java.util.Base64;
  */
 @RestController
 @PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
+@Slf4j
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class SearchController implements SearchControllerApi {
-
-  private static final Logger LOG = LoggerFactory.getLogger(SearchController.class);
 
   /** base path of the search controller */
   public static final String BASE_PATH = "/api/search";
 
-  private final RestTemplate restTemplate;
+  private final @NonNull RestTemplate restTemplate;
+
+  private final @NonNull HttpServletRequest request;
 
   @Value("${elasticsearch.scheme}")
   private String elasticsearchScheme;
@@ -53,15 +59,6 @@ public class SearchController implements SearchControllerApi {
 
   @Value("${elasticsearch.oer-si_viewer_password}")
   private String elasticsearchPassword;
-
-  private final HttpServletRequest request;
-
-  @Autowired
-  public SearchController(HttpServletRequest httpServletRequest, RestTemplate restTemplate) {
-    this.request = httpServletRequest;
-    this.restTemplate = restTemplate;
-  }
-
 
   /**
    * Perform the given GET-request on the configured elasticsearch instance with the configured oer-readonly-user.
@@ -82,7 +79,7 @@ public class SearchController implements SearchControllerApi {
    */
   @Override
   public ResponseEntity<String> processElasticsearchPostRequest(@RequestBody final String body) {
-    return processElasticsearchRequest(body, HttpMethod.POST,this.request);
+    return processElasticsearchRequest(body, HttpMethod.POST, this.request);
   }
 
   private ResponseEntity<String> processElasticsearchRequest(final String body,
@@ -91,17 +88,17 @@ public class SearchController implements SearchControllerApi {
       URI uri = buildElasticsearchUri(request);
       HttpHeaders headers = buildElasticsearchHeaders();
       HttpEntity<String> entity = new HttpEntity<>(body, headers);
-      LOG.debug("process elasticsearch {}-request to {}", method, uri);
+      log.debug("process elasticsearch {}-request to {}", method, uri);
 
       return restTemplate.exchange(uri, method, entity, String.class);
     } catch (URISyntaxException e) {
-      LOG.error("error while building the elasticsearch URI", e);
+      log.error("error while building the elasticsearch URI", e);
       return new ResponseEntity<>("invalid URI", HttpStatus.INTERNAL_SERVER_ERROR);
     } catch (HttpStatusCodeException e) {
       return new ResponseEntity<>("elasticsearch request failed: " + e.getStatusText(), e
           .getStatusCode());
     } catch (RestClientException e) {
-      LOG.error("error while executing request to elasticsearch", e);
+      log.error("error while executing request to elasticsearch", e);
       return new ResponseEntity<>("elasticsearch request failed: " + e.getMessage(),
           HttpStatus.INTERNAL_SERVER_ERROR);
     }
