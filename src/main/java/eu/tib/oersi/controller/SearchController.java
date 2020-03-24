@@ -65,13 +65,12 @@ public class SearchController implements SearchControllerApi {
 
   /**
    * Perform the given GET-request on the configured elasticsearch instance with the configured oer-readonly-user.
-   *
-   * @param body body of the request
+   * @param params List of parameters
    * @return response from elasticsearch.
    */
   @Override
-  public ResponseEntity<String> processElasticsearchGetRequest(final Object body) {
-    return processElasticsearchRequest(body.toString(), HttpMethod.GET, this.request);
+  public ResponseEntity<String> processElasticsearchGetRequest(final Object params) {
+    return processElasticsearchRequest(params.toString(), HttpMethod.GET, this.request);
   }
 
   /**
@@ -85,6 +84,12 @@ public class SearchController implements SearchControllerApi {
     return processElasticsearchRequest(body, HttpMethod.POST,this.request);
   }
 
+  /**
+   * @param body request come from POST/GET
+   * @param method POST/GET
+   * @param request HttpServletRequest
+   * @return response from elastic search
+   */
   private ResponseEntity<String> processElasticsearchRequest(final String body,
       final HttpMethod method, final HttpServletRequest request) {
     try {
@@ -109,8 +114,11 @@ public class SearchController implements SearchControllerApi {
 
   private URI buildElasticsearchUri(final HttpServletRequest originalRequest)
       throws URISyntaxException {
-    final String originalPath = (String) originalRequest.getAttribute(
+     String originalPath = (String) originalRequest.getAttribute(
         HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
+    // only for testing from swagger-ui
+     if (originalPath.contains("**")) originalPath=originalPath.replace("**","_search");
+
     String requestPath = originalPath.substring(originalPath.indexOf(BASE_PATH) + BASE_PATH
         .length());
     String path = elasticsearchBasePath + requestPath;

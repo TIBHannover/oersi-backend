@@ -52,7 +52,6 @@
 			<artifactId>modelmapper</artifactId>
 			<version>2.3.6</version>
 		</dependency>
-
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
@@ -104,8 +103,11 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 		</dependency>
-
-
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>1.2.32</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -136,7 +138,6 @@
 						<artifactId>liquibase-hibernate5</artifactId>
 						<version>3.6</version>
 					</dependency>
-
 					<!-- updated hibernate dependencies for correct handling of LocalDates -->
 					<dependency>
 						<groupId>org.hibernate</groupId>
@@ -187,32 +188,34 @@
 						</goals>
 						<configuration>
 							<sources>
-								<source>${project.build.directory}/generated-sources/swagger</source>
+								<source>${project.build.directory}/generated-sources/open-api</source>
 							</sources>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>io.swagger</groupId>
-				<artifactId>swagger-codegen-maven-plugin</artifactId>
-				<version>2.4.12</version>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
+				<version>3.3.4</version>
 				<executions>
 					<execution>
-						<id>generate-Api-V2</id>
+						<id>generate-Api-V3</id>
 						<goals>
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputSpec>${project.basedir}/src/main/resources/model/api2.yaml</inputSpec>
-							<language>spring</language>
-							<generateSupportingFiles>false</generateSupportingFiles>
-							<invokerPackage>entities</invokerPackage>
+							<inputSpec>${project.basedir}/src/main/resources/model/open-api.yaml</inputSpec>
+							<generatorName>spring</generatorName>
+							<library>spring-boot</library>
+							<generateSupportingFiles>true</generateSupportingFiles>
 							<apiPackage>eu.tib.oersi.api</apiPackage>
-							<modelPackage>eu.tib.oersi.dto</modelPackage>
+							<modelPackage>eu.tib.oersi</modelPackage>
 							<modelNameSuffix>Dto</modelNameSuffix>
+							<invokerPackage>entity</invokerPackage>
 							<configOptions>
-								<sourceFolder>/</sourceFolder>
+								<sourceFolder>java</sourceFolder>
+								<library>spring-boot</library>
 								<java8>true</java8>
 								<interfaceOnly>true</interfaceOnly>
 								<delegatePattern>true</delegatePattern>

@@ -1,20 +1,19 @@
 package eu.tib.oersi.config;
 
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.service.ApiInfo;
-import springfox.documentation.service.Contact;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SuppressWarnings("SpellCheckingInspection")
-@EnableSwagger2
 @PropertySource("classpath:swagger.properties")
 @ComponentScan(basePackages = "eu.tib.oersi")
 @Configuration
@@ -37,24 +36,26 @@ public class SwaggerConfiguration {
     private  String authorUrl ;
 
 
-    private ApiInfo apiInfo() {
-        return new ApiInfoBuilder()
+    private Info apiInfo() {
+        return new Info()
                 .title(this.title)
                 .description(this.description)
-                .license(licenseText)
-                .licenseUrl(this.licenseUrl)
+                .license(new License().name(licenseText).url(this.licenseUrl))
                 .version(this.swaggerApiVersion)
-                .contact(new Contact(this.authorName,this.authorUrl,this.authorEmail))
-                .build();
+                .termsOfService("")
+                .contact(new Contact()
+                          .name(this.authorName)
+                          .email(this.authorEmail)
+                          .url(this.authorUrl));
     }
 
     @Bean
-    public Docket productsApi() {
-        return new Docket(DocumentationType.SWAGGER_2)
-                .apiInfo(apiInfo())
-                .pathMapping("/")
-                .select()
-                .paths(PathSelectors.regex("/api.*"))
-                .build();
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+                .components(new Components().addSecuritySchemes("basicScheme",
+                        new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("basic")))
+                .info(apiInfo());
     }
+
+
 }

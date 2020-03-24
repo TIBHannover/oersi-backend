@@ -1,8 +1,8 @@
 package eu.tib.oersi.controller;
 
+import eu.tib.oersi.MetadataDto;
 import eu.tib.oersi.api.MetadataControllerApi;
 import eu.tib.oersi.domain.Metadata;
-import eu.tib.oersi.dto.MetadataDto;
 import eu.tib.oersi.service.MetadataService;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
 /**
  * Controller that handles crud requests to the OER index.
  */
@@ -49,6 +48,10 @@ public class MetadataController implements MetadataControllerApi {
     return ResponseEntity.ok(convertToDto(metadata));
   }
 
+  /**
+   * @param id
+   * @return MetadataDto
+   */
   private ResponseEntity<MetadataDto> getResponseForNonExistingData(final Long id) {
     log.debug("Metadata with id {} does not exist!", id);
     return ResponseEntity.badRequest().build();

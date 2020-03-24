@@ -10,12 +10,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.tib.oersi.MetadataDto;
 import eu.tib.oersi.domain.Author;
 import eu.tib.oersi.domain.Didactics;
 import eu.tib.oersi.domain.EducationalResource;
 import eu.tib.oersi.domain.Institution;
 import eu.tib.oersi.domain.Metadata;
-import eu.tib.oersi.dto.MetadataDto;
 import eu.tib.oersi.repository.MetadataRepository;
 import java.time.LocalDateTime;
 import java.util.Arrays;
