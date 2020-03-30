@@ -45,14 +45,15 @@ public class SearchController implements SearchControllerApi {
   @Value("${elasticsearch.port}")
   private int elasticsearchPort;
 
-  @Value("${elasticsearch.base-path}")
+  @Value("${elasticsearch.basepath}")
   private String elasticsearchBasePath;
 
-  @Value("${elasticsearch.oer-si_viewer_username}")
+  @Value("${elasticsearch.oersi_viewer_username}")
   private String elasticsearchUser;
 
-  @Value("${elasticsearch.oer-si_viewer_password}")
+  @Value("${elasticsearch.oersi_viewer_password}")
   private String elasticsearchPassword;
+
 
   private final HttpServletRequest request;
 
