@@ -139,23 +139,62 @@ paths:
       tags:
         - "search-controller"
       summary: "Find Metadata by Id"
-      description: "With this end-point we can search in Elastic Search"
+      description: |
+        **Request Body Search**
+        <br/><br/>
+        **Specifies search criteria as request body parameters.**
+        <br/><br/>
+        <em>The search request can be executed with a search DSL, which includes the [Query DSL](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html), within its body.g.</em>
+        <br/><br/>
+        **Example**
+        <br/><br/>
+          **Request**
+         ```
+           GET /<index>/_search
+            {
+              "query": {<parameters>}
+            }
+         ```
+        <br/><br/>
+        Form more info about Request Body Search you can find here [Request Body Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html#search-request-body).
+
       operationId: "processElasticsearchPostRequest"
       produces:
         - "application/json"
       parameters:
-        - name: Json String
+        - name: body
           in: body
-          description: "Json type String "
+          description: |
+            **Elastic Search**
+            <br/>
+            **Schema Example**
+            <br/>
+             Example Show all
+             <br/><br/>
+              ```
+               {
+                 "query": {
+                   "match_all": {}
+                 }
+              }
+              ```
+
           required: false
           schema:
             type: string
+            example: '{"query": {"match_all": {}}}'
 
       responses:
         '200':
-          description: OK
+          description: |
+            **Elastic Search Json Object**
+            <br/>
+            **This is a dynamic JSON come from elastic search**
+            <br/>
+            **Don't have a default Schema. Is a String**
           schema:
             type: string
+            example: "Dynamic JSON String come from ElasticSearch "
         '201':
           description: Created
         '401':
@@ -164,33 +203,49 @@ paths:
           description: Forbidden
         '404':
           description: Not Found
-  /search/**/{id}:
+  /search/**/?{params}:
     get:
       tags:
         - "search-controller"
-      summary: "Find Metadata by Id"
-      description: "With this end-point we can search in Elastic Search"
+      summary: "Find Metadata by params "
+      description:  |
+        **URI Search**
+        <br/><br/>
+        **Specifies search criteria as query parameters in the request URI.**
+        <br/><br/>
+        <em>You can use query parameters to define your search criteria directly in the request URI, rather than in the request body. Request URI searches do not support the full Elasticsearch Query DSL, but are handy for testing.</em>
+        <br/><br/>
+         **Example:**
+         <br/><br/>
+          **Request:**
+         ```
+         GET /<index>/_search?q=<parameter>
+         ```
+        <br/><br/>
+        Form more info about URI Search you can find here [URI Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-uri-request.html).
+
       operationId: "processElasticsearchGetRequest"
       produces:
         - "application/json"
       parameters:
-        - in: path
-          name: id
+        - name: "params"
+          in: "path"
+          description: "e.g size=1000&pretty=true"
           required: true
-          schema:
-            type: array
-            items:
-              type: integer
-            minItems: 1
-          style: form
-          explode: true
+          type: "string"
+          default: "size=1000&pretty=true"
+          collectionFormat: "csv"
       responses:
         '200':
-          description: OK
+          description: |
+            **Elastic Search Json Object**
+            <br/>
+            **This is a dynamic JSON come from elastic search**
+            <br/>
+             **Don't have a default Schema. Is a String**
           schema:
             type: string
-        '201':
-          description: Created
+            example: "Dynamic JSON String come from ElasticSearch "
         '401':
           description: Unauthorized
         '403':
@@ -351,11 +406,11 @@ definitions:
         example: "2017-07-21T17:32:28Z"
         description: "Last modification date of the object (internal). Will be set internally."
       didactics:
-          $ref: '#/definitions/Didactics'
+        $ref: '#/definitions/Didactics'
       educationalResource:
-          $ref: '#/definitions/EducationalResource'
+        $ref: '#/definitions/EducationalResource'
       institution:
-          $ref: '#/definitions/Institution'
+        $ref: '#/definitions/Institution'
       source:
         type: "string"
         description: "Identifies the source of this resource"
