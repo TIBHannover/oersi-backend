@@ -67,8 +67,8 @@ public class SearchController implements SearchControllerApi {
    * @return response from elasticsearch.
    */
   @Override
-  public ResponseEntity<String> processElasticsearchGetRequest(final Object body) {
-    return processElasticsearchRequest(body.toString(), HttpMethod.GET, this.request);
+  public ResponseEntity<String> processElasticsearchGetRequest(final String body) {
+    return processElasticsearchRequest(body, HttpMethod.GET, this.request);
   }
 
   /**
