@@ -26,7 +26,8 @@ import org.springframework.web.servlet.HandlerMapping;
 /**
  * Controller that handles search requests to the OER index.
  * <p>
- * The request will be forwarded to the configured elasticsearch instance with the oer-readonly-user.
+ * The request will be forwarded to the configured elasticsearch instance with the
+ * oer-readonly-user.
  * </p>
  */
 @RestController
@@ -61,7 +62,8 @@ public class SearchController implements SearchControllerApi {
   private String elasticsearchPassword;
 
   /**
-   * Perform the given GET-request on the configured elasticsearch instance with the configured oer-readonly-user.
+   * Perform the given GET-request on the configured elasticsearch instance with the configured
+   * oer-readonly-user.
    *
    * @param body body of the request
    * @return response from elasticsearch.
@@ -72,7 +74,8 @@ public class SearchController implements SearchControllerApi {
   }
 
   /**
-   * Perform the given POST-request on the configured elasticsearch instance with the configured oer-readonly-user.
+   * Perform the given POST-request on the configured elasticsearch instance with the configured
+   * oer-readonly-user.
    *
    * @param body body of the request
    * @return response from elasticsearch.
@@ -95,8 +98,8 @@ public class SearchController implements SearchControllerApi {
       log.error("error while building the elasticsearch URI", e);
       return new ResponseEntity<>("invalid URI", HttpStatus.INTERNAL_SERVER_ERROR);
     } catch (HttpStatusCodeException e) {
-      return new ResponseEntity<>("elasticsearch request failed: " + e.getStatusText(), e
-          .getStatusCode());
+      return new ResponseEntity<>("elasticsearch request failed: " + e.getStatusText(),
+          e.getStatusCode());
     } catch (RestClientException e) {
       log.error("error while executing request to elasticsearch", e);
       return new ResponseEntity<>("elasticsearch request failed: " + e.getMessage(),
@@ -106,10 +109,10 @@ public class SearchController implements SearchControllerApi {
 
   private URI buildElasticsearchUri(final HttpServletRequest originalRequest)
       throws URISyntaxException {
-    final String originalPath = (String) originalRequest.getAttribute(
-        HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
-    String requestPath = originalPath.substring(originalPath.indexOf(BASE_PATH) + BASE_PATH
-        .length());
+    final String originalPath =
+        (String) originalRequest.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
+    String requestPath =
+        originalPath.substring(originalPath.indexOf(BASE_PATH) + BASE_PATH.length());
     String path = elasticsearchBasePath + requestPath;
     return new URI(elasticsearchScheme, null, elasticsearchHost, elasticsearchPort, path,
         originalRequest.getQueryString(), null);

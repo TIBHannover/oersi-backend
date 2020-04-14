@@ -34,6 +34,7 @@ public class MetadataServiceImpl implements MetadataService {
 
   /**
    * Find an existing {@link Metadata} that matches the given {@link Metadata}.
+   *
    * @param metadata existing data has to match this data
    * @return existing data or null, if not existing
    */
@@ -42,8 +43,8 @@ public class MetadataServiceImpl implements MetadataService {
     if (existingMetadata == null) {
       String url = metadata.getEducationalResource().getUrl();
       if (url != null) {
-        List<Metadata> metadataMatchingUrl = oerMeatadataRepository.findByEducationalResourceUrl(
-            url);
+        List<Metadata> metadataMatchingUrl =
+            oerMeatadataRepository.findByEducationalResourceUrl(url);
         if (!metadataMatchingUrl.isEmpty()) {
           existingMetadata = metadataMatchingUrl.get(0);
         }

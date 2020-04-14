@@ -36,6 +36,7 @@ public class MetadataController implements MetadataControllerApi {
 
   /**
    * Retrieve the {@link Metadata} with the given id.
+   *
    * @param id id of the data
    * @return data
    */
@@ -55,6 +56,7 @@ public class MetadataController implements MetadataControllerApi {
 
   /**
    * Create or update an {@link Metadata}
+   *
    * @param metadataDto data to create or update
    * @return response
    */
@@ -67,6 +69,7 @@ public class MetadataController implements MetadataControllerApi {
 
   /**
    * Update an {@link Metadata}.
+   *
    * @param id id of the data
    * @param metadataDto data to update
    * @return response
@@ -88,6 +91,7 @@ public class MetadataController implements MetadataControllerApi {
 
   /**
    * Delete an {@link Metadata}.
+   *
    * @param id id of the data to delete
    * @return response
    */
