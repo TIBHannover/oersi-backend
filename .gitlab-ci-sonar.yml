@@ -1,7 +1,7 @@
 .sonar_job:
   stage: test
   image: maven:3-jdk-11-slim
-  script: "echo '${SONAR_ADDITIONAL_OPTIONS}'"
+  script: echo ${SONAR_ADDITIONAL_OPTIONS}
  # script: "mvn --batch-mode clean org.jacoco:jacoco-maven-plugin:prepare-agent verify org.jacoco:jacoco-maven-plugin:report sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=tibhannover -Dsonar.login=${SONAR_LOGIN} -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository ${SONAR_ADDITIONAL_OPTIONS}"
   cache:
     paths:
