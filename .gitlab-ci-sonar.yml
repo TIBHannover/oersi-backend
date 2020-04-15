@@ -1,12 +1,28 @@
-sonar:
+.sonar_job:
   stage: test
   image: maven:3-jdk-11-slim
-  script: "mvn --batch-mode clean org.jacoco:jacoco-maven-plugin:prepare-agent verify org.jacoco:jacoco-maven-plugin:report sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=tibhannover -Dsonar.login=${SONAR_LOGIN} -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  script: "mvn --batch-mode clean org.jacoco:jacoco-maven-plugin:prepare-agent verify org.jacoco:jacoco-maven-plugin:report sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=tibhannover -Dsonar.login=${SONAR_LOGIN} -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository ${SONAR_ADDITIONAL_OPTIONS}"
   cache:
     paths:
     - .m2/repository
+    
+sonar master:
+  variables:
+    SONAR_ADDITIONAL_OPTIONS: ""
+  extends: .sonar_job
   only:
     - master
+
+sonar long living branches:
+  variables:
+    SONAR_ADDITIONAL_OPTIONS: "-Dsonar.branch.name=${CI_COMMIT_BRANCH}"
+  extends: .sonar_job
+  only:
     - develop
 
-    
+sonar merge requests:
+  variables:
+    SONAR_ADDITIONAL_OPTIONS: "-Dsonar.branch.name=${CI_COMMIT_BRANCH} -Dsonar.branch.target=${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
+  extends: .sonar_job
+  only:
+    - merge_requests
