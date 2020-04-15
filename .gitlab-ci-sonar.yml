@@ -23,7 +23,7 @@ sonar long living branches:
 
 sonar merge requests:
   variables:
-    SONAR_ADDITIONAL_OPTIONS: "-Dsonar.branch.name=${CI_COMMIT_BRANCH} -Dsonar.branch.target=${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
+    SONAR_ADDITIONAL_OPTIONS: "-Dsonar.branch.name=${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME} -Dsonar.branch.target=${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
   extends: .sonar_job
   only:
     - merge_requests
