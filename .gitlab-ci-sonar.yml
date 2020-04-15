@@ -7,5 +7,6 @@ sonar:
     - .m2/repository
   only:
     - master
+    - develop
 
     
