@@ -1,5 +1,6 @@
 package eu.tib.oersi.controller;
 
+import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -8,8 +9,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import eu.tib.oersi.domain.Author;
 import eu.tib.oersi.domain.Didactics;
 import eu.tib.oersi.domain.EducationalResource;
@@ -17,7 +23,11 @@ import eu.tib.oersi.domain.Institution;
 import eu.tib.oersi.domain.Metadata;
 import eu.tib.oersi.dto.MetadataDto;
 import eu.tib.oersi.repository.MetadataRepository;
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
@@ -58,6 +68,16 @@ public class MetadataControllerTest {
 
   public static String asJson(final Object obj) throws JsonProcessingException {
     ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.registerModule(new JavaTimeModule());
+    SimpleModule simpleModule = new SimpleModule();
+    simpleModule.addSerializer(OffsetDateTime.class, new JsonSerializer<OffsetDateTime>() {
+      @Override
+      public void serialize(final OffsetDateTime offsetDateTime, final JsonGenerator jsonGenerator,
+          final SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
+        jsonGenerator.writeString(DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(offsetDateTime));
+      }
+    });
+    objectMapper.registerModule(simpleModule);
     return objectMapper.writeValueAsString(obj);
   }
 
@@ -78,6 +98,7 @@ public class MetadataControllerTest {
     didactics.setTimeRequired("timeRequired");
     metadata.setDidactics(didactics);
     EducationalResource educationalResource = new EducationalResource();
+    educationalResource.setDateCreated(LocalDateTime.of(2020, 4, 8, 7, 30));
     educationalResource.setDescription("description");
     educationalResource.setName("name");
     educationalResource.setSubject("subject");
@@ -126,7 +147,7 @@ public class MetadataControllerTest {
         .content(asJson(metadata)))
         .andExpect(status().isOk())
         .andExpect(content().json(
-            "{\"authors\":[{\"givenName\":\"GivenName\",\"familyName\":\"FamilyName\"}],\"didactics\":{\"audience\":\"audience\",\"educationalUse\":\"educationalUse\",\"interactivityType\":\"interactivityType\",\"timeRequired\":\"timeRequired\"},\"educationalResource\":{\"description\":\"description\",\"inLanguage\":\"en\",\"learningResourceType\":\"learningResourceType\",\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"name\":\"name\",\"subject\":\"subject\",\"url\":\"http://example.url\"},\"institution\":{\"name\":\"name\"},\"source\":\"TEST\"}"));
+            "{\"authors\":[{\"givenName\":\"GivenName\",\"familyName\":\"FamilyName\"}],\"didactics\":{\"audience\":\"audience\",\"educationalUse\":\"educationalUse\",\"interactivityType\":\"interactivityType\",\"timeRequired\":\"timeRequired\"},\"educationalResource\":{\"dateCreated\":\"2020-04-08T07:30:00Z\",\"description\":\"description\",\"inLanguage\":\"en\",\"learningResourceType\":\"learningResourceType\",\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"name\":\"name\",\"subject\":\"subject\",\"url\":\"http://example.url\"},\"institution\":{\"name\":\"name\"},\"source\":\"TEST\"}"));
   }
 
   @Test
@@ -152,7 +173,7 @@ public class MetadataControllerTest {
         .content(asJson(metadata)))
         .andExpect(status().isOk())
         .andExpect(content().json(
-            "{\"authors\":[{\"givenName\":\"GivenName\",\"familyName\":\"FamilyName\"}],\"didactics\":{\"audience\":\"audience\",\"educationalUse\":\"educationalUse\",\"interactivityType\":\"interactivityType\",\"timeRequired\":\"timeRequired\"},\"educationalResource\":{\"description\":\"description\",\"inLanguage\":\"en\",\"learningResourceType\":\"learningResourceType\",\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"name\":\"name\",\"subject\":\"subject\",\"url\":\"http://example.url\"},\"institution\":{\"name\":\"name\"},\"source\":\"TEST2\"}"));
+            "{\"authors\":[{\"givenName\":\"GivenName\",\"familyName\":\"FamilyName\"}],\"didactics\":{\"audience\":\"audience\",\"educationalUse\":\"educationalUse\",\"interactivityType\":\"interactivityType\",\"timeRequired\":\"timeRequired\"},\"educationalResource\":{\"dateCreated\":\"2020-04-08T07:30:00Z\",\"description\":\"description\",\"inLanguage\":\"en\",\"learningResourceType\":\"learningResourceType\",\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"name\":\"name\",\"subject\":\"subject\",\"url\":\"http://example.url\"},\"institution\":{\"name\":\"name\"},\"source\":\"TEST2\"}"));
 
     Assert.assertEquals(1, repository.count());
   }
@@ -220,5 +241,26 @@ public class MetadataControllerTest {
         .andExpect(status().isBadRequest());
 
     Assert.assertEquals(0, repository.count());
+  }
+
+  @Test
+  public void testMapperConvertDateTimeToDto() {
+    Metadata metadata = new Metadata();
+    LocalDateTime dateModified = LocalDateTime.of(2020, 4, 8, 7, 30);
+    metadata.setDateModifiedInternal(dateModified);
+    MetadataDto dto = modelMapper.map(metadata, MetadataDto.class);
+    assertNotNull(dto.getDateModifiedInternal());
+    Assert.assertEquals(dateModified.atOffset(ZoneOffset.UTC), dto.getDateModifiedInternal());
+  }
+
+  @Test
+  public void testMapperConvertDateTimeToEntity() {
+    MetadataDto metadata = new MetadataDto();
+    LocalDateTime dateModified = LocalDateTime.of(2020, 4, 8, 7, 30);
+    OffsetDateTime offsetDateModified = dateModified.atOffset(ZoneOffset.UTC);
+    metadata.setDateModifiedInternal(offsetDateModified);
+    Metadata entity = modelMapper.map(metadata, Metadata.class);
+    assertNotNull(entity.getDateModifiedInternal());
+    Assert.assertEquals(dateModified, entity.getDateModifiedInternal());
   }
 }
