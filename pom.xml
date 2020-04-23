@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>eu.tib</groupId>
 	<artifactId>oersi-backend</artifactId>
-	<version>0.2-RELEASE</version>
+	<version>0.2</version>
 	<packaging>war</packaging>
 	<name>oersi-backend</name>
 	<description>API / Backend for the OER Search Index</description>
