@@ -41,10 +41,9 @@ public class MetadataServiceImpl implements MetadataService {
   private Metadata findMatchingMetadata(final Metadata metadata) {
     Metadata existingMetadata = findById(metadata.getId());
     if (existingMetadata == null) {
-      String url = metadata.getEducationalResource().getUrl();
+      String url = metadata.getIdentifier();
       if (url != null) {
-        List<Metadata> metadataMatchingUrl =
-            oerMeatadataRepository.findByEducationalResourceUrl(url);
+        List<Metadata> metadataMatchingUrl = oerMeatadataRepository.findByIdentifier(url);
         if (!metadataMatchingUrl.isEmpty()) {
           existingMetadata = metadataMatchingUrl.get(0);
         }

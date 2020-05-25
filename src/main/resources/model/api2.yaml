@@ -256,169 +256,325 @@ paths:
 
 
 definitions:
-  Author:
-    type: "object"
+  Metadata:
     properties:
       id:
-        type: "integer"
-        format: "int64"
-        description: "internal Id of Author"
-      orcid:
+        title: "URL"
         type: "string"
-        description: "Open Researcher and Contributor ID"
-      gnd:
+        format: "uri"
+        description: "The URI of the resource"
+        example: "https://axel-klinger.gitlab.io/gitlab-for-documents/index.html"
+      name:
+        title: "Title"
         type: "string"
-        description: "Integrated Authority File (German: Gemeinsame Normdatei)"
-      givenName:
-        type: "string"
-        description: "First Name"
-      familyName:
-        type: "string"
-        description: "Family Name"
-    required:
-      - givenName
-      - familyName
-  Didactics:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-        description: "internal Id Object"
-      audience:
-        type: "string"
-        description: "Audience / interactivity level"
-      educationalUse:
-        type: "string"
-        description: "Educational use / interactivity type"
-      interactivityType:
-        type: "string"
-        description: "interactivity Type / educational description"
-      timeRequired:
-        type: "string"
-        description: "Time Required / typical learning time"
-    required:
-      - audience
-      - educationalUse
-      - interactivityType
-      - timeRequired
-  EducationalResource:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-        description: "internal Id"
-      dateCreated:
-        type: "string"
-        format: "date-time"
-        example: "2017-07-21T17:32:28Z"
-        description: "date on which the educational resource was created"
-      dateLastUpdated:
-        type: "string"
-        format: "date-time"
-        example: "2017-07-21T17:32:28Z"
-        description: "date of the last update of the educational resource"
-      datePublished:
-        type: "string"
-        format: "date-time"
-        example: "2017-07-21T17:32:28Z"
-        description: "date on which the educational resource was published"
+        description: "Title of the educational resource"
+        example: "GitLab für Texte"
+      creator:
+        title: "Creator"
+        type: "array"
+        description: "Creator"
+        items:
+          type: "object"
+          properties:
+            type:
+              title: "Type"
+              type: "string"
+              description: "Type"
+              example: "Person"
+              enum:
+                - "Person"
+                - "Organization"
+            id:
+              type: "string"
+              format: "uri"
+              description: "identifier of the person/organization like orcid, gnd or ror"
+            name:
+              title: "Name"
+              type: "string"
+              description: "The creator's name"
+              example: "Max Mustermann"
+          required:
+            - "name"
+            - "type"
       description:
+        title: "Description"
         type: "string"
-        description: "Long Text / abstract"
-      identifier:
+        description: "A short description of the resource"
+        example: "an example description"
+      about:
+        title: "Subject"
+        type: "array"
+        description: "Classification of the educational resource"
+        items:
+          type: "object"
+          properties:
+            id:
+              type: "string"
+          required:
+            - "id"
+      license:
+        title: "License"
         type: "string"
-        description: "Identifier of the educational resource. For example DOI / URN"
+        format: "uri"
+        description: "URL of the License."
+        example: "https://creativecommons.org/licenses/by/4.0/deed.de"
+      image:
+        title: "Image"
+        type: "string"
+        description: "A link to an image of the resource"
+        format: "uri"
+        example: "https://www.oernds.de/edu-sharing/preview?nodeId=84400a83-9d1a-4738-a19f-00fc332df247&storeProtocol=workspace&storeId=SpacesStore&dontcache=1589890988103"
+      dateCreated:
+        title: "Creation Date"
+        type: "string"
+        format: "date"
+        description: "date on which the educational resource was created. format: YYYY-MM-DD"
+        example: "2020-02-22"
+      datePublished:
+        title: "Publication Date"
+        type: "string"
+        format: "date"
+        description: "date on which the educational resource was published. format: YYYY-MM-DD"
+        example: "2020-02-22"
       inLanguage:
+        title: "Language"
         type: "string"
         description: "Language code ISO 639-1"
         example: "en"
-        pattern: "^[a-z]{2}$"
-      keywords:
-        type: "array"
-        items:
-          type: string
-          description: "Keyword Name"
-          example: "Math"
-        description: "List Of Keywords"
-        example: [Math,Sience,Lesson]
+        enum:
+          - "aa"
+          - "ab"
+          - "ae"
+          - "af"
+          - "ak"
+          - "am"
+          - "an"
+          - "ar"
+          - "as"
+          - "av"
+          - "ay"
+          - "az"
+          - "ba"
+          - "be"
+          - "bg"
+          - "bh"
+          - "bi"
+          - "bm"
+          - "bn"
+          - "bo"
+          - "br"
+          - "bs"
+          - "ca"
+          - "ce"
+          - "ch"
+          - "co"
+          - "cr"
+          - "cs"
+          - "cu"
+          - "cv"
+          - "cy"
+          - "da"
+          - "de"
+          - "dv"
+          - "dz"
+          - "ee"
+          - "el"
+          - "en"
+          - "eo"
+          - "es"
+          - "et"
+          - "eu"
+          - "fa"
+          - "ff"
+          - "fi"
+          - "fj"
+          - "fo"
+          - "fr"
+          - "fy"
+          - "ga"
+          - "gd"
+          - "gl"
+          - "gn"
+          - "gu"
+          - "gv"
+          - "ha"
+          - "hi"
+          - "ho"
+          - "hr"
+          - "ht"
+          - "hu"
+          - "hy"
+          - "hz"
+          - "ia"
+          - "ie"
+          - "ig"
+          - "ii"
+          - "ik"
+          - "io"
+          - "is"
+          - "it"
+          - "iu"
+          - "ja"
+          - "jv"
+          - "ka"
+          - "kg"
+          - "ki"
+          - "kj"
+          - "kk"
+          - "kl"
+          - "km"
+          - "kn"
+          - "ko"
+          - "kr"
+          - "ks"
+          - "ku"
+          - "kv"
+          - "kw"
+          - "ky"
+          - "la"
+          - "lb"
+          - "lg"
+          - "li"
+          - "ln"
+          - "lo"
+          - "lt"
+          - "lu"
+          - "lv"
+          - "mg"
+          - "mh"
+          - "mi"
+          - "mk"
+          - "ml"
+          - "mn"
+          - "mo"
+          - "mr"
+          - "ms"
+          - "mt"
+          - "my"
+          - "na"
+          - "nb"
+          - "nd"
+          - "ne"
+          - "ng"
+          - "nl"
+          - "nn"
+          - "no"
+          - "nr"
+          - "nv"
+          - "nvi"
+          - "ny"
+          - "oc"
+          - "oj"
+          - "om"
+          - "or"
+          - "os"
+          - "pa"
+          - "pi"
+          - "pl"
+          - "ps"
+          - "pt"
+          - "qu"
+          - "rm"
+          - "rn"
+          - "ro"
+          - "ru"
+          - "rw"
+          - "sa"
+          - "sc"
+          - "sd"
+          - "se"
+          - "sg"
+          - "si"
+          - "sk"
+          - "sl"
+          - "sm"
+          - "smi"
+          - "sn"
+          - "so"
+          - "sq"
+          - "sr"
+          - "ss"
+          - "st"
+          - "su"
+          - "sv"
+          - "sw"
+          - "ta"
+          - "te"
+          - "tg"
+          - "th"
+          - "ti"
+          - "tk"
+          - "tl"
+          - "tn"
+          - "to"
+          - "tr"
+          - "ts"
+          - "tt"
+          - "tw"
+          - "ty"
+          - "ug"
+          - "uk"
+          - "ur"
+          - "uz"
+          - "ve"
+          - "vi"
+          - "vo"
+          - "wa"
+          - "wo"
+          - "xh"
+          - "yo"
+          - "za"
+          - "zh"
+          - "zu"
       learningResourceType:
-        type: "string"
-        description: "Learning Type"
-        example: "PDF"
-      license:
-        type: "string"
-        description: "URL of the License. Has to match the pattern '^https://creativecommons.org/(licenses|licences|publicdomain)/.*'"
-        example: "https://creativecommons.org/licenses/by/4.0/deed.de"
-        pattern: '^https://creativecommons.org/(licenses|licences|publicdomain)/.*'
-      name:
-        type: "string"
-        description: "Title of the educational resource"
-      subject:
-        type: "string"
-        description: "Classification of the educational resource"
-      thumbnailUrl:
-        type: "string"
-        description: "Photo URL"
-      url:
-        type: "string"
-        description: "URL of the educational resource"
-      version:
-        type: "string"
-        description: "Version of the educational resource"
+        title: "Learning Resource Type"
+        type: "object"
+        description: "Learning Resource Type"
+        properties:
+          id:
+            type: "string"
+      audience:
+        title: "Audience"
+        type: "object"
+        description: "Audience / interactivity level"
+        properties:
+          id:
+            type: "string"
+      mainEntityOfPage:
+        title: "metadata description"
+        description: "This Object contains metametadata, i.e. information about the description of the OER."
+        type: "object"
+        properties:
+          id:
+            type: "string"
+            format: "uri"
+            description: "The URI of the metadata"
+            example: "https://www.oernds.de/edu-sharing/components/render/84400a83-9d1a-4738-a19f-00fc332df247"
+          type:
+            type: "string"
+            description: "Type of the metadata description"
+            example: "WebPage"
+          dateCreated:
+            title: "Creation Date of the metadata"
+            type: "string"
+            format: "date"
+            description: "Creation Date of the metadata. format: YYYY-MM-DD"
+            example: "2020-03-21"
+          dateModified:
+            title: "Date of last modification of the metadata"
+            type: "string"
+            format: "date"
+            description: "Date of last modification of the metadata. format: YYYY-MM-DD"
+            example: "2020-03-22"
+          source:
+            type: "string"
+            description: "Identifies the source of this resource"
+            example: "OERNDS"
+        required:
+          - "id"
     required:
-      - name
-      - subject
-      - license
-      - url
-      - inLanguage
-      - learningResourceType
-
-  Institution:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-        description: "internal Id Object"
-      name:
-        type: "string"
-        description: "name of the institution"
-      ror:
-        type: "string"
-        description: "unique identifier for research organization (Research Organization Registry)"
-
-  Metadata:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-        description: "internal Id Object"
-      authors:
-        type: "array"
-        items:
-          $ref: '#/definitions/Author'
-      dateModifiedInternal:
-        type: "string"
-        format: "date-time"
-        example: "2017-07-21T17:32:28Z"
-        description: "Last modification date of the object (internal). Will be set internally."
-      didactics:
-        $ref: '#/definitions/Didactics'
-      educationalResource:
-        $ref: '#/definitions/EducationalResource'
-      institution:
-        $ref: '#/definitions/Institution'
-      source:
-        type: "string"
-        description: "Identifies the source of this resource"
-        example: "OERNDS"
-    required:
-      - authors
-      - educationalResource
-      - source
+      - "id"
+      - "name"
 
 externalDocs:
   description: "Find out more about Swagger"
