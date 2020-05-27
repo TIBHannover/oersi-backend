@@ -46,7 +46,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest
 @AutoConfigureMockMvc
 @WithMockUser(roles = {"MANAGE_OERMETADATA"})
-public class MetadataControllerTest {
+class MetadataControllerTest {
 
   /** base path of the {@link MetadataController} */
   private static final String METADATA_CONTROLLER_BASE_PATH = "/api/metadata";
@@ -61,12 +61,12 @@ public class MetadataControllerTest {
   private ModelMapper modelMapper;
 
   @AfterEach
-  public void cleanup() {
+  void cleanup() {
     repository.deleteAll();
     repository.flush();
   }
 
-  public static String asJson(final Object obj) throws JsonProcessingException {
+  private static String asJson(final Object obj) throws JsonProcessingException {
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.registerModule(new JavaTimeModule());
     SimpleModule simpleModule = new SimpleModule();
@@ -129,7 +129,7 @@ public class MetadataControllerTest {
   }
 
   @Test
-  public void testGetRequest() throws Exception {
+  void testGetRequest() throws Exception {
     Metadata metadata = createTestMetadata();
 
     mvc.perform(get(METADATA_CONTROLLER_BASE_PATH + "/" + metadata.getId()))
@@ -139,12 +139,12 @@ public class MetadataControllerTest {
   }
 
   @Test
-  public void testGetRequestWithNonExistingData() throws Exception {
+  void testGetRequestWithNonExistingData() throws Exception {
     mvc.perform(get(METADATA_CONTROLLER_BASE_PATH + "/1000")).andExpect(status().isBadRequest());
   }
 
   @Test
-  public void testPostRequest() throws Exception {
+  void testPostRequest() throws Exception {
     MetadataDto metadata = getTestMetadataDto();
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
@@ -155,7 +155,7 @@ public class MetadataControllerTest {
 
 
   @Test
-  public void testPostRequestWithMissingRequiredParameter() throws Exception {
+  void testPostRequestWithMissingRequiredParameter() throws Exception {
     MetadataDto metadata = getTestMetadataDto();
     metadata.setId(null);
 
@@ -164,7 +164,7 @@ public class MetadataControllerTest {
   }
 
   @Test
-  public void testPutRequest() throws Exception {
+  void testPutRequest() throws Exception {
     Metadata existingMetadata = createTestMetadata();
     MetadataDto metadata = getTestMetadataDto();
     metadata.getMainEntityOfPage().setId("http://example2.url/desc/123");
@@ -178,7 +178,7 @@ public class MetadataControllerTest {
   }
 
   @Test
-  public void testPutRequestWithMissingRequiredParameter() throws Exception {
+  void testPutRequestWithMissingRequiredParameter() throws Exception {
     Metadata existingMetadata = createTestMetadata();
     MetadataDto metadata = getTestMetadataDto();
     metadata.setId(null);
@@ -190,7 +190,7 @@ public class MetadataControllerTest {
 
 
   @Test
-  public void testPutRequestWithNonExistingData() throws Exception {
+  void testPutRequestWithNonExistingData() throws Exception {
     MetadataDto metadata = getTestMetadataDto();
     metadata.getMainEntityOfPage().setId("http://example2.url/desc/123");
 
@@ -199,7 +199,7 @@ public class MetadataControllerTest {
   }
 
   @Test
-  public void testDeleteRequest() throws Exception {
+  void testDeleteRequest() throws Exception {
     Metadata existingMetadata = createTestMetadata();
 
     mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/" + existingMetadata.getId())
@@ -209,7 +209,7 @@ public class MetadataControllerTest {
   }
 
   @Test
-  public void testDeleteRequestWithNonExistingData() throws Exception {
+  void testDeleteRequestWithNonExistingData() throws Exception {
     mvc.perform(
         delete(METADATA_CONTROLLER_BASE_PATH + "/1").contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isBadRequest());
@@ -218,7 +218,7 @@ public class MetadataControllerTest {
   }
 
   @Test
-  public void testMapperConvertDateToDto() {
+  void testMapperConvertDateToDto() {
     Metadata metadata = new Metadata();
     LocalDate dateCreated = LocalDate.of(2020, 4, 8);
     metadata.setDateCreated(dateCreated);
@@ -228,7 +228,7 @@ public class MetadataControllerTest {
   }
 
   @Test
-  public void testMapperConvertDateTimeToEntity() {
+  void testMapperConvertDateTimeToEntity() {
     MetadataDto metadata = new MetadataDto();
     LocalDate dateCreated = LocalDate.of(2020, 4, 8);
     metadata.setDateCreated(dateCreated);

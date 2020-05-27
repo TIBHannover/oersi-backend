@@ -21,7 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 @SpringBootTest
-public class MetadataServiceTest {
+class MetadataServiceTest {
 
   @Autowired
   private MetadataService service;
@@ -72,14 +72,14 @@ public class MetadataServiceTest {
   }
 
   @Test
-  public void testCreateOrUpdateWithoutExistingData() {
+  void testCreateOrUpdateWithoutExistingData() {
     Metadata metadata = newMetadata();
     service.createOrUpdate(metadata);
     verify(repository, times(1)).save(metadata);
   }
 
   @Test
-  public void testCreateOrUpdateWithoutMainEntityOfPage() {
+  void testCreateOrUpdateWithoutMainEntityOfPage() {
     Metadata metadata = newMetadata();
     metadata.setMainEntityOfPage(null);
     service.createOrUpdate(metadata);
@@ -87,23 +87,29 @@ public class MetadataServiceTest {
   }
 
   @Test
-  public void testCreateOrUpdateWithNoUrlMainEntityOfPageIdentifier() {
+  void testCreateOrUpdateWithNoUrlMainEntityOfPageIdentifier() {
     Metadata metadata = newMetadata();
     metadata.getMainEntityOfPage().setIdentifier("TEST");
     service.createOrUpdate(metadata);
-    verify(repository, times(1)).save(metadata);
+    metadata.getMainEntityOfPage().setIdentifier("!!$%");
+    service.createOrUpdate(metadata);
+    verify(repository, times(2)).save(metadata);
   }
 
   @Test
-  public void testCreateOrUpdateWithMainEntityOfPageSource() {
+  void testCreateOrUpdateWithMainEntityOfPageSource() {
     Metadata metadata = newMetadata();
     service.createOrUpdate(metadata);
     verify(repository, times(1)).save(metadata);
     assertThat(metadata.getMainEntityOfPage().getSource()).isEqualTo("example.url");
+
+    metadata.getMainEntityOfPage().setIdentifier("http://www.example2.url/desc/123");
+    service.createOrUpdate(metadata);
+    assertThat(metadata.getMainEntityOfPage().getSource()).isEqualTo("example2.url");
   }
 
   @Test
-  public void testCreateOrUpdateWithMissingMainEntityOfPageIdentifier() {
+  void testCreateOrUpdateWithMissingMainEntityOfPageIdentifier() {
     Metadata metadata = newMetadata();
     metadata.getMainEntityOfPage().setIdentifier(null);
     service.createOrUpdate(metadata);
@@ -111,7 +117,7 @@ public class MetadataServiceTest {
   }
 
   @Test
-  public void testCreateOrUpdateWithoutUrl() {
+  void testCreateOrUpdateWithoutUrl() {
     Metadata metadata = newMetadata();
     metadata.setIdentifier(null);
     service.createOrUpdate(metadata);
@@ -119,7 +125,7 @@ public class MetadataServiceTest {
   }
 
   @Test
-  public void testCreateOrUpdateWithExistingDataFoundById() {
+  void testCreateOrUpdateWithExistingDataFoundById() {
     Metadata metadata = newMetadata();
     metadata.setId(1L);
     when(repository.findById(1L)).thenReturn(Optional.of(metadata));
@@ -128,7 +134,7 @@ public class MetadataServiceTest {
   }
 
   @Test
-  public void testCreateOrUpdateWithExistingDataFoundByUrl() {
+  void testCreateOrUpdateWithExistingDataFoundByUrl() {
     Metadata metadata = newMetadata();
     when(repository.findByIdentifier(metadata.getIdentifier()))
         .thenReturn(Arrays
@@ -139,14 +145,14 @@ public class MetadataServiceTest {
   }
 
   @Test
-  public void testDelete() {
+  void testDelete() {
     Metadata metadata = newMetadata();
     service.delete(metadata);
     verify(repository, times(1)).delete(metadata);
   }
 
   @Test
-  public void testFindById() {
+  void testFindById() {
     Metadata metadata = newMetadata();
     when(repository.findById(1L)).thenReturn(Optional.of(metadata));
     Metadata result = service.findById(1L);

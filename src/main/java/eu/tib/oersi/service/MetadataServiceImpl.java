@@ -2,11 +2,11 @@ package eu.tib.oersi.service;
 
 import eu.tib.oersi.domain.Metadata;
 import eu.tib.oersi.repository.MetadataRepository;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,14 +35,20 @@ public class MetadataServiceImpl implements MetadataService {
     return oerMeatadataRepository.save(metadata);
   }
 
+  private String getDomainName(final String url) throws URISyntaxException {
+    URI uri = new URI(url);
+    String domain = uri.getHost();
+    return (domain != null && domain.startsWith("www.")) ? domain.substring(4) : domain;
+  }
+
   private void determineSource(final Metadata metadata) {
     if (metadata.getMainEntityOfPage() != null
         && metadata.getMainEntityOfPage().getIdentifier() != null) {
       String sourceUrl = metadata.getMainEntityOfPage().getIdentifier();
-      final String pattern = "^.*://([A-Za-z0-9\\-\\.]+).*$";
-      Matcher m = Pattern.compile(pattern).matcher(sourceUrl);
-      if (m.find()) {
-        metadata.getMainEntityOfPage().setSource(m.group(1));
+      try {
+        metadata.getMainEntityOfPage().setSource(getDomainName(sourceUrl));
+      } catch (URISyntaxException e) {
+        log.warn("invalid uri {}", e.getMessage());
       }
     }
   }
