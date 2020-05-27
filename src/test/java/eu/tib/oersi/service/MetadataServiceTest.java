@@ -50,8 +50,7 @@ public class MetadataServiceTest {
     metadata.setAudience(audience);
 
     MetadataDescription metadataDescription = new MetadataDescription();
-    metadataDescription.setIdentifier("http://example.url");
-    metadataDescription.setSource("testsource");
+    metadataDescription.setIdentifier("http://example.url/desc/123");
     metadata.setMainEntityOfPage(metadataDescription);
 
     LearningResourceType learningResourceType = new LearningResourceType();
@@ -75,6 +74,38 @@ public class MetadataServiceTest {
   @Test
   public void testCreateOrUpdateWithoutExistingData() {
     Metadata metadata = newMetadata();
+    service.createOrUpdate(metadata);
+    verify(repository, times(1)).save(metadata);
+  }
+
+  @Test
+  public void testCreateOrUpdateWithoutMainEntityOfPage() {
+    Metadata metadata = newMetadata();
+    metadata.setMainEntityOfPage(null);
+    service.createOrUpdate(metadata);
+    verify(repository, times(1)).save(metadata);
+  }
+
+  @Test
+  public void testCreateOrUpdateWithNoUrlMainEntityOfPageIdentifier() {
+    Metadata metadata = newMetadata();
+    metadata.getMainEntityOfPage().setIdentifier("TEST");
+    service.createOrUpdate(metadata);
+    verify(repository, times(1)).save(metadata);
+  }
+
+  @Test
+  public void testCreateOrUpdateWithMainEntityOfPageSource() {
+    Metadata metadata = newMetadata();
+    service.createOrUpdate(metadata);
+    verify(repository, times(1)).save(metadata);
+    assertThat(metadata.getMainEntityOfPage().getSource()).isEqualTo("example.url");
+  }
+
+  @Test
+  public void testCreateOrUpdateWithMissingMainEntityOfPageIdentifier() {
+    Metadata metadata = newMetadata();
+    metadata.getMainEntityOfPage().setIdentifier(null);
     service.createOrUpdate(metadata);
     verify(repository, times(1)).save(metadata);
   }

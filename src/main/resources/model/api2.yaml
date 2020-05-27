@@ -566,10 +566,6 @@ definitions:
             format: "date"
             description: "Date of last modification of the metadata. format: YYYY-MM-DD"
             example: "2020-03-22"
-          source:
-            type: "string"
-            description: "Identifies the source of this resource"
-            example: "OERNDS"
         required:
           - "id"
     required:

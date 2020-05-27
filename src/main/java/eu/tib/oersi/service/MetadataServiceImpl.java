@@ -5,6 +5,8 @@ import eu.tib.oersi.repository.MetadataRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,7 +31,20 @@ public class MetadataServiceImpl implements MetadataService {
       metadata.setId(existingMetadata.getId());
     }
     metadata.setDateModifiedInternal(LocalDateTime.now());
+    determineSource(metadata);
     return oerMeatadataRepository.save(metadata);
+  }
+
+  private void determineSource(final Metadata metadata) {
+    if (metadata.getMainEntityOfPage() != null
+        && metadata.getMainEntityOfPage().getIdentifier() != null) {
+      String sourceUrl = metadata.getMainEntityOfPage().getIdentifier();
+      final String pattern = "^.*://([A-Za-z0-9\\-\\.]+).*$";
+      Matcher m = Pattern.compile(pattern).matcher(sourceUrl);
+      if (m.find()) {
+        metadata.getMainEntityOfPage().setSource(m.group(1));
+      }
+    }
   }
 
   /**
