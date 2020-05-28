@@ -2,6 +2,8 @@ package eu.tib.oersi.service;
 
 import eu.tib.oersi.domain.Metadata;
 import eu.tib.oersi.repository.MetadataRepository;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +31,26 @@ public class MetadataServiceImpl implements MetadataService {
       metadata.setId(existingMetadata.getId());
     }
     metadata.setDateModifiedInternal(LocalDateTime.now());
+    determineSource(metadata);
     return oerMeatadataRepository.save(metadata);
+  }
+
+  private String getDomainName(final String url) throws URISyntaxException {
+    URI uri = new URI(url);
+    String domain = uri.getHost();
+    return (domain != null && domain.startsWith("www.")) ? domain.substring(4) : domain;
+  }
+
+  private void determineSource(final Metadata metadata) {
+    if (metadata.getMainEntityOfPage() != null
+        && metadata.getMainEntityOfPage().getIdentifier() != null) {
+      String sourceUrl = metadata.getMainEntityOfPage().getIdentifier();
+      try {
+        metadata.getMainEntityOfPage().setSource(getDomainName(sourceUrl));
+      } catch (URISyntaxException e) {
+        log.warn("invalid uri {}", e.getMessage());
+      }
+    }
   }
 
   /**
@@ -41,10 +62,9 @@ public class MetadataServiceImpl implements MetadataService {
   private Metadata findMatchingMetadata(final Metadata metadata) {
     Metadata existingMetadata = findById(metadata.getId());
     if (existingMetadata == null) {
-      String url = metadata.getEducationalResource().getUrl();
+      String url = metadata.getIdentifier();
       if (url != null) {
-        List<Metadata> metadataMatchingUrl =
-            oerMeatadataRepository.findByEducationalResourceUrl(url);
+        List<Metadata> metadataMatchingUrl = oerMeatadataRepository.findByIdentifier(url);
         if (!metadataMatchingUrl.isEmpty()) {
           existingMetadata = metadataMatchingUrl.get(0);
         }

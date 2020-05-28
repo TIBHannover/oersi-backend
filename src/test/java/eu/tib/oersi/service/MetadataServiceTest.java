@@ -4,12 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import eu.tib.oersi.domain.Author;
-import eu.tib.oersi.domain.Didactics;
-import eu.tib.oersi.domain.EducationalResource;
-import eu.tib.oersi.domain.Institution;
+import eu.tib.oersi.domain.About;
+import eu.tib.oersi.domain.Audience;
+import eu.tib.oersi.domain.Creator;
+import eu.tib.oersi.domain.LearningResourceType;
 import eu.tib.oersi.domain.Metadata;
+import eu.tib.oersi.domain.MetadataDescription;
 import eu.tib.oersi.repository.MetadataRepository;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,7 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 @SpringBootTest
-public class MetadataServiceTest {
+class MetadataServiceTest {
 
   @Autowired
   private MetadataService service;
@@ -31,57 +31,101 @@ public class MetadataServiceTest {
   private Metadata newMetadata() {
     Metadata metadata = new Metadata();
 
-    List<Author> authors = new ArrayList<>();
-    Author author = new Author();
-    author.setFamilyName("test");
-    author.setGivenName("test");
-    authors.add(author);
-    metadata.setAuthors(authors);
+    List<Creator> creators = new ArrayList<>();
+    Creator author = new Creator();
+    author.setType("Person");
+    author.setName("test test");
+    creators.add(author);
 
-    Didactics didactics = new Didactics();
-    didactics.setAudience("testaudience");
-    didactics.setEducationalUse("testeducationalUse");
-    didactics.setInteractivityType("testinteractivityType");
-    didactics.setTimeRequired("testtimeRequired");
-    metadata.setDidactics(didactics);
-
-    Institution institution = new Institution();
+    Creator institution = new Creator();
+    institution.setType("Organization");
     institution.setName("name");
-    institution.setRor("ror");
-    metadata.setInstitution(institution);
+    institution.setIdentifier("ror");
+    creators.add(institution);
 
-    metadata.setSource("testsource");
+    metadata.setCreator(creators);
 
-    EducationalResource educationalResource = new EducationalResource();
-    educationalResource.setDescription("test description");
-    educationalResource.setInLanguage("DE");
-    educationalResource.setKeywords(Arrays.asList("test1", "test2"));
-    educationalResource.setLearningResourceType("testType");
-    educationalResource.setLicense("CC0");
-    educationalResource.setName("Test Title");
-    educationalResource.setSubject("testsubject");
-    educationalResource.setUrl("http://www.test.de");
-    metadata.setEducationalResource(educationalResource);
+    Audience audience = new Audience();
+    audience.setIdentifier("testaudience");
+    metadata.setAudience(audience);
+
+    MetadataDescription metadataDescription = new MetadataDescription();
+    metadataDescription.setIdentifier("http://example.url/desc/123");
+    metadata.setMainEntityOfPage(metadataDescription);
+
+    LearningResourceType learningResourceType = new LearningResourceType();
+    learningResourceType.setIdentifier("testType");
+    metadata.setLearningResourceType(learningResourceType);
+
+    List<About> subjects = new ArrayList<>();
+    About about = new About();
+    about.setIdentifier("testsubject");
+    subjects.add(about);
+    metadata.setAbout(subjects);
+
+    metadata.setDescription("test description");
+    metadata.setInLanguage("de");
+    metadata.setLicense("CC0");
+    metadata.setName("Test Title");
+    metadata.setIdentifier("http://www.test.de");
     return metadata;
   }
 
   @Test
-  public void testCreateOrUpdateWithoutExistingData() {
+  void testCreateOrUpdateWithoutExistingData() {
     Metadata metadata = newMetadata();
     service.createOrUpdate(metadata);
     verify(repository, times(1)).save(metadata);
   }
 
   @Test
-  public void testCreateOrUpdateWithoutUrl() {
+  void testCreateOrUpdateWithoutMainEntityOfPage() {
     Metadata metadata = newMetadata();
-    metadata.getEducationalResource().setUrl(null);
+    metadata.setMainEntityOfPage(null);
     service.createOrUpdate(metadata);
     verify(repository, times(1)).save(metadata);
   }
 
   @Test
-  public void testCreateOrUpdateWithExistingDataFoundById() {
+  void testCreateOrUpdateWithNoUrlMainEntityOfPageIdentifier() {
+    Metadata metadata = newMetadata();
+    metadata.getMainEntityOfPage().setIdentifier("TEST");
+    service.createOrUpdate(metadata);
+    metadata.getMainEntityOfPage().setIdentifier("!!$%");
+    service.createOrUpdate(metadata);
+    verify(repository, times(2)).save(metadata);
+  }
+
+  @Test
+  void testCreateOrUpdateWithMainEntityOfPageSource() {
+    Metadata metadata = newMetadata();
+    service.createOrUpdate(metadata);
+    verify(repository, times(1)).save(metadata);
+    assertThat(metadata.getMainEntityOfPage().getSource()).isEqualTo("example.url");
+
+    metadata.getMainEntityOfPage().setIdentifier("http://www.example2.url/desc/123");
+    service.createOrUpdate(metadata);
+    assertThat(metadata.getMainEntityOfPage().getSource()).isEqualTo("example2.url");
+  }
+
+  @Test
+  void testCreateOrUpdateWithMissingMainEntityOfPageIdentifier() {
+    Metadata metadata = newMetadata();
+    metadata.getMainEntityOfPage().setIdentifier(null);
+    service.createOrUpdate(metadata);
+    verify(repository, times(1)).save(metadata);
+  }
+
+  @Test
+  void testCreateOrUpdateWithoutUrl() {
+    Metadata metadata = newMetadata();
+    metadata.setIdentifier(null);
+    service.createOrUpdate(metadata);
+    verify(repository, times(1)).save(metadata);
+  }
+
+  @Test
+  void testCreateOrUpdateWithExistingDataFoundById() {
     Metadata metadata = newMetadata();
     metadata.setId(1L);
     when(repository.findById(1L)).thenReturn(Optional.of(metadata));
@@ -90,9 +134,9 @@ public class MetadataServiceTest {
   }
 
   @Test
-  public void testCreateOrUpdateWithExistingDataFoundByUrl() {
+  void testCreateOrUpdateWithExistingDataFoundByUrl() {
     Metadata metadata = newMetadata();
-    when(repository.findByEducationalResourceUrl(metadata.getEducationalResource().getUrl()))
+    when(repository.findByIdentifier(metadata.getIdentifier()))
         .thenReturn(Arrays
         .asList(
         (metadata)));
@@ -101,14 +145,14 @@ public class MetadataServiceTest {
   }
 
   @Test
-  public void testDelete() {
+  void testDelete() {
     Metadata metadata = newMetadata();
     service.delete(metadata);
     verify(repository, times(1)).delete(metadata);
   }
 
   @Test
-  public void testFindById() {
+  void testFindById() {
     Metadata metadata = newMetadata();
     when(repository.findById(1L)).thenReturn(Optional.of(metadata));
     Metadata result = service.findById(1L);

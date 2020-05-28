@@ -8,13 +8,13 @@ import lombok.Data;
 
 @Data
 @Entity
-public class Institution {
+public class Creator {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
+  private String type;
+  private String identifier;
   private String name;
-  private String ror;
-
 }

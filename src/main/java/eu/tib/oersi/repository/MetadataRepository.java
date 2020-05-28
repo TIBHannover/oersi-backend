@@ -15,6 +15,6 @@ public interface MetadataRepository extends JpaRepository<Metadata, Long> {
    * @param url url
    * @return metadata
    */
-  List<Metadata> findByEducationalResourceUrl(String url);
+  List<Metadata> findByIdentifier(String url);
 
 }

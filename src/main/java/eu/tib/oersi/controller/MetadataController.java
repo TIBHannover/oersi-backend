@@ -80,9 +80,6 @@ public class MetadataController implements MetadataControllerApi {
     Metadata metadata = metadataService.findById(id);
     if (metadata == null) {
       return getResponseForNonExistingData(id);
-    } else if (metadataDto.getId() == null || !id.equals(metadataDto.getId())) {
-      log.debug("Metadata id not set properly: {} {}", id, metadata.getId());
-      return ResponseEntity.badRequest().build();
     }
     metadata = metadataService.createOrUpdate(convertToEntity(metadataDto));
     log.debug("Updated Metadata: {}", metadata);
