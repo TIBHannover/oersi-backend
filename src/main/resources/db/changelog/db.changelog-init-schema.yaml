@@ -273,7 +273,86 @@ databaseChangeLog:
         referencedTableName: didactics
 
 - changeSet:
-    id: 1590402819979-1
+    id: 1590727685625-1
+    author: hoffmann (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: author
+        constraintName: FK2ttnxvtd39ne07ug18cud5esr
+- changeSet:
+    id: 1590727685625-2
+    author: hoffmann (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: metadata
+        constraintName: FK7mgvtoyuoqu8dc77491atv65y
+- changeSet:
+    id: 1590727685625-3
+    author: hoffmann (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: educational_resource_keywords
+        constraintName: FKkksd0i0wj08idvxb0gaes4ymv
+- changeSet:
+    id: 1590727685625-4
+    author: hoffmann (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: metadata
+        constraintName: FKrbm9c85h11exogtfnp599uj55
+- changeSet:
+    id: 1590727685625-5
+    author: hoffmann (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: metadata
+        constraintName: FKrrjjs6am2gwf1fthxgdaj01kb
+- changeSet:
+    id: 1590727685625-6
+    author: hoffmann (generated)
+    changes:
+    - dropUniqueConstraint:
+        constraintName: UK_7w1srk89raqkq20tgm2pk5ucu
+        tableName: metadata
+- changeSet:
+    id: 1590727685625-7
+    author: hoffmann (generated)
+    changes:
+    - dropTable:
+        tableName: author
+- changeSet:
+    id: 1590727685625-8
+    author: hoffmann (generated)
+    changes:
+    - dropTable:
+        tableName: didactics
+- changeSet:
+    id: 1590727685625-9
+    author: hoffmann (generated)
+    changes:
+    - dropTable:
+        tableName: educational_resource
+- changeSet:
+    id: 1590727685625-10
+    author: hoffmann (generated)
+    changes:
+    - dropTable:
+        tableName: educational_resource_keywords
+- changeSet:
+    id: 1590727685625-11
+    author: hoffmann (generated)
+    changes:
+    - dropTable:
+        tableName: institution
+- changeSet:
+    id: 1590727685625-12
+    author: hoffmann (generated)
+    changes:
+    - dropTable:
+        tableName: metadata
+
+- changeSet:
+    id: 1590727880556-1
     author: hoffmann (generated)
     changes:
     - createTable:
@@ -293,7 +372,7 @@ databaseChangeLog:
             type: BIGINT
         tableName: about
 - changeSet:
-    id: 1590402819979-2
+    id: 1590727880556-2
     author: hoffmann (generated)
     changes:
     - createTable:
@@ -310,7 +389,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: audience
 - changeSet:
-    id: 1590402819979-3
+    id: 1590727880556-3
     author: hoffmann (generated)
     changes:
     - createTable:
@@ -336,7 +415,7 @@ databaseChangeLog:
             type: BIGINT
         tableName: creator
 - changeSet:
-    id: 1590402819979-4
+    id: 1590727880556-4
     author: hoffmann (generated)
     changes:
     - createTable:
@@ -353,7 +432,63 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: learning_resource_type
 - changeSet:
-    id: 1590402819979-5
+    id: 1590727880556-5
+    author: hoffmann (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: metadataPK
+            name: id
+            type: BIGINT
+        - column:
+            name: date_created
+            type: date
+        - column:
+            constraints:
+              nullable: false
+            name: date_modified_internal
+            type: datetime
+        - column:
+            name: date_published
+            type: date
+        - column:
+            name: description
+            type: VARCHAR(5000)
+        - column:
+            constraints:
+              nullable: false
+            name: identifier
+            type: VARCHAR(255)
+        - column:
+            name: image
+            type: VARCHAR(255)
+        - column:
+            name: in_language
+            type: VARCHAR(255)
+        - column:
+            name: license
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: name
+            type: VARCHAR(255)
+        - column:
+            name: audience_id
+            type: BIGINT
+        - column:
+            name: learning_resource_type_id
+            type: BIGINT
+        - column:
+            name: main_entity_of_page_id
+            type: BIGINT
+        tableName: metadata
+- changeSet:
+    id: 1590727880556-6
     author: hoffmann (generated)
     changes:
     - createTable:
@@ -382,121 +517,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: metadata_description
 - changeSet:
-    id: 1590402819979-6
-    author: hoffmann (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: audience_id
-            type: bigint
-        tableName: metadata
-- changeSet:
-    id: 1590402819979-7
-    author: hoffmann (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: date_created
-            type: date
-        tableName: metadata
-- changeSet:
-    id: 1590402819979-8
-    author: hoffmann (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: date_published
-            type: date
-        tableName: metadata
-- changeSet:
-    id: 1590402819979-9
-    author: hoffmann (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: description
-            type: varchar(5000)
-        tableName: metadata
-- changeSet:
-    id: 1590402819979-10
-    author: hoffmann (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: identifier
-            type: varchar(255)
-        tableName: metadata
-- changeSet:
-    id: 1590402819979-11
-    author: hoffmann (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: image
-            type: varchar(255)
-        tableName: metadata
-- changeSet:
-    id: 1590402819979-12
-    author: hoffmann (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: in_language
-            type: varchar(255)
-        tableName: metadata
-- changeSet:
-    id: 1590402819979-13
-    author: hoffmann (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: learning_resource_type_id
-            type: bigint
-        tableName: metadata
-- changeSet:
-    id: 1590402819979-14
-    author: hoffmann (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: license
-            type: varchar(255)
-        tableName: metadata
-- changeSet:
-    id: 1590402819979-15
-    author: hoffmann (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: main_entity_of_page_id
-            type: bigint
-        tableName: metadata
-- changeSet:
-    id: 1590402819979-16
-    author: hoffmann (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: name
-            type: varchar(255)
-        tableName: metadata
-- changeSet:
-    id: 1590402819979-17
+    id: 1590727880556-7
     author: hoffmann (generated)
     changes:
     - addForeignKeyConstraint:
@@ -508,7 +529,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: audience
 - changeSet:
-    id: 1590402819979-18
+    id: 1590727880556-8
     author: hoffmann (generated)
     changes:
     - addForeignKeyConstraint:
@@ -520,7 +541,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: metadata
 - changeSet:
-    id: 1590402819979-19
+    id: 1590727880556-9
     author: hoffmann (generated)
     changes:
     - addForeignKeyConstraint:
@@ -532,7 +553,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: learning_resource_type
 - changeSet:
-    id: 1590402819979-20
+    id: 1590727880556-10
     author: hoffmann (generated)
     changes:
     - addForeignKeyConstraint:
@@ -544,7 +565,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: metadata_description
 - changeSet:
-    id: 1590402819979-21
+    id: 1590727880556-11
     author: hoffmann (generated)
     changes:
     - addForeignKeyConstraint:
@@ -555,48 +576,4 @@ databaseChangeLog:
         initiallyDeferred: false
         referencedColumnNames: id
         referencedTableName: metadata
-- changeSet:
-    id: 1590402819979-22
-    author: hoffmann (generated)
-    changes:
-    - dropForeignKeyConstraint:
-        baseTableName: author
-        constraintName: FK2ttnxvtd39ne07ug18cud5esr
-    - dropForeignKeyConstraint:
-        baseTableName: metadata
-        constraintName: FK7mgvtoyuoqu8dc77491atv65y
-    - dropForeignKeyConstraint:
-        baseTableName: educational_resource_keywords
-        constraintName: FKkksd0i0wj08idvxb0gaes4ymv
-    - dropForeignKeyConstraint:
-        baseTableName: metadata
-        constraintName: FKrbm9c85h11exogtfnp599uj55
-    - dropForeignKeyConstraint:
-        baseTableName: metadata
-        constraintName: FKrrjjs6am2gwf1fthxgdaj01kb
-    - dropUniqueConstraint:
-        constraintName: UK_7w1srk89raqkq20tgm2pk5ucu
-        tableName: metadata
-    - dropTable:
-        tableName: author
-    - dropTable:
-        tableName: didactics
-    - dropTable:
-        tableName: educational_resource
-    - dropTable:
-        tableName: educational_resource_keywords
-    - dropTable:
-        tableName: institution
-    - dropColumn:
-        columnName: didactics_id
-        tableName: metadata
-    - dropColumn:
-        columnName: educational_resource_id
-        tableName: metadata
-    - dropColumn:
-        columnName: institution_id
-        tableName: metadata
-    - dropColumn:
-        columnName: source
-        tableName: metadata
 
