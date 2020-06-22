@@ -33,7 +33,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(SearchController.BASE_PATH + "/**").permitAll()
         .and().httpBasic()
         .and().authorizeRequests()
-        .antMatchers("/api/metadata").hasRole(ROLE_MANAGE_OERMETADATA);
+        .antMatchers("/api/metadata/**").hasRole(ROLE_MANAGE_OERMETADATA);
   }
 
   @Bean
