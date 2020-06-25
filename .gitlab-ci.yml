@@ -1,7 +1,7 @@
 image: maven:latest
 
 variables:
-  MAVEN_CLI_OPTS: "--batch-mode"
+  MAVEN_CLI_OPTS: "--batch-mode -s ci_settings.xml"
   MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
 
 cache:
@@ -25,8 +25,4 @@ test:
 deploy:
   stage: deploy
   script:
-    - mvn $MAVEN_CLI_OPTS package
-  artifacts:
-    paths:
-     - target/*.war
-    
+    - mvn $MAVEN_CLI_OPTS deploy
