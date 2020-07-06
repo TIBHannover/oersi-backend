@@ -153,6 +153,19 @@ class MetadataControllerTest {
             "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\"}],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":\"en\",\"learningResourceType\":{\"id\":\"learningResourceType\"},\"audience\":{\"id\":\"audience\"},\"mainEntityOfPage\":{\"id\":\"http://example.url/desc/123\"}}"));
   }
 
+  @Test
+  void testPostRequestWithExistingDataNullData() throws Exception {
+    createTestMetadata();
+    MetadataDto metadata = getTestMetadataDto();
+    metadata.setAbout(null);
+    metadata.setCreator(null);
+    metadata.setAudience(null);
+
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+        .content(asJson(metadata))).andExpect(status().isOk())
+        .andExpect(content().json(
+            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[],\"description\":\"description\",\"about\":[],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":\"en\",\"learningResourceType\":{\"id\":\"learningResourceType\"},\"audience\":null,\"mainEntityOfPage\":{\"id\":\"http://example.url/desc/123\"}}"));
+  }
 
   @Test
   void testPostRequestWithMissingRequiredParameter() throws Exception {
