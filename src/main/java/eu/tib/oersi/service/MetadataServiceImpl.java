@@ -7,6 +7,8 @@ import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,10 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class MetadataServiceImpl implements MetadataService {
 
-  @Autowired
-  private MetadataRepository oerMeatadataRepository;
+  private final @NonNull MetadataRepository oerMeatadataRepository;
 
   @Transactional
   @Override
@@ -29,10 +31,23 @@ public class MetadataServiceImpl implements MetadataService {
     if (existingMetadata != null) {
       log.debug("existing data: {}", existingMetadata);
       metadata.setId(existingMetadata.getId());
+      // we need to update the existing list here, otherwise the existing list-entity remains in the
+      // session without association to a parent entity and an error occurs
+      // see https://gitlab.com/oersi/oersi-backend/-/issues/9
+      metadata.setAbout(updateExistingList(existingMetadata.getAbout(), metadata.getAbout()));
+      metadata.setCreator(updateExistingList(existingMetadata.getCreator(), metadata.getCreator()));
     }
     metadata.setDateModifiedInternal(LocalDateTime.now());
     determineSource(metadata);
     return oerMeatadataRepository.save(metadata);
+  }
+
+  private <T> List<T> updateExistingList(final List<T> existingList, final List<T> newValues) {
+    existingList.clear();
+    if (newValues != null) {
+      existingList.addAll(newValues);
+    }
+    return existingList;
   }
 
   private String getDomainName(final String url) throws URISyntaxException {
