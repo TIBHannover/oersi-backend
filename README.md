@@ -1,6 +1,8 @@
 # OER Search Index Backend
 
-Backend / API of the OER Search Index. Provides access to the oer index data. Read data without authentification. Crud-operations to oer index data authenticated.
+Backend / API of the OER Search Index for internal use. Provides access to the oer index data. Read data without authentification. Crud-operations to oer sql data authenticated.
+
+The (backend) API is not part of the oersi public API. It is designed to be consumed by the other oersi components (etl, frontend,...) or by a custom component (like a custom frontend).
 
 ## Configuration
 
@@ -23,26 +25,27 @@ Backend / API of the OER Search Index. Provides access to the oer index data. Re
 
 ## Rest API
 
-* Read-Access to the index data via _SearchController_ **/api/search**
-* CRUD-operations via _MetadataController_ **/api/metadata**
-* The documentation of the API can be found at ``http://<YOUR-HOST>/<YOUR-APP-ROOT>/swagger-ui.html``
-    * use [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) for an application started with ``mvn spring-boot:run``
+API definition in [src/main/resources/model/api2.yaml](src/main/resources/model/api2.yaml)
 
-### Rest API Swagger Configuration
+#### Endpoints
+* **_SearchController_**: Read-Access to the index data **/api/search/**
+    * Sets a user that has read-only access to the elasticsearch index **oer_data** and execute the request in elasticsearch (GET, POST).
+    * Use directly the elasticsearch API - see [Elasticsearch Search API](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-search.html) and [Elasticsearch Query DSL](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-script-query.html)
+    * default value for public adress: **/oersi/es/oer_data/**
+    * example `curl -L www.oersi.de/oersi/es/oer_data/_search`
+* **_MetadataController_**: CRUD-operations to the sql data **/api/metadata/**
+    * based on https://dini-ag-kim.github.io/lrmi-profile/draft/schemas/schema.json ([conversion](https://gitlab.com/oersi/oersi-backend/-/issues/8#note_344342881))
 
-* Swagger is an open-source software framework backed by a large ecosystem of tools that helps developers design, build, document, and consume RESTful web services
+#### Interactive documentation
+* An interactive documentation of the API can be found at ``http://<YOUR-HOST>:8080/oersi/swagger-ui.html`` (adjust tomcat port, application name if the standard values were not used)
+    * You need to have access to the internal oersi system. The interactive swagger documentation is not available in the web.
+    * use [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) for an application started locally with ``mvn spring-boot:run``
 
-* Swagger Generate DTO (Model) and Controller , so if you want to modify , or create a new one (Model or Controller ), add in **Yaml**  
- 
-    *  **Yaml file is in :**
-            
-          > ./src/main/resorces/model/api2.yaml
+#### Swagger Configuration
 
-    *  **After each time the yaml file is changed , need to run the command**
-          
-          > mvn compile
-          
-
+* [Swagger](https://swagger.io/docs/specification/2-0/basic-structure/) is an open-source software framework backed by a large ecosystem of tools that helps developers design, build, document, and consume RESTful web services
+* The API is completely defined in a **Yaml** file. Swagger generates all java components from this file (like the data transfer objects (DTO, Model) and Controller). So if you want to modify, or create a new one (Model or Controller), adjust the **Yaml** in [src/main/resources/model/api2.yaml](src/main/resources/model/api2.yaml)
+       
 ## Technologies
 
 * **springboot** - The backend is a springboot application, provided as war file
