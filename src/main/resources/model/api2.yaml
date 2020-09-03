@@ -543,31 +543,48 @@ definitions:
       mainEntityOfPage:
         title: "metadata description"
         description: "This Object contains metametadata, i.e. information about the description of the OER."
-        type: "object"
-        properties:
-          id:
-            type: "string"
-            format: "uri"
-            description: "The URI of the metadata"
-            example: "https://www.oernds.de/edu-sharing/components/render/84400a83-9d1a-4738-a19f-00fc332df247"
-          type:
-            type: "string"
-            description: "Type of the metadata description"
-            example: "WebPage"
-          dateCreated:
-            title: "Creation Date of the metadata"
-            type: "string"
-            format: "date"
-            description: "Creation Date of the metadata. format: YYYY-MM-DD"
-            example: "2020-03-21"
-          dateModified:
-            title: "Date of last modification of the metadata"
-            type: "string"
-            format: "date"
-            description: "Date of last modification of the metadata. format: YYYY-MM-DD"
-            example: "2020-03-22"
-        required:
-          - "id"
+        type: "array"
+        items:
+          type: object
+          properties:
+            id:
+              type: "string"
+              format: "uri"
+              description: "The URI of the metadata"
+              example: "https://www.oernds.de/edu-sharing/components/render/84400a83-9d1a-4738-a19f-00fc332df247"
+            type:
+              type: "string"
+              description: "Type of the metadata description"
+              example: "WebPage"
+            dateCreated:
+              title: "Creation Date of the metadata"
+              type: "string"
+              format: "date"
+              description: "Creation Date of the metadata. format: YYYY-MM-DD"
+              example: "2020-03-21"
+            dateModified:
+              title: "Date of last modification of the metadata"
+              type: "string"
+              format: "date"
+              description: "Date of last modification of the metadata. format: YYYY-MM-DD"
+              example: "2020-03-22"
+            provider:
+              title: "Source of the metadata"
+              type: object
+              properties:
+                id:
+                  type: "string"
+                  format: "uri"
+                  description: "The URI for the metadata provider"
+                  example: "https://www.oernds.de/edu-sharing/components/render/84400a83-9d1a-4738-a19f-00fc332df247"
+                type:
+                  type: "string"
+                  description: "Type of the metadata provider"
+                name:
+                  type: "string"
+                  description: "The name of the metadata provider"
+          required:
+            - "id"
     required:
       - "id"
       - "name"
