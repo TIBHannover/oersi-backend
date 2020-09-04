@@ -19,8 +19,8 @@ import eu.tib.oersi.domain.About;
 import eu.tib.oersi.domain.Audience;
 import eu.tib.oersi.domain.Creator;
 import eu.tib.oersi.domain.LearningResourceType;
+import eu.tib.oersi.domain.MainEntityOfPage;
 import eu.tib.oersi.domain.Metadata;
-import eu.tib.oersi.domain.MetadataDescription;
 import eu.tib.oersi.dto.MetadataDto;
 import eu.tib.oersi.repository.MetadataRepository;
 import java.io.IOException;
@@ -28,6 +28,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
@@ -100,9 +101,9 @@ class MetadataControllerTest {
     audience.setIdentifier("audience");
     metadata.setAudience(audience);
 
-    MetadataDescription metadataDescription = new MetadataDescription();
-    metadataDescription.setIdentifier("http://example.url/desc/123");
-    metadata.setMainEntityOfPage(metadataDescription);
+    MainEntityOfPage mainEntityOfPage = new MainEntityOfPage();
+    mainEntityOfPage.setIdentifier("http://example.url/desc/123");
+    metadata.setMainEntityOfPage(new ArrayList<>(List.of(mainEntityOfPage)));
 
     LearningResourceType learningResourceType = new LearningResourceType();
     learningResourceType.setIdentifier("learningResourceType");
@@ -150,7 +151,7 @@ class MetadataControllerTest {
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
-            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\"}],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":\"en\",\"learningResourceType\":{\"id\":\"learningResourceType\"},\"audience\":{\"id\":\"audience\"},\"mainEntityOfPage\":{\"id\":\"http://example.url/desc/123\"}}"));
+            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\"}],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":\"en\",\"learningResourceType\":{\"id\":\"learningResourceType\"},\"audience\":{\"id\":\"audience\"},\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}]}"));
   }
 
   @Test
@@ -160,11 +161,12 @@ class MetadataControllerTest {
     metadata.setAbout(null);
     metadata.setCreator(null);
     metadata.setAudience(null);
+    metadata.setMainEntityOfPage(null);
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
-            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[],\"description\":\"description\",\"about\":[],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":\"en\",\"learningResourceType\":{\"id\":\"learningResourceType\"},\"audience\":null,\"mainEntityOfPage\":{\"id\":\"http://example.url/desc/123\"}}"));
+            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[],\"description\":\"description\",\"about\":[],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":\"en\",\"learningResourceType\":{\"id\":\"learningResourceType\"},\"audience\":null,\"mainEntityOfPage\":[]}"));
   }
 
   @Test
@@ -180,12 +182,12 @@ class MetadataControllerTest {
   void testPutRequest() throws Exception {
     Metadata existingMetadata = createTestMetadata();
     MetadataDto metadata = getTestMetadataDto();
-    metadata.getMainEntityOfPage().setId("http://example2.url/desc/123");
+    metadata.getMainEntityOfPage().get(0).setId("http://example2.url/desc/123");
 
     mvc.perform(put(METADATA_CONTROLLER_BASE_PATH + "/" + existingMetadata.getId())
         .contentType(MediaType.APPLICATION_JSON).content(asJson(metadata)))
         .andExpect(status().isOk()).andExpect(content().json(
-            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\"}],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":\"en\",\"learningResourceType\":{\"id\":\"learningResourceType\"},\"audience\":{\"id\":\"audience\"},\"mainEntityOfPage\":{\"id\":\"http://example2.url/desc/123\"}}"));
+            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\"}],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":\"en\",\"learningResourceType\":{\"id\":\"learningResourceType\"},\"audience\":{\"id\":\"audience\"},\"mainEntityOfPage\":[{\"id\":\"http://example2.url/desc/123\"}]}"));
 
     Assert.assertEquals(1, repository.count());
   }
@@ -205,7 +207,7 @@ class MetadataControllerTest {
   @Test
   void testPutRequestWithNonExistingData() throws Exception {
     MetadataDto metadata = getTestMetadataDto();
-    metadata.getMainEntityOfPage().setId("http://example2.url/desc/123");
+    metadata.getMainEntityOfPage().get(0).setId("http://example2.url/desc/123");
 
     mvc.perform(put(METADATA_CONTROLLER_BASE_PATH + "/1").contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isBadRequest());

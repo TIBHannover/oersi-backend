@@ -8,11 +8,11 @@ import eu.tib.oersi.domain.About;
 import eu.tib.oersi.domain.Audience;
 import eu.tib.oersi.domain.Creator;
 import eu.tib.oersi.domain.LearningResourceType;
+import eu.tib.oersi.domain.MainEntityOfPage;
 import eu.tib.oersi.domain.Metadata;
-import eu.tib.oersi.domain.MetadataDescription;
+import eu.tib.oersi.domain.Provider;
 import eu.tib.oersi.repository.MetadataRepository;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -49,9 +49,9 @@ class MetadataServiceTest {
     audience.setIdentifier("testaudience");
     metadata.setAudience(audience);
 
-    MetadataDescription metadataDescription = new MetadataDescription();
-    metadataDescription.setIdentifier("http://example.url/desc/123");
-    metadata.setMainEntityOfPage(metadataDescription);
+    MainEntityOfPage mainEntityOfPage = new MainEntityOfPage();
+    mainEntityOfPage.setIdentifier("http://example.url/desc/123");
+    metadata.setMainEntityOfPage(new ArrayList<>(List.of(mainEntityOfPage)));
 
     LearningResourceType learningResourceType = new LearningResourceType();
     learningResourceType.setIdentifier("testType");
@@ -89,9 +89,9 @@ class MetadataServiceTest {
   @Test
   void testCreateOrUpdateWithNoUrlMainEntityOfPageIdentifier() {
     Metadata metadata = newMetadata();
-    metadata.getMainEntityOfPage().setIdentifier("TEST");
+    metadata.getMainEntityOfPage().get(0).setIdentifier("TEST");
     service.createOrUpdate(metadata);
-    metadata.getMainEntityOfPage().setIdentifier("!!$%");
+    metadata.getMainEntityOfPage().get(0).setIdentifier("!!$%");
     service.createOrUpdate(metadata);
     verify(repository, times(2)).save(metadata);
   }
@@ -101,17 +101,35 @@ class MetadataServiceTest {
     Metadata metadata = newMetadata();
     service.createOrUpdate(metadata);
     verify(repository, times(1)).save(metadata);
-    assertThat(metadata.getMainEntityOfPage().getSource()).isEqualTo("example.url");
+    assertThat(metadata.getMainEntityOfPage().get(0).getProvider()).isNotNull();
+    assertThat(metadata.getMainEntityOfPage().get(0).getProvider().getName())
+        .isEqualTo("example.url");
 
-    metadata.getMainEntityOfPage().setIdentifier("http://www.example2.url/desc/123");
+    metadata.getMainEntityOfPage().get(0).setIdentifier("http://www.example2.url/desc/123");
+    metadata.getMainEntityOfPage().get(0).getProvider().setName(null);
     service.createOrUpdate(metadata);
-    assertThat(metadata.getMainEntityOfPage().getSource()).isEqualTo("example2.url");
+    assertThat(metadata.getMainEntityOfPage().get(0).getProvider()).isNotNull();
+    assertThat(metadata.getMainEntityOfPage().get(0).getProvider().getName())
+        .isEqualTo("example2.url");
+  }
+
+  @Test
+  void testCreateOrUpdateWithGivenProvider() {
+    Metadata metadata = newMetadata();
+    Provider provider = new Provider();
+    provider.setName("testname");
+    metadata.getMainEntityOfPage().get(0).setProvider(provider);
+    service.createOrUpdate(metadata);
+    verify(repository, times(1)).save(metadata);
+    assertThat(metadata.getMainEntityOfPage().get(0).getProvider()).isNotNull();
+    assertThat(metadata.getMainEntityOfPage().get(0).getProvider().getName())
+        .isEqualTo("testname");
   }
 
   @Test
   void testCreateOrUpdateWithMissingMainEntityOfPageIdentifier() {
     Metadata metadata = newMetadata();
-    metadata.getMainEntityOfPage().setIdentifier(null);
+    metadata.getMainEntityOfPage().get(0).setIdentifier(null);
     service.createOrUpdate(metadata);
     verify(repository, times(1)).save(metadata);
   }
@@ -137,9 +155,7 @@ class MetadataServiceTest {
   void testCreateOrUpdateWithExistingDataFoundByUrl() {
     Metadata metadata = newMetadata();
     when(repository.findByIdentifier(metadata.getIdentifier()))
-        .thenReturn(Arrays
-        .asList(
-        (metadata)));
+        .thenReturn(List.of(metadata));
     service.createOrUpdate(metadata);
     verify(repository, times(1)).save(metadata);
   }
