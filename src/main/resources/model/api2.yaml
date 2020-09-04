@@ -569,7 +569,8 @@ definitions:
               description: "Date of last modification of the metadata. format: YYYY-MM-DD"
               example: "2020-03-22"
             provider:
-              title: "Site or service that is source of the metadata"
+              title: "Provider"
+              description: "Site or service that is source of the metadata"
               type: "object"
               properties:
                 id:
