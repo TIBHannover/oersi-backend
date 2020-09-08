@@ -60,8 +60,9 @@ public class Metadata {
   @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
   private Audience audience;
 
-  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-  private MetadataDescription mainEntityOfPage;
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "metadata_id", nullable = true)
+  private List<MainEntityOfPage> mainEntityOfPage;
 
   @Column(nullable = false)
   private LocalDateTime dateModifiedInternal;

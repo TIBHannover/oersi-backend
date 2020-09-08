@@ -1,6 +1,8 @@
 package eu.tib.oersi.service;
 
+import eu.tib.oersi.domain.MainEntityOfPage;
 import eu.tib.oersi.domain.Metadata;
+import eu.tib.oersi.domain.Provider;
 import eu.tib.oersi.repository.MetadataRepository;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -36,9 +38,11 @@ public class MetadataServiceImpl implements MetadataService {
       // see https://gitlab.com/oersi/oersi-backend/-/issues/9
       metadata.setAbout(updateExistingList(existingMetadata.getAbout(), metadata.getAbout()));
       metadata.setCreator(updateExistingList(existingMetadata.getCreator(), metadata.getCreator()));
+      metadata.setMainEntityOfPage(updateExistingList(existingMetadata.getMainEntityOfPage(),
+          metadata.getMainEntityOfPage()));
     }
     metadata.setDateModifiedInternal(LocalDateTime.now());
-    determineSource(metadata);
+    determineProviderNames(metadata);
     return oerMeatadataRepository.save(metadata);
   }
 
@@ -56,12 +60,23 @@ public class MetadataServiceImpl implements MetadataService {
     return (domain != null && domain.startsWith("www.")) ? domain.substring(4) : domain;
   }
 
-  private void determineSource(final Metadata metadata) {
-    if (metadata.getMainEntityOfPage() != null
-        && metadata.getMainEntityOfPage().getIdentifier() != null) {
-      String sourceUrl = metadata.getMainEntityOfPage().getIdentifier();
+  private void determineProviderNames(final Metadata metadata) {
+    if (metadata.getMainEntityOfPage() != null) {
+      metadata.getMainEntityOfPage().forEach(this::determineProviderName);
+    }
+  }
+
+  private void determineProviderName(final MainEntityOfPage mainEntityOfPage) {
+    Provider provider = mainEntityOfPage.getProvider();
+    boolean missingProviderName = provider == null || provider.getName() == null;
+    if (mainEntityOfPage.getIdentifier() != null && missingProviderName) {
+      if (provider == null) {
+        provider = new Provider();
+        mainEntityOfPage.setProvider(provider);
+      }
+      String sourceUrl = mainEntityOfPage.getIdentifier();
       try {
-        metadata.getMainEntityOfPage().setSource(getDomainName(sourceUrl));
+        provider.setName(getDomainName(sourceUrl));
       } catch (URISyntaxException e) {
         log.warn("invalid uri {}", e.getMessage());
       }

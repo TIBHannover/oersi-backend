@@ -1,3 +1,143 @@
 databaseChangeLog:
-  - include:
-      file: db/changelog/db.changelog-init-schema.yaml
+- include:
+    file: db/changelog/db.changelog-init-schema.yaml
+
+- changeSet:
+    id: 1599196308613-1
+    author: hoffmann (generated)
+    comment: use mainEntityOfPage as an array instead of single object
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: main_entity_of_pagePK
+            name: id
+            type: BIGINT
+        - column:
+            name: date_created
+            type: date
+        - column:
+            name: date_modified
+            type: date
+        - column:
+            name: identifier
+            type: VARCHAR(255)
+        - column:
+            name: type
+            type: VARCHAR(255)
+        - column:
+            name: source
+            type: VARCHAR(255)
+        - column:
+            name: provider_id
+            type: BIGINT
+        - column:
+            name: metadata_id
+            type: BIGINT
+        tableName: main_entity_of_page
+- changeSet:
+    id: 1599196308613-2
+    author: hoffmann (generated)
+    comment: add provider object
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: providerPK
+            name: id
+            type: BIGINT
+        - column:
+            name: identifier
+            type: VARCHAR(255)
+        - column:
+            name: name
+            type: VARCHAR(255)
+        - column:
+            name: type
+            type: VARCHAR(255)
+        - column:
+            name: main_entity_of_page_id
+            type: BIGINT
+        tableName: provider
+- changeSet:
+    id: 1599196308613-3
+    author: hoffmann (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: metadata_id
+        baseTableName: main_entity_of_page
+        constraintName: FKelxbfcwyxy0bq8noqcsr27kyl
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: metadata
+- changeSet:
+    id: 1599196308613-4
+    author: hoffmann (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: provider_id
+        baseTableName: main_entity_of_page
+        constraintName: FKp16wmkcqsvfvl45kj1f7id6kj
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: provider
+- changeSet:
+    id: 1599196308613-1-1
+    author: mhoffmann
+    comment: data migration to main_entity_of_page and provider
+    changes:
+    - sql:
+      comment: insert data from old table metadata_description into new table main_entity_of_page
+      sql: INSERT INTO main_entity_of_page (metadata_id, date_created, date_modified, identifier, source, type) SELECT m.id as metadata_id, d.date_created, d.date_modified, d.identifier, d.source, d.type FROM metadata_description d join metadata m on m.main_entity_of_page_id = d.id
+    - sql:
+      comment: insert data into table provider
+      sql: INSERT INTO provider (name, main_entity_of_page_id) SELECT source, id from main_entity_of_page WHERE source is not null
+
+- changeSet:
+    id: 1599196308613-1-2
+    author: mhoffmann
+    comment: data migration to main_entity_of_page and provider
+    changes:
+    - sql:
+        comment: set provider_id in main_entity_of_page
+        sql: UPDATE main_entity_of_page m SET provider_id = (SELECT p.id FROM provider p WHERE p.main_entity_of_page_id = m.id)
+    - dropColumn:
+        columns:
+        - column:
+            name: main_entity_of_page_id
+        tableName: provider
+    - dropColumn:
+        columns:
+        - column:
+            name: source
+        tableName: main_entity_of_page
+     
+- changeSet:
+    id: 1599196308613-5
+    author: hoffmann (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: metadata
+        constraintName: FKcxwh4u02ensn954fqr9469mdf
+- changeSet:
+    id: 1599196308613-6
+    author: hoffmann (generated)
+    changes:
+    - dropTable:
+        tableName: metadata_description
+- changeSet:
+    id: 1599196308613-7
+    author: hoffmann (generated)
+    changes:
+    - dropColumn:
+        columnName: main_entity_of_page_id
+        tableName: metadata
+  

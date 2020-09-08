@@ -4,14 +4,16 @@ import eu.tib.oersi.domain.About;
 import eu.tib.oersi.domain.Audience;
 import eu.tib.oersi.domain.Creator;
 import eu.tib.oersi.domain.LearningResourceType;
+import eu.tib.oersi.domain.MainEntityOfPage;
 import eu.tib.oersi.domain.Metadata;
-import eu.tib.oersi.domain.MetadataDescription;
+import eu.tib.oersi.domain.Provider;
 import eu.tib.oersi.dto.AudienceDto;
 import eu.tib.oersi.dto.LearningResourceTypeDto;
 import eu.tib.oersi.dto.MetadataAboutDto;
 import eu.tib.oersi.dto.MetadataCreatorDto;
-import eu.tib.oersi.dto.MetadataDescriptionDto;
 import eu.tib.oersi.dto.MetadataDto;
+import eu.tib.oersi.dto.MetadataMainEntityOfPageDto;
+import eu.tib.oersi.dto.ProviderDto;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -53,6 +55,8 @@ public class WebConfig {
         MetadataCreatorDto.TypeEnum.class, String.class);
 
     // map DTO id field <-> Domain identifier field
+    // ATTENTION: consider order of definitions (a mapping m that is used in another mapping n has
+    // to be defined before n)
     modelMapper.typeMap(About.class, MetadataAboutDto.class)
         .addMappings(mapper -> mapper.map(About::getIdentifier, MetadataAboutDto::setId));
     modelMapper.typeMap(MetadataAboutDto.class, About.class).addMappings(mapper -> {
@@ -78,12 +82,18 @@ public class WebConfig {
           mapper.map(LearningResourceTypeDto::getId, LearningResourceType::setIdentifier);
           mapper.skip(LearningResourceType::setId);
         });
-    modelMapper.typeMap(MetadataDescription.class, MetadataDescriptionDto.class).addMappings(
-        mapper -> mapper.map(MetadataDescription::getIdentifier, MetadataDescriptionDto::setId));
-    modelMapper.typeMap(MetadataDescriptionDto.class, MetadataDescription.class)
+    modelMapper.typeMap(Provider.class, ProviderDto.class)
+        .addMappings(mapper -> mapper.map(Provider::getIdentifier, ProviderDto::setId));
+    modelMapper.typeMap(ProviderDto.class, Provider.class).addMappings(mapper -> {
+      mapper.map(ProviderDto::getId, Provider::setIdentifier);
+      mapper.skip(Provider::setId);
+    });
+    modelMapper.typeMap(MainEntityOfPage.class, MetadataMainEntityOfPageDto.class).addMappings(
+        mapper -> mapper.map(MainEntityOfPage::getIdentifier, MetadataMainEntityOfPageDto::setId));
+    modelMapper.typeMap(MetadataMainEntityOfPageDto.class, MainEntityOfPage.class)
         .addMappings(mapper -> {
-          mapper.map(MetadataDescriptionDto::getId, MetadataDescription::setIdentifier);
-          mapper.skip(MetadataDescription::setId);
+          mapper.map(MetadataMainEntityOfPageDto::getId, MainEntityOfPage::setIdentifier);
+          mapper.skip(MainEntityOfPage::setId);
         });
     modelMapper.typeMap(Metadata.class, MetadataDto.class)
         .addMappings(mapper -> mapper.map(Metadata::getIdentifier, MetadataDto::setId));
