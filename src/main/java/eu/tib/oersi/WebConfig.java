@@ -7,12 +7,14 @@ import eu.tib.oersi.domain.LearningResourceType;
 import eu.tib.oersi.domain.MainEntityOfPage;
 import eu.tib.oersi.domain.Metadata;
 import eu.tib.oersi.domain.Provider;
+import eu.tib.oersi.domain.SourceOrganization;
 import eu.tib.oersi.dto.AudienceDto;
 import eu.tib.oersi.dto.LearningResourceTypeDto;
 import eu.tib.oersi.dto.MetadataAboutDto;
 import eu.tib.oersi.dto.MetadataCreatorDto;
 import eu.tib.oersi.dto.MetadataDto;
 import eu.tib.oersi.dto.MetadataMainEntityOfPageDto;
+import eu.tib.oersi.dto.MetadataSourceOrganizationDto;
 import eu.tib.oersi.dto.ProviderDto;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -94,6 +96,14 @@ public class WebConfig {
         .addMappings(mapper -> {
           mapper.map(MetadataMainEntityOfPageDto::getId, MainEntityOfPage::setIdentifier);
           mapper.skip(MainEntityOfPage::setId);
+        });
+    modelMapper.typeMap(SourceOrganization.class, MetadataSourceOrganizationDto.class)
+        .addMappings(mapper -> mapper.map(SourceOrganization::getIdentifier,
+            MetadataSourceOrganizationDto::setId));
+    modelMapper.typeMap(MetadataSourceOrganizationDto.class, SourceOrganization.class)
+        .addMappings(mapper -> {
+          mapper.map(MetadataSourceOrganizationDto::getId, SourceOrganization::setIdentifier);
+          mapper.skip(SourceOrganization::setId);
         });
     modelMapper.typeMap(Metadata.class, MetadataDto.class)
         .addMappings(mapper -> mapper.map(Metadata::getIdentifier, MetadataDto::setId));

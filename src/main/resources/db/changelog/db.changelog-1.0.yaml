@@ -140,4 +140,42 @@ databaseChangeLog:
     - dropColumn:
         columnName: main_entity_of_page_id
         tableName: metadata
-  
+
+- changeSet:
+    id: 1599721854878-1
+    author: hoffmann (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: source_organizationPK
+            name: id
+            type: BIGINT
+        - column:
+            name: identifier
+            type: VARCHAR(255)
+        - column:
+            name: name
+            type: VARCHAR(255)
+        - column:
+            name: type
+            type: VARCHAR(255)
+        - column:
+            name: metadata_id
+            type: BIGINT
+        tableName: source_organization
+- changeSet:
+    id: 1599721854878-2
+    author: hoffmann (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: metadata_id
+        baseTableName: source_organization
+        constraintName: FK4sdxt2avqsmrqb36ym9rjvopu
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: metadata
