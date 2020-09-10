@@ -21,6 +21,7 @@ import eu.tib.oersi.domain.Creator;
 import eu.tib.oersi.domain.LearningResourceType;
 import eu.tib.oersi.domain.MainEntityOfPage;
 import eu.tib.oersi.domain.Metadata;
+import eu.tib.oersi.domain.SourceOrganization;
 import eu.tib.oersi.dto.MetadataDto;
 import eu.tib.oersi.repository.MetadataRepository;
 import java.io.IOException;
@@ -105,6 +106,10 @@ class MetadataControllerTest {
     mainEntityOfPage.setIdentifier("http://example.url/desc/123");
     metadata.setMainEntityOfPage(new ArrayList<>(List.of(mainEntityOfPage)));
 
+    SourceOrganization sourceOrganization = new SourceOrganization();
+    sourceOrganization.setName("sourceOrganization");
+    metadata.setSourceOrganization(new ArrayList<>(List.of(sourceOrganization)));
+
     LearningResourceType learningResourceType = new LearningResourceType();
     learningResourceType.setIdentifier("learningResourceType");
     metadata.setLearningResourceType(learningResourceType);
@@ -151,7 +156,7 @@ class MetadataControllerTest {
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
-            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\"}],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":\"en\",\"learningResourceType\":{\"id\":\"learningResourceType\"},\"audience\":{\"id\":\"audience\"},\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}]}"));
+            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\"}],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":\"en\",\"learningResourceType\":{\"id\":\"learningResourceType\"},\"audience\":{\"id\":\"audience\"},\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}]}, \"sourceOrganization\":[{\"name\":\"sourceOrganization\"}]"));
   }
 
   @Test

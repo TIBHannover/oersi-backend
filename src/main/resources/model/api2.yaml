@@ -588,6 +588,26 @@ definitions:
                   example: "ZOERR"
           required:
             - "id"
+      sourceOrganization:
+        title: "Source Organization"
+        description: "The Organization on whose behalf the creator was working."
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            id:
+              type: "string"
+              format: "uri"
+              description: "The URI for the source organization"
+              example: "http://www.wikidata.org/entity/Q54166"
+            type:
+              type: "string"
+              description: "Type of the source organization"
+              example: "Organization"
+            name:
+              type: "string"
+              description: "The name of the source organization"
+              example: "Technische Hochschule Köln"
     required:
       - "id"
       - "name"

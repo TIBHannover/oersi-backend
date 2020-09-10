@@ -40,6 +40,8 @@ public class MetadataServiceImpl implements MetadataService {
       metadata.setCreator(updateExistingList(existingMetadata.getCreator(), metadata.getCreator()));
       metadata.setMainEntityOfPage(updateExistingList(existingMetadata.getMainEntityOfPage(),
           metadata.getMainEntityOfPage()));
+      metadata.setSourceOrganization(updateExistingList(existingMetadata.getSourceOrganization(),
+          metadata.getSourceOrganization()));
     }
     metadata.setDateModifiedInternal(LocalDateTime.now());
     determineProviderNames(metadata);
@@ -47,6 +49,9 @@ public class MetadataServiceImpl implements MetadataService {
   }
 
   private <T> List<T> updateExistingList(final List<T> existingList, final List<T> newValues) {
+    if (existingList == null) {
+      return newValues;
+    }
     existingList.clear();
     if (newValues != null) {
       existingList.addAll(newValues);

@@ -64,6 +64,10 @@ public class Metadata {
   @JoinColumn(name = "metadata_id", nullable = true)
   private List<MainEntityOfPage> mainEntityOfPage;
 
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "metadata_id", nullable = true)
+  private List<SourceOrganization> sourceOrganization;
+
   @Column(nullable = false)
   private LocalDateTime dateModifiedInternal;
 
