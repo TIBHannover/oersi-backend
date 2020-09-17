@@ -310,6 +310,11 @@ definitions:
           properties:
             id:
               type: "string"
+              example: "https://w3id.org/kim/hochschulfaechersystematik/n105"
+            prefLabel:
+              title: "The preferred label of the concept"
+              description: "A localized string for prefLabel of the classification"
+              $ref: "#/definitions/LocalizedString"
           required:
             - "id"
       license:
@@ -533,6 +538,17 @@ definitions:
         properties:
           id:
             type: "string"
+            example: "https://w3id.org/kim/hcrt/course"
+          prefLabel:
+            title: "The preferred label of the concept"
+            description: "A localized string for prefLabel of the learning resource type"
+            $ref: "#/definitions/LocalizedString"
+# error with such examples - see https://github.com/OpenAPITools/openapi-generator/issues/3140
+#        example:
+#          id: "https://w3id.org/kim/hcrt/course"
+#          prefLabel:
+#            de: Kurs
+#            en: Course
       audience:
         title: "Audience"
         type: "object"
@@ -540,6 +556,11 @@ definitions:
         properties:
           id:
             type: "string"
+            example: "http://purl.org/dcx/lrmi-vocabs/educationalAudienceRole/student"
+          prefLabel:
+            title: "The preferred label of the concept"
+            description: "A localized string for prefLabel of the audience"
+            $ref: "#/definitions/LocalizedString"
       mainEntityOfPage:
         title: "metadata description"
         description: "This object contains metametadata, i.e. information about the description of the OER."
@@ -611,6 +632,15 @@ definitions:
     required:
       - "id"
       - "name"
+
+  LocalizedString:
+    title: "Localized String"
+    description: "A language-tagged string using JSON-LD \"language maps\", see https://www.w3.org/TR/json-ld/#language-maps. Valid keys are ISO-639-1 language codes."
+    type: "object"
+# see https://swagger.io/docs/specification/data-models/dictionaries/
+# validation of iso-639-1 language keys in business logic
+    additionalProperties:
+      type: string
 
 externalDocs:
   description: "Find out more about Swagger"

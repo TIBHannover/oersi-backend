@@ -29,6 +29,11 @@ public class MetadataServiceImpl implements MetadataService {
   @Transactional
   @Override
   public Metadata createOrUpdate(final Metadata metadata) {
+    ValidatorResult validatorResult = new MetadataValidator(metadata).validate();
+    if (!validatorResult.isValid()) {
+      log.debug("invalid data: {}, violations: {}", metadata, validatorResult.getViolations());
+      throw new IllegalArgumentException(String.join(", ", validatorResult.getViolations()));
+    }
     Metadata existingMetadata = findMatchingMetadata(metadata);
     if (existingMetadata != null) {
       log.debug("existing data: {}", existingMetadata);

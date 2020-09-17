@@ -179,3 +179,123 @@ databaseChangeLog:
         initiallyDeferred: false
         referencedColumnNames: id
         referencedTableName: metadata
+
+- changeSet:
+    id: 1600315555751-1
+    author: hoffmann (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: pref_label_id
+            type: BIGINT
+        - column:
+            name: label
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: language_code
+            type: VARCHAR(5)
+        tableName: localized_string
+- changeSet:
+    id: 1600315555751-2
+    author: hoffmann (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: pref_labelPK
+            name: id
+            type: BIGINT
+        tableName: pref_label
+- changeSet:
+    id: 1600315555751-3
+    author: hoffmann (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: pref_label_id
+            type: bigint
+        tableName: about
+- changeSet:
+    id: 1600315555751-4
+    author: hoffmann (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: pref_label_id
+            type: bigint
+        tableName: audience
+- changeSet:
+    id: 1600315555751-5
+    author: hoffmann (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: pref_label_id
+            type: bigint
+        tableName: learning_resource_type
+- changeSet:
+    id: 1600315555751-6
+    author: hoffmann (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: pref_label_id, language_code
+        tableName: localized_string
+- changeSet:
+    id: 1600315555751-7
+    author: hoffmann (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: pref_label_id
+        baseTableName: learning_resource_type
+        constraintName: FK4k2cow2umfx42fcnadtcsfwtn
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: pref_label
+- changeSet:
+    id: 1600315555751-8
+    author: hoffmann (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: pref_label_id
+        baseTableName: localized_string
+        constraintName: FK5rqdan7f1rp63bekwbslpke2r
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: pref_label
+- changeSet:
+    id: 1600315555751-9
+    author: hoffmann (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: pref_label_id
+        baseTableName: about
+        constraintName: FKlg83d1hdmcin62f4pxqps4m9o
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: pref_label
+- changeSet:
+    id: 1600315555751-10
+    author: hoffmann (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: pref_label_id
+        baseTableName: audience
+        constraintName: FKnv0ky185cxbvikjqllnr3tooj
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: pref_label
