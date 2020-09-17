@@ -64,7 +64,7 @@ public class WebConfig {
       LocalizedString result = null;
       if (ctx.getSource() != null) {
         result = new LocalizedString();
-        result.setLocalizedStrings(new HashMap<String, String>(ctx.getSource()));
+        result.setLocalizedStrings(new HashMap<>(ctx.getSource()));
       }
       return result;
     };
