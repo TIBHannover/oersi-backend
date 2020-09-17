@@ -1,6 +1,7 @@
 package eu.tib.oersi.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -8,12 +9,14 @@ import eu.tib.oersi.domain.About;
 import eu.tib.oersi.domain.Audience;
 import eu.tib.oersi.domain.Creator;
 import eu.tib.oersi.domain.LearningResourceType;
+import eu.tib.oersi.domain.LocalizedString;
 import eu.tib.oersi.domain.MainEntityOfPage;
 import eu.tib.oersi.domain.Metadata;
 import eu.tib.oersi.domain.Provider;
 import eu.tib.oersi.repository.MetadataRepository;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +58,9 @@ class MetadataServiceTest {
 
     LearningResourceType learningResourceType = new LearningResourceType();
     learningResourceType.setIdentifier("testType");
+    LocalizedString lrtPrefLabel = new LocalizedString();
+    lrtPrefLabel.setLocalizedStrings(Map.of("de", "Kurs", "en", "course"));
+    learningResourceType.setPrefLabel(lrtPrefLabel);
     metadata.setLearningResourceType(learningResourceType);
 
     List<About> subjects = new ArrayList<>();
@@ -76,6 +82,38 @@ class MetadataServiceTest {
     Metadata metadata = newMetadata();
     service.createOrUpdate(metadata);
     verify(repository, times(1)).save(metadata);
+  }
+
+  @Test
+  void testCreateOrUpdateWithMinimalData() {
+    Metadata metadata = new Metadata();
+    metadata.setName("Test Title");
+    metadata.setIdentifier("http://www.test.de");
+    service.createOrUpdate(metadata);
+    verify(repository, times(1)).save(metadata);
+  }
+
+  @Test
+  void testCreateOrUpdateWithInvalidLanguageCodeInPrefLabel() {
+    Metadata metadata = newMetadata();
+    LocalizedString lrtPrefLabel = new LocalizedString();
+    lrtPrefLabel.setLocalizedStrings(Map.of("invalid", "test"));
+    metadata.getLearningResourceType().setPrefLabel(lrtPrefLabel);
+    try {
+      service.createOrUpdate(metadata);
+      fail("Expect an exception as the prefLabel language code is invalid");
+    } catch (IllegalArgumentException e) {
+    }
+
+    lrtPrefLabel = new LocalizedString();
+    lrtPrefLabel.setLocalizedStrings(Map.of("zz", "test"));
+    metadata.getLearningResourceType().setPrefLabel(lrtPrefLabel);
+    try {
+      service.createOrUpdate(metadata);
+      fail("Expect an exception as the prefLabel language code is invalid");
+    } catch (IllegalArgumentException e) {
+    }
+    verify(repository, times(0)).save(metadata);
   }
 
   @Test
