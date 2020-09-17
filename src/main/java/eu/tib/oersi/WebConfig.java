@@ -4,12 +4,14 @@ import eu.tib.oersi.domain.About;
 import eu.tib.oersi.domain.Audience;
 import eu.tib.oersi.domain.Creator;
 import eu.tib.oersi.domain.LearningResourceType;
+import eu.tib.oersi.domain.LocalizedString;
 import eu.tib.oersi.domain.MainEntityOfPage;
 import eu.tib.oersi.domain.Metadata;
 import eu.tib.oersi.domain.Provider;
 import eu.tib.oersi.domain.SourceOrganization;
 import eu.tib.oersi.dto.AudienceDto;
 import eu.tib.oersi.dto.LearningResourceTypeDto;
+import eu.tib.oersi.dto.LocalizedStringDto;
 import eu.tib.oersi.dto.MetadataAboutDto;
 import eu.tib.oersi.dto.MetadataCreatorDto;
 import eu.tib.oersi.dto.MetadataDto;
@@ -19,6 +21,8 @@ import eu.tib.oersi.dto.ProviderDto;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.HashMap;
+import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,13 +39,48 @@ public class WebConfig {
   @Bean
   public ModelMapper modelMapper() {
     final ModelMapper modelMapper = new ModelMapper();
+    addConverters(modelMapper);
+    addEnumMapping(modelMapper);
+    addIdMapping(modelMapper);
+    return modelMapper;
+  }
+
+  private void addConverters(final ModelMapper modelMapper) {
     modelMapper.addConverter(
         ctx -> ctx.getSource() == null ? null : ctx.getSource().atOffset(ZoneOffset.UTC),
         LocalDateTime.class, OffsetDateTime.class);
     modelMapper.addConverter(
         ctx -> ctx.getSource() == null ? null : ctx.getSource().toLocalDateTime(),
         OffsetDateTime.class, LocalDateTime.class);
+    modelMapper.addConverter(ctx -> {
+      LocalizedStringDto result = null;
+      if (ctx.getSource() != null && ctx.getSource().getLocalizedStrings() != null) {
+        result = new LocalizedStringDto();
+        result.putAll(ctx.getSource().getLocalizedStrings());
+      }
+      return result;
+    }, LocalizedString.class, LocalizedStringDto.class);
+    Converter<LocalizedStringDto, LocalizedString> labelConverter = ctx -> {
+      LocalizedString result = null;
+      if (ctx.getSource() != null) {
+        result = new LocalizedString();
+        result.setLocalizedStrings(new HashMap<String, String>(ctx.getSource()));
+      }
+      return result;
+    };
+    modelMapper.addConverter(labelConverter, LocalizedStringDto.class, LocalizedString.class);
+    // converter needs to be set directly, otherwise the mapping does not work
+    // (I guess, because of the HashMap inheritance)
+    modelMapper.typeMap(MetadataAboutDto.class, About.class).addMappings(mapper -> mapper
+        .using(labelConverter).map(MetadataAboutDto::getPrefLabel, About::setPrefLabel));
+    modelMapper.typeMap(AudienceDto.class, Audience.class).addMappings(mapper -> mapper
+        .using(labelConverter).map(AudienceDto::getPrefLabel, Audience::setPrefLabel));
+    modelMapper.typeMap(LearningResourceTypeDto.class, LearningResourceType.class)
+        .addMappings(mapper -> mapper.using(labelConverter)
+            .map(LearningResourceTypeDto::getPrefLabel, LearningResourceType::setPrefLabel));
+  }
 
+  private void addEnumMapping(final ModelMapper modelMapper) {
     // map enums <-> strings
     modelMapper.addConverter(
         ctx -> ctx.getSource() == null ? null
@@ -55,7 +94,9 @@ public class WebConfig {
         String.class, MetadataCreatorDto.TypeEnum.class);
     modelMapper.addConverter(ctx -> ctx.getSource() == null ? null : ctx.getSource().toString(),
         MetadataCreatorDto.TypeEnum.class, String.class);
+  }
 
+  private void addIdMapping(final ModelMapper modelMapper) {
     // map DTO id field <-> Domain identifier field
     // ATTENTION: consider order of definitions (a mapping m that is used in another mapping n has
     // to be defined before n)
@@ -111,7 +152,6 @@ public class WebConfig {
       mapper.map(MetadataDto::getId, Metadata::setIdentifier);
       mapper.skip(Metadata::setId);
     });
-
-    return modelMapper;
   }
+
 }

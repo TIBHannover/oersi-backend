@@ -19,9 +19,11 @@ import eu.tib.oersi.domain.About;
 import eu.tib.oersi.domain.Audience;
 import eu.tib.oersi.domain.Creator;
 import eu.tib.oersi.domain.LearningResourceType;
+import eu.tib.oersi.domain.LocalizedString;
 import eu.tib.oersi.domain.MainEntityOfPage;
 import eu.tib.oersi.domain.Metadata;
 import eu.tib.oersi.domain.SourceOrganization;
+import eu.tib.oersi.dto.LocalizedStringDto;
 import eu.tib.oersi.dto.MetadataDto;
 import eu.tib.oersi.repository.MetadataRepository;
 import java.io.IOException;
@@ -31,6 +33,7 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -100,6 +103,9 @@ class MetadataControllerTest {
 
     Audience audience = new Audience();
     audience.setIdentifier("audience");
+    LocalizedString audiencePrefLabel = new LocalizedString();
+    audiencePrefLabel.setLocalizedStrings(Map.of("de", "Lernender", "en", "student"));
+    audience.setPrefLabel(audiencePrefLabel);
     metadata.setAudience(audience);
 
     MainEntityOfPage mainEntityOfPage = new MainEntityOfPage();
@@ -112,10 +118,16 @@ class MetadataControllerTest {
 
     LearningResourceType learningResourceType = new LearningResourceType();
     learningResourceType.setIdentifier("learningResourceType");
+    LocalizedString lrtPrefLabel = new LocalizedString();
+    lrtPrefLabel.setLocalizedStrings(Map.of("de", "Kurs", "en", "course"));
+    learningResourceType.setPrefLabel(lrtPrefLabel);
     metadata.setLearningResourceType(learningResourceType);
 
     About about = new About();
     about.setIdentifier("subject");
+    LocalizedString aboutPrefLabel = new LocalizedString();
+    aboutPrefLabel.setLocalizedStrings(Map.of("de", "Mathematik", "en", "mathematics"));
+    about.setPrefLabel(aboutPrefLabel);
     metadata.setAbout(List.of(about));
 
     metadata.setDescription("description");
@@ -156,7 +168,20 @@ class MetadataControllerTest {
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
-            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\"}],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":\"en\",\"learningResourceType\":{\"id\":\"learningResourceType\"},\"audience\":{\"id\":\"audience\"},\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}]}, \"sourceOrganization\":[{\"name\":\"sourceOrganization\"}]"));
+            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\",\"prefLabel\":{\"de\":\"Mathematik\",\"en\":\"mathematics\"}}],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":\"en\",\"learningResourceType\":{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"Kurs\",\"en\":\"course\"}},\"audience\":{\"id\":\"audience\",\"prefLabel\":{\"de\":\"Lernender\",\"en\":\"student\"}},\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}], \"sourceOrganization\":[{\"name\":\"sourceOrganization\"}]}"));
+  }
+
+  @Test
+  void testPostRequestUpdatePrefLabel() throws Exception {
+    MetadataDto metadata = getTestMetadataDto();
+    LocalizedStringDto prefLabel = new LocalizedStringDto();
+    prefLabel.put("de", "test");
+    metadata.getLearningResourceType().setPrefLabel(prefLabel);
+
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+        .content(asJson(metadata))).andExpect(status().isOk())
+        .andExpect(content().json(
+            "{\"learningResourceType\":{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"test\"}}}"));
   }
 
   @Test
