@@ -49,8 +49,17 @@ public class MetadataServiceImpl implements MetadataService {
           metadata.getSourceOrganization()));
     }
     metadata.setDateModifiedInternal(LocalDateTime.now());
+    metadata.setName(cutString(metadata.getName(), Metadata.NAME_LENGTH));
+    metadata.setDescription(cutString(metadata.getDescription(), Metadata.DESCRIPTION_LENGTH));
     determineProviderNames(metadata);
     return oerMeatadataRepository.save(metadata);
+  }
+  
+  private String cutString(final String input, final int maxLength) {
+    if (input == null) {
+      return null;
+    }
+    return input.substring(0, Math.min(input.length(), maxLength));
   }
 
   private <T> List<T> updateExistingList(final List<T> existingList, final List<T> newValues) {

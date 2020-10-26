@@ -21,6 +21,9 @@ import org.hibernate.validator.constraints.URL;
 @Data
 @Entity
 public class Metadata {
+  
+  public static final int NAME_LENGTH = 500;
+  public static final int DESCRIPTION_LENGTH = 10000;
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -30,14 +33,14 @@ public class Metadata {
   @Column(nullable = false)
   private String identifier;
 
-  @Column(nullable = false)
+  @Column(nullable = false, length = NAME_LENGTH)
   private String name;
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "metadata_id", nullable = true)
   private List<Creator> creator;
 
-  @Column(length = 5000)
+  @Column(length = DESCRIPTION_LENGTH)
   private String description;
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
