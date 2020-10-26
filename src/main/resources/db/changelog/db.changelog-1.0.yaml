@@ -299,3 +299,21 @@ databaseChangeLog:
         initiallyDeferred: false
         referencedColumnNames: id
         referencedTableName: pref_label
+
+- changeSet:
+    id: 1603718177959-1
+    author: hoffmann
+    changes:
+    - modifyDataType:
+        columnName: name
+        newDataType: VARCHAR(500)
+        tableName: metadata
+    - modifyDataType:
+        columnName: description
+        newDataType: VARCHAR(10000)
+        tableName: metadata
+    - addNotNullConstraint:
+        columnDataType: VARCHAR(500)
+        columnName: name
+        tableName: metadata
+    
