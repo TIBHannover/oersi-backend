@@ -101,5 +101,11 @@ public class MetadataController implements MetadataControllerApi {
     metadataService.delete(metadata);
     return ResponseEntity.ok().build();
   }
+  
+  @Override
+  public ResponseEntity<Void> deleteAll() {
+    metadataService.deleteAll();
+    return ResponseEntity.ok().build();
+  }
 
 }
