@@ -23,6 +23,11 @@ public interface MetadataService {
   void delete(Metadata metadata);
 
   /**
+   * Delete all existing {@link Metadata}.
+   */
+  void deleteAll();
+
+  /**
    * Retrieve {@link Metadata} for the given id.
    *
    * @param id id

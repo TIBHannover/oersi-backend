@@ -128,6 +128,12 @@ public class MetadataServiceImpl implements MetadataService {
     oerMeatadataRepository.delete(metadata);
   }
 
+  @Transactional
+  @Override
+  public void deleteAll() {
+    oerMeatadataRepository.deleteAll();
+  }
+  
   @Transactional(readOnly = true)
   @Override
   public Metadata findById(final Long id) {

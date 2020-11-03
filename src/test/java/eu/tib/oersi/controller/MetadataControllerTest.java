@@ -286,6 +286,16 @@ class MetadataControllerTest {
   }
 
   @Test
+  void testDeleteAllRequest() throws Exception {
+    createTestMetadata();
+
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH)
+        .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+
+    Assert.assertEquals(0, repository.count());
+  }
+
+  @Test
   void testDeleteRequestWithNonExistingData() throws Exception {
     mvc.perform(
         delete(METADATA_CONTROLLER_BASE_PATH + "/1").contentType(MediaType.APPLICATION_JSON))
