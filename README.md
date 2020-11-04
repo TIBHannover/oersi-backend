@@ -31,8 +31,8 @@ API definition in [src/main/resources/model/api2.yaml](src/main/resources/model/
 * **_SearchController_**: Read-Access to the index data **/api/search/**
     * Sets a user that has read-only access to the elasticsearch index **oer_data** and execute the request in elasticsearch (GET, POST).
     * Use directly the elasticsearch API - see [Elasticsearch Search API](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-search.html) and [Elasticsearch Query DSL](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-script-query.html)
-    * default value for public adress: **/oersi/es/oer_data/**
-    * example `curl -L www.oersi.de/oersi/es/oer_data/_search`
+    * default value for public adress: **/resources/es/oer_data/**
+    * example `curl -L oersi.de/resources/es/oer_data/_search`
 * **_MetadataController_**: CRUD-operations to the sql data **/api/metadata/**
     * based on https://dini-ag-kim.github.io/lrmi-profile/draft/schemas/schema.json ([conversion](https://gitlab.com/oersi/oersi-backend/-/issues/8#note_344342881))
 
