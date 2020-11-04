@@ -131,6 +131,7 @@ public class MetadataServiceImpl implements MetadataService {
   @Transactional
   @Override
   public void deleteAll() {
+    log.info("delete all metadata");
     oerMeatadataRepository.deleteAll();
   }
   
