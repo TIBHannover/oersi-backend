@@ -648,6 +648,15 @@ definitions:
               type: "string"
               description: "The name of the source organization"
               example: "Technische Hochschule Köln"
+      keywords:
+        title: "Keywords"
+        description: "Keywords or tags used to describe this content"
+        type: "array"
+        example:
+          - Multimedia
+          - GitLab
+        items:
+          type: "string"
     required:
       - "id"
       - "name"

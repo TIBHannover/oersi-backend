@@ -316,4 +316,32 @@ databaseChangeLog:
         columnDataType: VARCHAR(500)
         columnName: name
         tableName: metadata
-    
+
+- changeSet:
+    id: 1604651290980-1
+    author: hoffmann (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: metadata_id
+            type: BIGINT
+        - column:
+            name: keywords
+            type: VARCHAR(255)
+        tableName: keywords
+- changeSet:
+    id: 1604651290980-2
+    author: hoffmann (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: metadata_id
+        baseTableName: keywords
+        constraintName: FK1letlkdlom05q5hsidbmc0923
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: metadata
+
