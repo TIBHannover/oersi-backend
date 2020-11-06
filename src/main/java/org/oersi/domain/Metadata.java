@@ -4,7 +4,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import javax.persistence.CascadeType;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -70,6 +72,10 @@ public class Metadata {
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "metadata_id", nullable = true)
   private List<SourceOrganization> sourceOrganization;
+
+  @ElementCollection
+  @CollectionTable(name = "keywords")
+  private List<String> keywords;
 
   @Column(nullable = false)
   private LocalDateTime dateModifiedInternal;
