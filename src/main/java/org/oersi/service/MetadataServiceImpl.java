@@ -5,6 +5,8 @@ import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +45,7 @@ public class MetadataServiceImpl implements MetadataService {
       // see https://gitlab.com/oersi/oersi-backend/-/issues/9
       metadata.setAbout(updateExistingList(existingMetadata.getAbout(), metadata.getAbout()));
       metadata.setCreator(updateExistingList(existingMetadata.getCreator(), metadata.getCreator()));
-      metadata.setMainEntityOfPage(updateExistingList(existingMetadata.getMainEntityOfPage(),
+      metadata.setMainEntityOfPage(mergeMainEntityOfPageList(existingMetadata.getMainEntityOfPage(),
           metadata.getMainEntityOfPage()));
       metadata.setSourceOrganization(updateExistingList(existingMetadata.getSourceOrganization(),
           metadata.getSourceOrganization()));
@@ -54,12 +56,38 @@ public class MetadataServiceImpl implements MetadataService {
     determineProviderNames(metadata);
     return oerMeatadataRepository.save(metadata);
   }
-  
+
   private String cutString(final String input, final int maxLength) {
     if (input == null) {
       return null;
     }
     return input.substring(0, Math.min(input.length(), maxLength));
+  }
+
+  /**
+   * Merge existing list and new list. Entries in new list will override existing ones (based on
+   * identifier).
+   * 
+   * @param existingList
+   * @param newValues
+   * @return
+   */
+  private List<MainEntityOfPage> mergeMainEntityOfPageList(
+      final List<MainEntityOfPage> existingList, final List<MainEntityOfPage> newValues) {
+    if (existingList == null) {
+      return newValues;
+    }
+    if (newValues != null) {
+      Set<String> newIds = newValues.stream()
+          .map(MainEntityOfPage::getIdentifier)
+          .collect(Collectors.toSet());
+      List<MainEntityOfPage> overwriteEntries = existingList.stream()
+          .filter(m -> newIds.contains(m.getIdentifier()))
+          .collect(Collectors.toList());
+      existingList.removeAll(overwriteEntries);
+      existingList.addAll(newValues);
+    }
+    return existingList;
   }
 
   private <T> List<T> updateExistingList(final List<T> existingList, final List<T> newValues) {
@@ -134,7 +162,7 @@ public class MetadataServiceImpl implements MetadataService {
     log.info("delete all metadata");
     oerMeatadataRepository.deleteAll();
   }
-  
+
   @Transactional(readOnly = true)
   @Override
   public Metadata findById(final Long id) {
