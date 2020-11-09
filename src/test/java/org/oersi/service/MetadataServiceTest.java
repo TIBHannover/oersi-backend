@@ -2,6 +2,7 @@ package org.oersi.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.oersi.domain.About;
 import org.oersi.domain.Audience;
 import org.oersi.domain.Creator;
@@ -153,6 +155,45 @@ class MetadataServiceTest {
   }
 
   @Test
+  void testUpdateMainEntityOfPagesNotSet() {
+    Metadata existingData = newMetadata();
+    existingData.setMainEntityOfPage(null);
+    when(repository.findByIdentifier(existingData.getIdentifier()))
+        .thenReturn(List.of(existingData));
+
+    Metadata metadata = newMetadata();
+    metadata.getMainEntityOfPage().get(0).setIdentifier("http://www.example2.url/desc/123");
+    service.createOrUpdate(metadata);
+    assertEquals(1, metadata.getMainEntityOfPage().size());
+  }
+
+  @Test
+  void testUpdateMainEntityOfPagesDisjunct() {
+    Metadata existingData = newMetadata();
+    when(repository.findByIdentifier(existingData.getIdentifier()))
+        .thenReturn(List.of(existingData));
+
+    Metadata metadata = newMetadata();
+    metadata.getMainEntityOfPage().get(0).setIdentifier("http://www.example2.url/desc/123");
+    service.createOrUpdate(metadata);
+    assertEquals(2, metadata.getMainEntityOfPage().size());
+  }
+
+  @Test
+  void testUpdateMainEntityOfPagesMerge() {
+    Metadata existingData = newMetadata();
+    when(repository.findByIdentifier(existingData.getIdentifier()))
+        .thenReturn(List.of(existingData));
+
+    Metadata metadata = newMetadata();
+    MainEntityOfPage mainEntityOfPage = new MainEntityOfPage();
+    mainEntityOfPage.setIdentifier("http://www.example2.url/desc/123");
+    metadata.getMainEntityOfPage().add(mainEntityOfPage);
+    service.createOrUpdate(metadata);
+    assertEquals(2, metadata.getMainEntityOfPage().size());
+  }
+
+  @Test
   void testCreateOrUpdateWithGivenProvider() {
     Metadata metadata = newMetadata();
     Provider provider = new Provider();
@@ -161,8 +202,7 @@ class MetadataServiceTest {
     service.createOrUpdate(metadata);
     verify(repository, times(1)).save(metadata);
     assertThat(metadata.getMainEntityOfPage().get(0).getProvider()).isNotNull();
-    assertThat(metadata.getMainEntityOfPage().get(0).getProvider().getName())
-        .isEqualTo("testname");
+    assertThat(metadata.getMainEntityOfPage().get(0).getProvider().getName()).isEqualTo("testname");
   }
 
   @Test
@@ -193,8 +233,7 @@ class MetadataServiceTest {
   @Test
   void testCreateOrUpdateWithExistingDataFoundByUrl() {
     Metadata metadata = newMetadata();
-    when(repository.findByIdentifier(metadata.getIdentifier()))
-        .thenReturn(List.of(metadata));
+    when(repository.findByIdentifier(metadata.getIdentifier())).thenReturn(List.of(metadata));
     service.createOrUpdate(metadata);
     verify(repository, times(1)).save(metadata);
   }
