@@ -1,6 +1,6 @@
 # How to release this project
 
-* Create release issue https://gitlab.com/oersi/oersi-backend/-/issues/new
+* Use one release issue for all projects https://gitlab.com/oersi/oersi-setup/-/issues/new
 * Checkout the develop branch
 ```
 git checkout develop
