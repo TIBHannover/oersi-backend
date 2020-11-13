@@ -25,16 +25,7 @@ The (backend) API is not part of the oersi public API. It is designed to be cons
 
 ## Rest API
 
-<<<<<<< HEAD
 API definition in [src/main/resources/model/api2.yaml](src/main/resources/model/api2.yaml)
-=======
-* Read-Access to the index data via _SearchController_ **/api/search**
-* CRUD-operations via _MetadataController_ **/api/metadata**
-* The documentation of the API can be found at ``http://<YOUR-HOST>/<YOUR-APP-ROOT>/swagger-ui.html``
-    * use [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) for an application started with ``mvn spring-boot:run``
-
-### Rest API Swagger Configuration
->>>>>>> master
 
 #### Endpoints
 * **_SearchController_**: Read-Access to the index data **/api/search/**
@@ -45,18 +36,10 @@ API definition in [src/main/resources/model/api2.yaml](src/main/resources/model/
 * **_MetadataController_**: CRUD-operations to the sql data **/api/metadata/**
     * based on https://dini-ag-kim.github.io/lrmi-profile/draft/schemas/schema.json ([conversion](https://gitlab.com/oersi/oersi-backend/-/issues/8#note_344342881))
 
-<<<<<<< HEAD
 #### Interactive documentation
 * An interactive documentation of the API can be found at ``http://<YOUR-HOST>:8080/oersi/swagger-ui.html`` (adjust tomcat port, application name if the standard values were not used)
     * You need to have access to the internal oersi system. The interactive swagger documentation is not available in the web.
     * use [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) for an application started locally with ``mvn spring-boot:run``
-=======
-* Swagger Generate DTO (Model) and Controller , so if you want to modify , or create a new one (Model or Controller ), add in **Yaml**  
- 
-    *  **Yaml file is in :**
-            
-          > ./src/main/resorces/model/api2.yaml
->>>>>>> master
 
 #### Swagger Configuration
 
