@@ -277,6 +277,25 @@ paths:
 definitions:
   Metadata:
     properties:
+      "@context":
+        title: "JSON-LD Context"
+        type: "array"
+        minItems: 2
+        description: "The JSON-LD context for the structured resource descriptions"
+        items:
+          - type: "string"
+            format: "uri"
+            example: "https://w3id.org/kim/lrmi-profile/draft/context.jsonld"
+          - type: "object"
+            properties:
+              "@language":
+                type: "string"
+                example: "de"
+                required:
+                  - "@language"
+        example:
+          - "https://w3id.org/kim/lrmi-profile/draft/context.jsonld"
+          - "@language": "de"
       id:
         title: "URL"
         type: "string"
