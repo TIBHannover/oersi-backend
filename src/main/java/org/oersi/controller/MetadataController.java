@@ -67,7 +67,7 @@ public class MetadataController implements MetadataControllerApi {
       }
       resultMsg.append(", ");
     }
-    log.debug("Mapping exception: {}", resultMsg.toString());
+    log.debug("Mapping exception: {}", resultMsg);
     return ResponseEntity.badRequest().body(resultMsg.toString());
   }
 
