@@ -4,8 +4,12 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.PropertyMap;
 import org.oersi.domain.About;
 import org.oersi.domain.Audience;
 import org.oersi.domain.Creator;
@@ -31,6 +35,9 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class WebConfig {
 
+  private static final int CONTEXT_MIN_ITEM_NR = 2;
+  private static final String CONTEXT_LANGUAGE_KEY = "@language";
+
   @Bean
   public RestTemplate restTemplate() {
     return new RestTemplate();
@@ -42,7 +49,59 @@ public class WebConfig {
     addConverters(modelMapper);
     addEnumMapping(modelMapper);
     addIdMapping(modelMapper);
+
+    modelMapper.typeMap(Metadata.class, MetadataDto.class).addMappings(
+        new PropertyMap<>() {
+          @Override
+          protected void configure() {
+            using(ctx -> toContextList((Metadata) ctx.getSource())).map(source, destination.getContext());
+          }
+        }
+    );
+    modelMapper.typeMap(MetadataDto.class, Metadata.class).addMappings(
+        new PropertyMap<>() {
+          @Override
+          protected void configure() {
+            using(ctx -> getContextUri((MetadataDto) ctx.getSource())).map(source, destination.getContextUri());
+            using(ctx -> getContextLanguage((MetadataDto) ctx.getSource())).map(source, destination.getContextLanguage());
+          }
+        }
+    );
+
     return modelMapper;
+  }
+
+  private String getContextUri(final MetadataDto dto) {
+    final int contextUriIndex = 0;
+    if (dto.getContext() == null || dto.getContext().size() < CONTEXT_MIN_ITEM_NR) {
+      return null;
+    }
+    if (!(dto.getContext().get(contextUriIndex) instanceof String)) {
+      throw new IllegalArgumentException("Missing context uri of type String");
+    }
+    return (String) dto.getContext().get(contextUriIndex);
+  }
+
+  private String getContextLanguage(final MetadataDto dto) {
+    final int contextLanguageIndex = 1;
+    if (dto.getContext() == null || dto.getContext().size() < CONTEXT_MIN_ITEM_NR) {
+      return null;
+    }
+    if (!(dto.getContext().get(contextLanguageIndex) instanceof Map)) {
+      throw new IllegalArgumentException("Missing context language");
+    }
+    Object language = ((Map<?, ?>) dto.getContext().get(contextLanguageIndex)).get(CONTEXT_LANGUAGE_KEY);
+    if (!(language instanceof String)) {
+      throw new IllegalArgumentException("Missing context language of type String");
+    }
+    return (String) language;
+  }
+
+  private List<Object> toContextList(final Metadata metadata) {
+    if (metadata.getContextUri() == null || metadata.getContextLanguage() == null) {
+      return null;
+    }
+    return List.of(metadata.getContextUri(), Map.of(CONTEXT_LANGUAGE_KEY, metadata.getContextLanguage()));
   }
 
   private void addConverters(final ModelMapper modelMapper) {

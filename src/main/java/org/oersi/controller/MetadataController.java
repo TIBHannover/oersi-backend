@@ -3,13 +3,16 @@ package org.oersi.controller;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.MappingException;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.spi.ErrorMessage;
 import org.oersi.api.MetadataControllerApi;
 import org.oersi.domain.Metadata;
 import org.oersi.dto.MetadataDto;
 import org.oersi.service.MetadataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,6 +55,20 @@ public class MetadataController implements MetadataControllerApi {
   private ResponseEntity<MetadataDto> getResponseForNonExistingData(final Long id) {
     log.debug("Metadata with id {} does not exist!", id);
     return ResponseEntity.badRequest().build();
+  }
+
+  @ExceptionHandler(MappingException.class)
+  public ResponseEntity<String> handleMappingException(final MappingException e) {
+    final StringBuilder resultMsg = new StringBuilder();
+    for (ErrorMessage errorMessage : e.getErrorMessages()) {
+      resultMsg.append(errorMessage.getMessage());
+      if (errorMessage.getCause() != null) {
+        resultMsg.append(" - ").append(errorMessage.getCause().getMessage());
+      }
+      resultMsg.append(", ");
+    }
+    log.debug("Mapping exception: {}", resultMsg.toString());
+    return ResponseEntity.badRequest().body(resultMsg.toString());
   }
 
   /**

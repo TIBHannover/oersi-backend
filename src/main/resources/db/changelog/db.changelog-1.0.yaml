@@ -345,3 +345,23 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: metadata
 
+- changeSet:
+      id: 1606820263746-1
+      author: hoffmann (generated)
+      changes:
+          - addColumn:
+                columns:
+                    - column:
+                          name: context_language
+                          type: varchar(255)
+                tableName: metadata
+- changeSet:
+      id: 1606820263746-2
+      author: hoffmann (generated)
+      changes:
+          - addColumn:
+                columns:
+                    - column:
+                          name: context_uri
+                          type: varchar(255)
+                tableName: metadata
