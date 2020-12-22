@@ -31,6 +31,7 @@ class LabelControllerTest {
   void cleanup() {
     labelRepository.deleteAll();
     labelRepository.flush();
+    labelService.clearCache();
   }
 
   @Test
