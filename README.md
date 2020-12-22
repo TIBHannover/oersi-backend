@@ -35,6 +35,10 @@ API definition in [src/main/resources/model/api2.yaml](src/main/resources/model/
     * example `curl -L oersi.de/resources/api-internal/search/oer_data/_search`
 * **_MetadataController_**: CRUD-operations to the sql data **/api/metadata/**
     * based on https://dini-ag-kim.github.io/lrmi-profile/draft/schemas/schema.json ([conversion](https://gitlab.com/oersi/oersi-backend/-/issues/8#note_344342881))
+* **_LabelController_**: Retrieve labels from the data **/api/label/**
+    * Internal use - this is not part of the public API
+    * In the data there are labels for some fields (for example `learningResourceType` or `about`) -> these labels can be accessed here directly
+    * Labels can be retrieved for a given language - and optionally for a given field/group.
 
 #### Interactive documentation
 * An interactive documentation of the API can be found at ``http://<YOUR-HOST>:8080/oersi/swagger-ui.html`` (adjust tomcat port, application name if the standard values were not used)
