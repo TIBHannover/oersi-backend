@@ -42,7 +42,7 @@ public class MetadataValidator {
   }
 
   private void validatePrefLabel(final LocalizedString prefLabel) {
-    if (prefLabel != null) {
+    if (prefLabel != null && prefLabel.getLocalizedStrings() != null) {
       prefLabel.getLocalizedStrings().keySet().stream().filter(s -> !ISO_LANGUAGES.contains(s))
           .forEach(s -> result.addViolation("Illegal language code '" + s + "'"));
     }

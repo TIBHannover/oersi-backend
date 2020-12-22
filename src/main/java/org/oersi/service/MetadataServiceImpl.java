@@ -4,15 +4,14 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.oersi.domain.MainEntityOfPage;
-import org.oersi.domain.Metadata;
-import org.oersi.domain.Provider;
+import org.oersi.domain.*;
 import org.oersi.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,7 +25,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class MetadataServiceImpl implements MetadataService {
 
+  private static final String LABEL_GROUP_ID_AUDIENCE = "audience";
+  private static final String LABEL_GROUP_ID_LRT = "lrt";
+  private static final String LABEL_GROUP_ID_SUBJECT = "subject";
+
   private final @NonNull MetadataRepository oerMeatadataRepository;
+  private final @NonNull LabelService labelService;
 
   @Transactional
   @Override
@@ -54,7 +58,35 @@ public class MetadataServiceImpl implements MetadataService {
     metadata.setName(cutString(metadata.getName(), Metadata.NAME_LENGTH));
     metadata.setDescription(cutString(metadata.getDescription(), Metadata.DESCRIPTION_LENGTH));
     determineProviderNames(metadata);
+    storeLabels(metadata);
     return oerMeatadataRepository.save(metadata);
+  }
+
+  /**
+   * Use the @{@link LabelService} to store all labels contained in this @{@link Metadata}.
+   * @param metadata metadata
+   */
+  private void storeLabels(final Metadata metadata) {
+    if (metadata.getAbout() != null) {
+      for (About about : metadata.getAbout()) {
+        storeLabels(about.getIdentifier(), about.getPrefLabel(), LABEL_GROUP_ID_SUBJECT);
+      }
+    }
+    if (metadata.getAudience() != null) {
+      storeLabels(metadata.getAudience().getIdentifier(), metadata.getAudience().getPrefLabel(), LABEL_GROUP_ID_AUDIENCE);
+    }
+    if (metadata.getLearningResourceType() != null) {
+      storeLabels(metadata.getLearningResourceType().getIdentifier(), metadata.getLearningResourceType().getPrefLabel(), LABEL_GROUP_ID_LRT);
+    }
+  }
+  private void storeLabels(final String key, final LocalizedString prefLabel, final String groupId) {
+    if (key == null || prefLabel == null || prefLabel.getLocalizedStrings() == null) {
+      return;
+    }
+    Map<String, String> localizedStrings = prefLabel.getLocalizedStrings();
+    for (Map.Entry<String, String> entry : localizedStrings.entrySet()) {
+      labelService.createOrUpdate(entry.getKey(), key, entry.getValue(), groupId);
+    }
   }
 
   private String cutString(final String input, final int maxLength) {
@@ -68,9 +100,9 @@ public class MetadataServiceImpl implements MetadataService {
    * Merge existing list and new list. Entries in new list will override existing ones (based on
    * identifier).
    * 
-   * @param existingList
-   * @param newValues
-   * @return
+   * @param existingList existing list
+   * @param newValues new list
+   * @return merged list
    */
   private List<MainEntityOfPage> mergeMainEntityOfPageList(
       final List<MainEntityOfPage> existingList, final List<MainEntityOfPage> newValues) {
@@ -170,10 +202,7 @@ public class MetadataServiceImpl implements MetadataService {
       return null;
     }
     Optional<Metadata> optional = oerMeatadataRepository.findById(id);
-    if (optional.isPresent()) {
-      return optional.get();
-    }
-    return null;
+    return optional.orElse(null);
   }
 
 }

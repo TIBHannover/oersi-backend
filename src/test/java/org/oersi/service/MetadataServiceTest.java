@@ -1,30 +1,21 @@
 package org.oersi.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Test;
+import org.oersi.domain.*;
+import org.oersi.repository.MetadataRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.oersi.domain.About;
-import org.oersi.domain.Audience;
-import org.oersi.domain.Creator;
-import org.oersi.domain.LearningResourceType;
-import org.oersi.domain.LocalizedString;
-import org.oersi.domain.MainEntityOfPage;
-import org.oersi.domain.Metadata;
-import org.oersi.domain.Provider;
-import org.oersi.repository.MetadataRepository;
-import org.oersi.service.MetadataService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 class MetadataServiceTest {
@@ -33,6 +24,8 @@ class MetadataServiceTest {
   private MetadataService service;
   @MockBean
   private MetadataRepository repository;
+  @MockBean
+  private LabelService labelService;
 
   private Metadata newMetadata() {
     Metadata metadata = new Metadata();
@@ -117,6 +110,16 @@ class MetadataServiceTest {
     } catch (IllegalArgumentException e) {
     }
     verify(repository, times(0)).save(metadata);
+  }
+
+  @Test
+  void testCreateOrUpdateWithIncompleteLabel() {
+    Metadata metadata = newMetadata();
+    LocalizedString lrtPrefLabel = new LocalizedString();
+    metadata.getLearningResourceType().setPrefLabel(lrtPrefLabel);
+    metadata.getAudience().setIdentifier(null);
+    service.createOrUpdate(metadata);
+    verify(labelService, times(0)).createOrUpdate(anyString(), anyString(), anyString(), anyString());
   }
 
   @Test
@@ -255,7 +258,7 @@ class MetadataServiceTest {
     result = service.findById(null);
     assertThat(result).isNull();
 
-    when(repository.findById(1L)).thenReturn(Optional.ofNullable(null));
+    when(repository.findById(1L)).thenReturn(Optional.empty());
     result = service.findById(1L);
     assertThat(result).isNull();
   }
