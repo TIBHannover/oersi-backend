@@ -609,16 +609,20 @@ definitions:
           - "zu"
       learningResourceType:
         title: "Learning Resource Type"
-        type: "object"
+        type: "array"
         description: "Learning Resource Type"
-        properties:
-          id:
-            type: "string"
-            example: "https://w3id.org/kim/hcrt/course"
-          prefLabel:
-            title: "The preferred label of the concept"
-            description: "A localized string for prefLabel of the learning resource type"
-            $ref: "#/definitions/LocalizedString"
+        items:
+          type: "object"
+          properties:
+            id:
+              type: "string"
+              example: "https://w3id.org/kim/hcrt/course"
+            prefLabel:
+              title: "The preferred label of the concept"
+              description: "A localized string for prefLabel of the learning resource type"
+              $ref: "#/definitions/LocalizedString"
+          required:
+            - "id"
 # error with such examples - see https://github.com/OpenAPITools/openapi-generator/issues/3140
 #        example:
 #          id: "https://w3id.org/kim/hcrt/course"

@@ -49,6 +49,7 @@ public class MetadataServiceImpl implements MetadataService {
       // see https://gitlab.com/oersi/oersi-backend/-/issues/9
       metadata.setAbout(updateExistingList(existingMetadata.getAbout(), metadata.getAbout()));
       metadata.setCreator(updateExistingList(existingMetadata.getCreator(), metadata.getCreator()));
+      metadata.setLearningResourceType(updateExistingList(existingMetadata.getLearningResourceType(), metadata.getLearningResourceType()));
       metadata.setMainEntityOfPage(mergeMainEntityOfPageList(existingMetadata.getMainEntityOfPage(),
           metadata.getMainEntityOfPage()));
       metadata.setSourceOrganization(updateExistingList(existingMetadata.getSourceOrganization(),
@@ -76,7 +77,9 @@ public class MetadataServiceImpl implements MetadataService {
       storeLabels(metadata.getAudience().getIdentifier(), metadata.getAudience().getPrefLabel(), LABEL_GROUP_ID_AUDIENCE);
     }
     if (metadata.getLearningResourceType() != null) {
-      storeLabels(metadata.getLearningResourceType().getIdentifier(), metadata.getLearningResourceType().getPrefLabel(), LABEL_GROUP_ID_LRT);
+      for (LearningResourceType lrt : metadata.getLearningResourceType()) {
+        storeLabels(lrt.getIdentifier(), lrt.getPrefLabel(), LABEL_GROUP_ID_LRT);
+      }
     }
   }
   private void storeLabels(final String key, final LocalizedString prefLabel, final String groupId) {

@@ -57,7 +57,7 @@ class MetadataServiceTest {
     LocalizedString lrtPrefLabel = new LocalizedString();
     lrtPrefLabel.setLocalizedStrings(Map.of("de", "Kurs", "en", "course"));
     learningResourceType.setPrefLabel(lrtPrefLabel);
-    metadata.setLearningResourceType(learningResourceType);
+    metadata.setLearningResourceType(new ArrayList<>(List.of(learningResourceType)));
 
     List<About> subjects = new ArrayList<>();
     About about = new About();
@@ -94,7 +94,7 @@ class MetadataServiceTest {
     Metadata metadata = newMetadata();
     LocalizedString lrtPrefLabel = new LocalizedString();
     lrtPrefLabel.setLocalizedStrings(Map.of("invalid", "test"));
-    metadata.getLearningResourceType().setPrefLabel(lrtPrefLabel);
+    metadata.getLearningResourceType().get(0).setPrefLabel(lrtPrefLabel);
     try {
       service.createOrUpdate(metadata);
       fail("Expect an exception as the prefLabel language code is invalid");
@@ -103,7 +103,7 @@ class MetadataServiceTest {
 
     lrtPrefLabel = new LocalizedString();
     lrtPrefLabel.setLocalizedStrings(Map.of("zz", "test"));
-    metadata.getLearningResourceType().setPrefLabel(lrtPrefLabel);
+    metadata.getLearningResourceType().get(0).setPrefLabel(lrtPrefLabel);
     try {
       service.createOrUpdate(metadata);
       fail("Expect an exception as the prefLabel language code is invalid");
@@ -116,7 +116,7 @@ class MetadataServiceTest {
   void testCreateOrUpdateWithIncompleteLabel() {
     Metadata metadata = newMetadata();
     LocalizedString lrtPrefLabel = new LocalizedString();
-    metadata.getLearningResourceType().setPrefLabel(lrtPrefLabel);
+    metadata.getLearningResourceType().get(0).setPrefLabel(lrtPrefLabel);
     metadata.getAudience().setIdentifier(null);
     service.createOrUpdate(metadata);
     verify(labelService, times(0)).createOrUpdate(anyString(), anyString(), anyString(), anyString());

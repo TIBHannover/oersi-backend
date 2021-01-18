@@ -64,8 +64,9 @@ public class Metadata {
   private LocalDate datePublished;
   private String inLanguage;
 
-  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-  private LearningResourceType learningResourceType;
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "metadata_id", nullable = true)
+  private List<LearningResourceType> learningResourceType;
 
   @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
   private Audience audience;
