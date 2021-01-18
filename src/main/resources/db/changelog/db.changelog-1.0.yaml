@@ -445,6 +445,14 @@ databaseChangeLog:
         baseTableName: metadata
         constraintName: FKcget1gydjyi176mc3l0y5xp
 - changeSet:
+    id: 1610979724802-3-1
+    author: mhoffmann
+    comment: data migration to learningResourceType as array
+    changes:
+    - sql:
+        comment: set metadata_id
+        sql: UPDATE learning_resource_type l SET metadata_id = (SELECT m.id FROM metadata m WHERE m.learning_resource_type_id = l.id)
+- changeSet:
     id: 1610979724802-4
     author: hoffmann (generated)
     changes:
