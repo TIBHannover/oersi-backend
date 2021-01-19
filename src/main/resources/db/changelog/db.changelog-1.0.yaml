@@ -414,3 +414,48 @@ databaseChangeLog:
           - sql:
                 comment: data migration into label from about
                 sql: INSERT INTO label (group_id, label_key, language_code, label_value) SELECT DISTINCT 'subject', a.identifier, s.language_code, s.label as label_value FROM localized_string s JOIN about a on s.pref_label_id = a.pref_label_id
+
+- changeSet:
+    id: 1610979724802-1
+    author: hoffmann (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: metadata_id
+            type: bigint
+        tableName: learning_resource_type
+- changeSet:
+    id: 1610979724802-2
+    author: hoffmann (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: metadata_id
+        baseTableName: learning_resource_type
+        constraintName: FK3tekmiem2snkfmdkw3wlui3ru
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: metadata
+- changeSet:
+    id: 1610979724802-3
+    author: hoffmann (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: metadata
+        constraintName: FKcget1gydjyi176mc3l0y5xp
+- changeSet:
+    id: 1610979724802-3-1
+    author: mhoffmann
+    comment: data migration to learningResourceType as array
+    changes:
+    - sql:
+        comment: set metadata_id
+        sql: UPDATE learning_resource_type l SET metadata_id = (SELECT m.id FROM metadata m WHERE m.learning_resource_type_id = l.id)
+- changeSet:
+    id: 1610979724802-4
+    author: hoffmann (generated)
+    changes:
+    - dropColumn:
+        columnName: learning_resource_type_id
+        tableName: metadata

@@ -5,6 +5,7 @@ import java.util.Set;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.oersi.domain.About;
+import org.oersi.domain.LearningResourceType;
 import org.oersi.domain.LocalizedString;
 import org.oersi.domain.Metadata;
 
@@ -36,7 +37,9 @@ public class MetadataValidator {
       validatePrefLabel(metadata.getAudience().getPrefLabel());
     }
     if (metadata.getLearningResourceType() != null) {
-      validatePrefLabel(metadata.getLearningResourceType().getPrefLabel());
+      for (LearningResourceType lrt : metadata.getLearningResourceType()) {
+        validatePrefLabel(lrt.getPrefLabel());
+      }
     }
     return result;
   }

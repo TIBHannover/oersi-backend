@@ -6,7 +6,6 @@ import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
@@ -20,11 +19,11 @@ import org.oersi.domain.Metadata;
 import org.oersi.domain.Provider;
 import org.oersi.domain.SourceOrganization;
 import org.oersi.dto.AudienceDto;
-import org.oersi.dto.LearningResourceTypeDto;
 import org.oersi.dto.LocalizedStringDto;
 import org.oersi.dto.MetadataAboutDto;
 import org.oersi.dto.MetadataCreatorDto;
 import org.oersi.dto.MetadataDto;
+import org.oersi.dto.MetadataLearningResourceTypeDto;
 import org.oersi.dto.MetadataMainEntityOfPageDto;
 import org.oersi.dto.MetadataSourceOrganizationDto;
 import org.oersi.dto.ProviderDto;
@@ -134,9 +133,9 @@ public class WebConfig {
         .using(labelConverter).map(MetadataAboutDto::getPrefLabel, About::setPrefLabel));
     modelMapper.typeMap(AudienceDto.class, Audience.class).addMappings(mapper -> mapper
         .using(labelConverter).map(AudienceDto::getPrefLabel, Audience::setPrefLabel));
-    modelMapper.typeMap(LearningResourceTypeDto.class, LearningResourceType.class)
+    modelMapper.typeMap(MetadataLearningResourceTypeDto.class, LearningResourceType.class)
         .addMappings(mapper -> mapper.using(labelConverter)
-            .map(LearningResourceTypeDto::getPrefLabel, LearningResourceType::setPrefLabel));
+            .map(MetadataLearningResourceTypeDto::getPrefLabel, LearningResourceType::setPrefLabel));
   }
 
   private void addEnumMapping(final ModelMapper modelMapper) {
@@ -177,11 +176,11 @@ public class WebConfig {
       mapper.map(MetadataCreatorDto::getId, Creator::setIdentifier);
       mapper.skip(Creator::setId);
     });
-    modelMapper.typeMap(LearningResourceType.class, LearningResourceTypeDto.class).addMappings(
-        mapper -> mapper.map(LearningResourceType::getIdentifier, LearningResourceTypeDto::setId));
-    modelMapper.typeMap(LearningResourceTypeDto.class, LearningResourceType.class)
+    modelMapper.typeMap(LearningResourceType.class, MetadataLearningResourceTypeDto.class).addMappings(
+        mapper -> mapper.map(LearningResourceType::getIdentifier, MetadataLearningResourceTypeDto::setId));
+    modelMapper.typeMap(MetadataLearningResourceTypeDto.class, LearningResourceType.class)
         .addMappings(mapper -> {
-          mapper.map(LearningResourceTypeDto::getId, LearningResourceType::setIdentifier);
+          mapper.map(MetadataLearningResourceTypeDto::getId, LearningResourceType::setIdentifier);
           mapper.skip(LearningResourceType::setId);
         });
     modelMapper.typeMap(Provider.class, ProviderDto.class)
