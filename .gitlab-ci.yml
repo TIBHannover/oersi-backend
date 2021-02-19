@@ -25,6 +25,13 @@ test:
 deploy:
   stage: deploy
   script:
+    - "PROJECTVERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)"
+    - echo VERSION=${PROJECTVERSION} > build.info
+    - echo BUILDNUMBER=${CI_JOB_ID} >> build.info
+    - echo COMMIT_SHA=${CI_COMMIT_SHORT_SHA} >> build.info
+    - date +'TIMESTAMP=%Y%m%d%H%M%S' >> build.info
+    - cat build.info
+    - mv build.info src/main/resources
     - mvn $MAVEN_CLI_OPTS package
   artifacts:
     paths:
