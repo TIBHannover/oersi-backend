@@ -1,7 +1,7 @@
 image: maven:latest
 
 variables:
-  MAVEN_CLI_OPTS: "--batch-mode"
+  MAVEN_CLI_OPTS: "--batch-mode -s ci_settings.xml"
   MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
 
 cache:
@@ -21,10 +21,10 @@ test:
   stage: test
   script:
     - mvn $MAVEN_CLI_OPTS test
-    
-deploy:
+
+.deploy_job:
   stage: deploy
-  script:
+  before_script:
     - "PROJECTVERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)"
     - echo VERSION=${PROJECTVERSION} > build.info
     - echo BUILDNUMBER=${CI_JOB_ID} >> build.info
@@ -32,8 +32,21 @@ deploy:
     - date +'TIMESTAMP=%Y%m%d%H%M%S' >> build.info
     - cat build.info
     - mv build.info src/main/resources
+
+deploy branch:
+  extends: .deploy_job
+  script:
     - mvn $MAVEN_CLI_OPTS package
   artifacts:
     paths:
      - target/*.war
+  only:
+    - branches
+    
+deploy release:
+  extends: .deploy_job
+  script:
+    - mvn $MAVEN_CLI_OPTS deploy
+  only:
+    - tags
     
