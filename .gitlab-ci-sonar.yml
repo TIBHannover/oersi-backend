@@ -13,4 +13,3 @@ sonar:
   only:
     - merge_requests
     - master
-    - develop
