@@ -11,12 +11,50 @@ info:
     url: "https://opensource.org/licenses/MIT"
 basePath: "/api"
 tags:
+  - name: "label-controller"
+    description: "Endpoints for access to labels"
   - name: "search-Controller"
     description: "Every EndPoint for Search Controller "
   - name: "metadata-controller"
     description: "Every EndPoint for Metadata Controller"
 
 paths:
+  /label/{language}:
+    get:
+      tags:
+        - "label-controller"
+      summary: "Retrieve labels"
+      description: "Retrieve labels for shared vocabularies. These labels will be retrieved from the existing data."
+      operationId: "retrieve"
+      produces:
+        - "application/json"
+      parameters:
+        - in: path
+          name: language
+          description: "Language of the labels"
+          required: true
+          type: string
+        - in: query
+          name: vocab
+          description: "Vocabulary"
+          required: false
+          type: string
+          enum:
+            - audience
+            - lrt
+            - subject
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: "object"
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
   /metadata:
     post:
       tags:
@@ -277,6 +315,25 @@ paths:
 definitions:
   Metadata:
     properties:
+      "@context":
+        title: "JSON-LD Context"
+        type: "array"
+        minItems: 2
+        description: "The JSON-LD context for the structured resource descriptions"
+        items:
+          - type: "string"
+            format: "uri"
+            example: "https://w3id.org/kim/lrmi-profile/draft/context.jsonld"
+          - type: "object"
+            properties:
+              "@language":
+                type: "string"
+                example: "de"
+                required:
+                  - "@language"
+        example:
+          - "https://w3id.org/kim/lrmi-profile/draft/context.jsonld"
+          - "@language": "de"
       id:
         title: "URL"
         type: "string"
@@ -552,16 +609,20 @@ definitions:
           - "zu"
       learningResourceType:
         title: "Learning Resource Type"
-        type: "object"
+        type: "array"
         description: "Learning Resource Type"
-        properties:
-          id:
-            type: "string"
-            example: "https://w3id.org/kim/hcrt/course"
-          prefLabel:
-            title: "The preferred label of the concept"
-            description: "A localized string for prefLabel of the learning resource type"
-            $ref: "#/definitions/LocalizedString"
+        items:
+          type: "object"
+          properties:
+            id:
+              type: "string"
+              example: "https://w3id.org/kim/hcrt/course"
+            prefLabel:
+              title: "The preferred label of the concept"
+              description: "A localized string for prefLabel of the learning resource type"
+              $ref: "#/definitions/LocalizedString"
+          required:
+            - "id"
 # error with such examples - see https://github.com/OpenAPITools/openapi-generator/issues/3140
 #        example:
 #          id: "https://w3id.org/kim/hcrt/course"

@@ -37,6 +37,7 @@ import org.oersi.domain.Metadata;
 import org.oersi.domain.SourceOrganization;
 import org.oersi.dto.LocalizedStringDto;
 import org.oersi.dto.MetadataDto;
+import org.oersi.dto.MetadataLearningResourceTypeDto;
 import org.oersi.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -75,10 +76,10 @@ class MetadataControllerTest {
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.registerModule(new JavaTimeModule());
     SimpleModule simpleModule = new SimpleModule();
-    simpleModule.addSerializer(OffsetDateTime.class, new JsonSerializer<OffsetDateTime>() {
+    simpleModule.addSerializer(OffsetDateTime.class, new JsonSerializer<>() {
       @Override
       public void serialize(final OffsetDateTime offsetDateTime, final JsonGenerator jsonGenerator,
-          final SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
+          final SerializerProvider serializerProvider) throws IOException {
         jsonGenerator.writeString(DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(offsetDateTime));
       }
     });
@@ -121,7 +122,7 @@ class MetadataControllerTest {
     LocalizedString lrtPrefLabel = new LocalizedString();
     lrtPrefLabel.setLocalizedStrings(Map.of("de", "Kurs", "en", "course"));
     learningResourceType.setPrefLabel(lrtPrefLabel);
-    metadata.setLearningResourceType(learningResourceType);
+    metadata.setLearningResourceType(new ArrayList<>(List.of(learningResourceType)));
 
     About about = new About();
     about.setIdentifier("subject");
@@ -130,7 +131,7 @@ class MetadataControllerTest {
     about.setPrefLabel(aboutPrefLabel);
     metadata.setAbout(List.of(about));
     
-    metadata.setKeywords(new ArrayList<String>(List.of("Gitlab", "Multimedia")));
+    metadata.setKeywords(new ArrayList<>(List.of("Gitlab", "Multimedia")));
 
     metadata.setDescription("description");
     metadata.setInLanguage("en");
@@ -141,6 +142,9 @@ class MetadataControllerTest {
     metadata.setDateCreated(LocalDate.of(2020, 4, 8));
 
     metadata.setDateModifiedInternal(LocalDateTime.now());
+
+    metadata.setContextUri("https://w3id.org/kim/lrmi-profile/draft/context.jsonld");
+    metadata.setContextLanguage("de");
     return metadata;
   }
 
@@ -164,13 +168,46 @@ class MetadataControllerTest {
   }
 
   @Test
+  void testInvalidContextUri() throws Exception {
+    MetadataDto metadata = getTestMetadataDto();
+    List<Object> context = List.of(3, metadata.getContext().get(1));
+    metadata.setContext(context);
+
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+        .content(asJson(metadata))).andExpect(status().isBadRequest());
+
+    // put request
+    Metadata existingMetadata = createTestMetadata();
+    mvc.perform(put(METADATA_CONTROLLER_BASE_PATH + "/" + existingMetadata.getId())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(asJson(metadata))).andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void testInvalidContextLanguage() throws Exception {
+    MetadataDto metadata = getTestMetadataDto();
+    List<Object> context = List.of(metadata.getContext().get(0), Map.of("invalid", "de"));
+    metadata.setContext(context);
+
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+        .content(asJson(metadata))).andExpect(status().isBadRequest());
+
+    context = List.of(metadata.getContext().get(0), "invalid");
+    metadata.setContext(context);
+
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+        .content(asJson(metadata))).andExpect(status().isBadRequest());
+  }
+
+  @Test
   void testPostRequest() throws Exception {
     MetadataDto metadata = getTestMetadataDto();
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
-            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\",\"prefLabel\":{\"de\":\"Mathematik\",\"en\":\"mathematics\"}}],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":\"en\",\"learningResourceType\":{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"Kurs\",\"en\":\"course\"}},\"audience\":{\"id\":\"audience\",\"prefLabel\":{\"de\":\"Lernender\",\"en\":\"student\"}},\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}], \"sourceOrganization\":[{\"name\":\"sourceOrganization\"}], \"keywords\":[\"Gitlab\", \"Multimedia\"]}"));
+            "{\"@context\": [\"https://w3id.org/kim/lrmi-profile/draft/context.jsonld\",{\"@language\": \"de\"}],\n" +
+                    "\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\",\"prefLabel\":{\"de\":\"Mathematik\",\"en\":\"mathematics\"}}],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":\"en\",\"learningResourceType\":[{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"Kurs\",\"en\":\"course\"}}],\"audience\":{\"id\":\"audience\",\"prefLabel\":{\"de\":\"Lernender\",\"en\":\"student\"}},\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}], \"sourceOrganization\":[{\"name\":\"sourceOrganization\"}], \"keywords\":[\"Gitlab\", \"Multimedia\"]}"));
   }
 
   @Test
@@ -210,14 +247,27 @@ class MetadataControllerTest {
     MetadataDto metadata = getTestMetadataDto();
     LocalizedStringDto prefLabel = new LocalizedStringDto();
     prefLabel.put("de", "test");
-    metadata.getLearningResourceType().setPrefLabel(prefLabel);
+    metadata.getLearningResourceType().get(0).setPrefLabel(prefLabel);
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
-            "{\"learningResourceType\":{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"test\"}}}"));
+            "{\"learningResourceType\":[{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"test\"}}]}"));
   }
 
+  @Test
+  void testPostRequestCreateMultipleLearningResourceTypes() throws Exception {
+    MetadataDto metadata = getTestMetadataDto();
+    MetadataLearningResourceTypeDto learningResourceType = new MetadataLearningResourceTypeDto();
+    learningResourceType.setId("learningResourceType2");
+    metadata.getLearningResourceType().add(learningResourceType);
+
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+        .content(asJson(metadata))).andExpect(status().isOk())
+        .andExpect(content().json(
+            "{\"learningResourceType\":[{\"id\":\"learningResourceType\"}, {\"id\":\"learningResourceType2\"}]}"));
+  }
+  
   @Test
   void testPostRequestWithExistingDataNullData() throws Exception {
     createTestMetadata();
@@ -227,11 +277,12 @@ class MetadataControllerTest {
     metadata.setAudience(null);
     metadata.setMainEntityOfPage(null);
     metadata.setKeywords(null);
+    metadata.setLearningResourceType(null);
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
-            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[],\"description\":\"description\",\"about\":[],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":\"en\",\"learningResourceType\":{\"id\":\"learningResourceType\"},\"audience\":null,\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}]}"));
+            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[],\"description\":\"description\",\"about\":[],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":\"en\",\"learningResourceType\":[],\"audience\":null,\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}]}"));
   }
 
   @Test
@@ -252,7 +303,7 @@ class MetadataControllerTest {
     mvc.perform(put(METADATA_CONTROLLER_BASE_PATH + "/" + existingMetadata.getId())
         .contentType(MediaType.APPLICATION_JSON).content(asJson(metadata)))
         .andExpect(status().isOk()).andExpect(content().json(
-            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\"}],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":\"en\",\"learningResourceType\":{\"id\":\"learningResourceType\"},\"audience\":{\"id\":\"audience\"},\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}, {\"id\":\"http://example2.url/desc/123\"}]}"));
+            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\"}],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":\"en\",\"learningResourceType\":[{\"id\":\"learningResourceType\"}],\"audience\":{\"id\":\"audience\"},\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}, {\"id\":\"http://example2.url/desc/123\"}]}"));
 
     Assert.assertEquals(1, repository.count());
   }

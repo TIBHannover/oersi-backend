@@ -94,12 +94,12 @@ databaseChangeLog:
     author: mhoffmann
     comment: data migration to main_entity_of_page and provider
     changes:
-    - sql:
-      comment: insert data from old table metadata_description into new table main_entity_of_page
-      sql: INSERT INTO main_entity_of_page (metadata_id, date_created, date_modified, identifier, source, type) SELECT m.id as metadata_id, d.date_created, d.date_modified, d.identifier, d.source, d.type FROM metadata_description d join metadata m on m.main_entity_of_page_id = d.id
-    - sql:
-      comment: insert data into table provider
-      sql: INSERT INTO provider (name, main_entity_of_page_id) SELECT source, id from main_entity_of_page WHERE source is not null
+        - sql:
+              comment: insert data from old table metadata_description into new table main_entity_of_page
+              sql: INSERT INTO main_entity_of_page (metadata_id, date_created, date_modified, identifier, source, type) SELECT m.id as metadata_id, d.date_created, d.date_modified, d.identifier, d.source, d.type FROM metadata_description d join metadata m on m.main_entity_of_page_id = d.id
+        - sql:
+              comment: insert data into table provider
+              sql: INSERT INTO provider (name, main_entity_of_page_id) SELECT source, id from main_entity_of_page WHERE source is not null
 
 - changeSet:
     id: 1599196308613-1-2
@@ -345,3 +345,117 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: metadata
 
+- changeSet:
+      id: 1606820263746-1
+      author: hoffmann (generated)
+      changes:
+          - addColumn:
+                columns:
+                    - column:
+                          name: context_language
+                          type: varchar(255)
+                tableName: metadata
+- changeSet:
+      id: 1606820263746-2
+      author: hoffmann (generated)
+      changes:
+          - addColumn:
+                columns:
+                    - column:
+                          name: context_uri
+                          type: varchar(255)
+                tableName: metadata
+
+- changeSet:
+      id: 1608620642657-1
+      author: hoffmann (generated)
+      changes:
+          - createTable:
+                columns:
+                    - column:
+                          autoIncrement: true
+                          constraints:
+                              primaryKey: true
+                              primaryKeyName: labelPK
+                          name: id
+                          type: BIGINT
+                    - column:
+                          name: group_id
+                          type: VARCHAR(255)
+                    - column:
+                          constraints:
+                              nullable: false
+                          name: label_key
+                          type: VARCHAR(188)
+                    - column:
+                          name: label_value
+                          type: VARCHAR(255)
+                    - column:
+                          constraints:
+                              nullable: false
+                          name: language_code
+                          type: VARCHAR(3)
+                tableName: label
+- changeSet:
+      id: 1608620642657-2
+      author: hoffmann (generated)
+      changes:
+          - addUniqueConstraint:
+                columnNames: language_code, label_key
+                constraintName: UKwv20a5q0lyy5rljy5fgbe9pt
+                tableName: label
+- changeSet:
+      id: 1608620642657-3
+      author: hoffmann
+      changes:
+          - sql:
+                comment: data migration into label from lrt
+                sql: INSERT INTO label (group_id, label_key, language_code, label_value) SELECT DISTINCT 'lrt', lrt.identifier, s.language_code, s.label as label_value FROM localized_string s JOIN learning_resource_type lrt on s.pref_label_id = lrt.pref_label_id
+          - sql:
+                comment: data migration into label from about
+                sql: INSERT INTO label (group_id, label_key, language_code, label_value) SELECT DISTINCT 'subject', a.identifier, s.language_code, s.label as label_value FROM localized_string s JOIN about a on s.pref_label_id = a.pref_label_id
+
+- changeSet:
+    id: 1610979724802-1
+    author: hoffmann (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: metadata_id
+            type: bigint
+        tableName: learning_resource_type
+- changeSet:
+    id: 1610979724802-2
+    author: hoffmann (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: metadata_id
+        baseTableName: learning_resource_type
+        constraintName: FK3tekmiem2snkfmdkw3wlui3ru
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: metadata
+- changeSet:
+    id: 1610979724802-3
+    author: hoffmann (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: metadata
+        constraintName: FKcget1gydjyi176mc3l0y5xp
+- changeSet:
+    id: 1610979724802-3-1
+    author: mhoffmann
+    comment: data migration to learningResourceType as array
+    changes:
+    - sql:
+        comment: set metadata_id
+        sql: UPDATE learning_resource_type l SET metadata_id = (SELECT m.id FROM metadata m WHERE m.learning_resource_type_id = l.id)
+- changeSet:
+    id: 1610979724802-4
+    author: hoffmann (generated)
+    changes:
+    - dropColumn:
+        columnName: learning_resource_type_id
+        tableName: metadata

@@ -4,8 +4,11 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.PropertyMap;
 import org.oersi.domain.About;
 import org.oersi.domain.Audience;
 import org.oersi.domain.Creator;
@@ -16,11 +19,11 @@ import org.oersi.domain.Metadata;
 import org.oersi.domain.Provider;
 import org.oersi.domain.SourceOrganization;
 import org.oersi.dto.AudienceDto;
-import org.oersi.dto.LearningResourceTypeDto;
 import org.oersi.dto.LocalizedStringDto;
 import org.oersi.dto.MetadataAboutDto;
 import org.oersi.dto.MetadataCreatorDto;
 import org.oersi.dto.MetadataDto;
+import org.oersi.dto.MetadataLearningResourceTypeDto;
 import org.oersi.dto.MetadataMainEntityOfPageDto;
 import org.oersi.dto.MetadataSourceOrganizationDto;
 import org.oersi.dto.ProviderDto;
@@ -30,6 +33,9 @@ import org.springframework.web.client.RestTemplate;
 
 @Configuration
 public class WebConfig {
+
+  private static final int CONTEXT_MIN_ITEM_NR = 2;
+  private static final String CONTEXT_LANGUAGE_KEY = "@language";
 
   @Bean
   public RestTemplate restTemplate() {
@@ -42,7 +48,59 @@ public class WebConfig {
     addConverters(modelMapper);
     addEnumMapping(modelMapper);
     addIdMapping(modelMapper);
+
+    modelMapper.typeMap(Metadata.class, MetadataDto.class).addMappings(
+        new PropertyMap<>() {
+          @Override
+          protected void configure() {
+            using(ctx -> toContextList((Metadata) ctx.getSource())).map(source, destination.getContext());
+          }
+        }
+    );
+    modelMapper.typeMap(MetadataDto.class, Metadata.class).addMappings(
+        new PropertyMap<>() {
+          @Override
+          protected void configure() {
+            using(ctx -> getContextUri((MetadataDto) ctx.getSource())).map(source, destination.getContextUri());
+            using(ctx -> getContextLanguage((MetadataDto) ctx.getSource())).map(source, destination.getContextLanguage());
+          }
+        }
+    );
+
     return modelMapper;
+  }
+
+  private String getContextUri(final MetadataDto dto) {
+    final int contextUriIndex = 0;
+    if (dto.getContext() == null || dto.getContext().size() < CONTEXT_MIN_ITEM_NR) {
+      return null;
+    }
+    if (!(dto.getContext().get(contextUriIndex) instanceof String)) {
+      throw new IllegalArgumentException("Missing context uri of type String");
+    }
+    return (String) dto.getContext().get(contextUriIndex);
+  }
+
+  private String getContextLanguage(final MetadataDto dto) {
+    final int contextLanguageIndex = 1;
+    if (dto.getContext() == null || dto.getContext().size() < CONTEXT_MIN_ITEM_NR) {
+      return null;
+    }
+    if (!(dto.getContext().get(contextLanguageIndex) instanceof Map)) {
+      throw new IllegalArgumentException("Missing context language");
+    }
+    Object language = ((Map<?, ?>) dto.getContext().get(contextLanguageIndex)).get(CONTEXT_LANGUAGE_KEY);
+    if (!(language instanceof String)) {
+      throw new IllegalArgumentException("Missing context language of type String");
+    }
+    return (String) language;
+  }
+
+  private List<Object> toContextList(final Metadata metadata) {
+    if (metadata.getContextUri() == null || metadata.getContextLanguage() == null) {
+      return null;
+    }
+    return List.of(metadata.getContextUri(), Map.of(CONTEXT_LANGUAGE_KEY, metadata.getContextLanguage()));
   }
 
   private void addConverters(final ModelMapper modelMapper) {
@@ -75,9 +133,9 @@ public class WebConfig {
         .using(labelConverter).map(MetadataAboutDto::getPrefLabel, About::setPrefLabel));
     modelMapper.typeMap(AudienceDto.class, Audience.class).addMappings(mapper -> mapper
         .using(labelConverter).map(AudienceDto::getPrefLabel, Audience::setPrefLabel));
-    modelMapper.typeMap(LearningResourceTypeDto.class, LearningResourceType.class)
+    modelMapper.typeMap(MetadataLearningResourceTypeDto.class, LearningResourceType.class)
         .addMappings(mapper -> mapper.using(labelConverter)
-            .map(LearningResourceTypeDto::getPrefLabel, LearningResourceType::setPrefLabel));
+            .map(MetadataLearningResourceTypeDto::getPrefLabel, LearningResourceType::setPrefLabel));
   }
 
   private void addEnumMapping(final ModelMapper modelMapper) {
@@ -118,11 +176,11 @@ public class WebConfig {
       mapper.map(MetadataCreatorDto::getId, Creator::setIdentifier);
       mapper.skip(Creator::setId);
     });
-    modelMapper.typeMap(LearningResourceType.class, LearningResourceTypeDto.class).addMappings(
-        mapper -> mapper.map(LearningResourceType::getIdentifier, LearningResourceTypeDto::setId));
-    modelMapper.typeMap(LearningResourceTypeDto.class, LearningResourceType.class)
+    modelMapper.typeMap(LearningResourceType.class, MetadataLearningResourceTypeDto.class).addMappings(
+        mapper -> mapper.map(LearningResourceType::getIdentifier, MetadataLearningResourceTypeDto::setId));
+    modelMapper.typeMap(MetadataLearningResourceTypeDto.class, LearningResourceType.class)
         .addMappings(mapper -> {
-          mapper.map(LearningResourceTypeDto::getId, LearningResourceType::setIdentifier);
+          mapper.map(MetadataLearningResourceTypeDto::getId, LearningResourceType::setIdentifier);
           mapper.skip(LearningResourceType::setId);
         });
     modelMapper.typeMap(Provider.class, ProviderDto.class)

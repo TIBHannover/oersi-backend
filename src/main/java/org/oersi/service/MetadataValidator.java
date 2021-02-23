@@ -5,6 +5,7 @@ import java.util.Set;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.oersi.domain.About;
+import org.oersi.domain.LearningResourceType;
 import org.oersi.domain.LocalizedString;
 import org.oersi.domain.Metadata;
 
@@ -36,13 +37,15 @@ public class MetadataValidator {
       validatePrefLabel(metadata.getAudience().getPrefLabel());
     }
     if (metadata.getLearningResourceType() != null) {
-      validatePrefLabel(metadata.getLearningResourceType().getPrefLabel());
+      for (LearningResourceType lrt : metadata.getLearningResourceType()) {
+        validatePrefLabel(lrt.getPrefLabel());
+      }
     }
     return result;
   }
 
   private void validatePrefLabel(final LocalizedString prefLabel) {
-    if (prefLabel != null) {
+    if (prefLabel != null && prefLabel.getLocalizedStrings() != null) {
       prefLabel.getLocalizedStrings().keySet().stream().filter(s -> !ISO_LANGUAGES.contains(s))
           .forEach(s -> result.addViolation("Illegal language code '" + s + "'"));
     }
