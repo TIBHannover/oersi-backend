@@ -26,10 +26,12 @@ test:
   stage: deploy
   before_script:
     - "PROJECTVERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)"
+    - "TIMESTAMP=$(date +'%Y%m%d%H%M%S')"
+    - '[[ "$PROJECTVERSION" == *-SNAPSHOT ]] && PROJECTVERSION=${PROJECTVERSION::-9}-${TIMESTAMP} && mvn versions:set -DnewVersion=$PROJECTVERSION'
     - echo VERSION=${PROJECTVERSION} > build.info
     - echo BUILDNUMBER=${CI_JOB_ID} >> build.info
     - echo COMMIT_SHA=${CI_COMMIT_SHORT_SHA} >> build.info
-    - date +'TIMESTAMP=%Y%m%d%H%M%S' >> build.info
+    - echo TIMESTAMP=${TIMESTAMP} >> build.info
     - cat build.info
     - mv build.info src/main/resources
 
