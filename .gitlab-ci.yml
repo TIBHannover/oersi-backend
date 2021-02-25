@@ -49,4 +49,23 @@ deploy release:
     - mvn $MAVEN_CLI_OPTS deploy
   only:
     - tags
-    
+
+.git_writer:
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | base64 -d | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    - git config --global user.email "gitlab-ci@oersi.de"
+    - git config --global user.name "gitlab-ci"
+
+version update:
+  extends: .git_writer
+  stage: .post
+  script:
+    - git checkout $CI_COMMIT_BRANCH
+  only:
+    - adjust-project-version-after-change
