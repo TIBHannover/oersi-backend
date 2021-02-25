@@ -69,5 +69,9 @@ version update:
   stage: .post
   script:
     - git checkout $CI_COMMIT_BRANCH
+    - touch test
+    - git add test
+    - git commit -m "test"
+    - git log -2
   only:
     - adjust-project-version-after-change
