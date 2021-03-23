@@ -631,16 +631,20 @@ definitions:
 #            en: Course
       audience:
         title: "Audience"
-        type: "object"
+        type: "array"
         description: "Audience / interactivity level"
-        properties:
-          id:
-            type: "string"
-            example: "http://purl.org/dcx/lrmi-vocabs/educationalAudienceRole/student"
-          prefLabel:
-            title: "The preferred label of the concept"
-            description: "A localized string for prefLabel of the audience"
-            $ref: "#/definitions/LocalizedString"
+        items:
+          type: "object"
+          properties:
+            id:
+              type: "string"
+              example: "http://purl.org/dcx/lrmi-vocabs/educationalAudienceRole/student"
+            prefLabel:
+              title: "The preferred label of the concept"
+              description: "A localized string for prefLabel of the audience"
+              $ref: "#/definitions/LocalizedString"
+          required:
+            - "id"
       mainEntityOfPage:
         title: "metadata description"
         description: "This object contains metametadata, i.e. information about the description of the OER."

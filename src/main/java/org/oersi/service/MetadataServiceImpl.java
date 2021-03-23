@@ -48,6 +48,7 @@ public class MetadataServiceImpl implements MetadataService {
       // session without association to a parent entity and an error occurs
       // see https://gitlab.com/oersi/oersi-backend/-/issues/9
       metadata.setAbout(updateExistingList(existingMetadata.getAbout(), metadata.getAbout()));
+      metadata.setAudience(updateExistingList(existingMetadata.getAudience(), metadata.getAudience()));
       metadata.setCreator(updateExistingList(existingMetadata.getCreator(), metadata.getCreator()));
       metadata.setLearningResourceType(updateExistingList(existingMetadata.getLearningResourceType(), metadata.getLearningResourceType()));
       metadata.setMainEntityOfPage(mergeMainEntityOfPageList(existingMetadata.getMainEntityOfPage(),
@@ -74,7 +75,9 @@ public class MetadataServiceImpl implements MetadataService {
       }
     }
     if (metadata.getAudience() != null) {
-      storeLabels(metadata.getAudience().getIdentifier(), metadata.getAudience().getPrefLabel(), LABEL_GROUP_ID_AUDIENCE);
+      for (Audience audience : metadata.getAudience()) {
+        storeLabels(audience.getIdentifier(), audience.getPrefLabel(), LABEL_GROUP_ID_AUDIENCE);
+      }
     }
     if (metadata.getLearningResourceType() != null) {
       for (LearningResourceType lrt : metadata.getLearningResourceType()) {

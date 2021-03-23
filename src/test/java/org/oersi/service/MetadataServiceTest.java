@@ -46,7 +46,7 @@ class MetadataServiceTest {
 
     Audience audience = new Audience();
     audience.setIdentifier("testaudience");
-    metadata.setAudience(audience);
+    metadata.setAudience(new ArrayList<>(List.of(audience)));
 
     MainEntityOfPage mainEntityOfPage = new MainEntityOfPage();
     mainEntityOfPage.setIdentifier("http://example.url/desc/123");
@@ -117,7 +117,7 @@ class MetadataServiceTest {
     Metadata metadata = newMetadata();
     LocalizedString lrtPrefLabel = new LocalizedString();
     metadata.getLearningResourceType().get(0).setPrefLabel(lrtPrefLabel);
-    metadata.getAudience().setIdentifier(null);
+    metadata.getAudience().get(0).setIdentifier(null);
     service.createOrUpdate(metadata);
     verify(labelService, times(0)).createOrUpdate(anyString(), anyString(), anyString(), anyString());
   }

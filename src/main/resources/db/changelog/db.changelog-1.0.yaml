@@ -459,3 +459,48 @@ databaseChangeLog:
     - dropColumn:
         columnName: learning_resource_type_id
         tableName: metadata
+
+- changeSet:
+      id: 1616506448957-1
+      author: hoffmann (generated)
+      changes:
+          - addColumn:
+                columns:
+                    - column:
+                          name: metadata_id
+                          type: bigint
+                tableName: audience
+- changeSet:
+      id: 1616506448957-2
+      author: hoffmann (generated)
+      changes:
+          - addForeignKeyConstraint:
+                baseColumnNames: metadata_id
+                baseTableName: audience
+                constraintName: FK21620498ym9gxi132fcf9jis0
+                deferrable: false
+                initiallyDeferred: false
+                referencedColumnNames: id
+                referencedTableName: metadata
+- changeSet:
+      id: 1616506448957-3
+      author: hoffmann (generated)
+      changes:
+          - dropForeignKeyConstraint:
+                baseTableName: metadata
+                constraintName: FK4i6iaobuayc8x5v8etfad1ks6
+- changeSet:
+      id: 1616506448957-3-1
+      author: mhoffmann
+      comment: data migration to audience as array
+      changes:
+          - sql:
+                comment: set metadata_id
+                sql: UPDATE audience a SET metadata_id = (SELECT m.id FROM metadata m WHERE m.audience_id = a.id)
+- changeSet:
+      id: 1616506448957-4
+      author: hoffmann (generated)
+      changes:
+          - dropColumn:
+                columnName: audience_id
+                tableName: metadata

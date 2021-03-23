@@ -4,10 +4,7 @@ import java.util.Locale;
 import java.util.Set;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.oersi.domain.About;
-import org.oersi.domain.LearningResourceType;
-import org.oersi.domain.LocalizedString;
-import org.oersi.domain.Metadata;
+import org.oersi.domain.*;
 
 /**
  * Validator for {@link Metadata}.
@@ -34,7 +31,9 @@ public class MetadataValidator {
       }
     }
     if (metadata.getAudience() != null) {
-      validatePrefLabel(metadata.getAudience().getPrefLabel());
+      for (Audience audience : metadata.getAudience()) {
+        validatePrefLabel(audience.getPrefLabel());
+      }
     }
     if (metadata.getLearningResourceType() != null) {
       for (LearningResourceType lrt : metadata.getLearningResourceType()) {

@@ -13,7 +13,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import lombok.Data;
 import org.hibernate.validator.constraints.URL;
 
@@ -68,8 +67,9 @@ public class Metadata {
   @JoinColumn(name = "metadata_id", nullable = true)
   private List<LearningResourceType> learningResourceType;
 
-  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-  private Audience audience;
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "metadata_id", nullable = true)
+  private List<Audience> audience;
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "metadata_id", nullable = true)
