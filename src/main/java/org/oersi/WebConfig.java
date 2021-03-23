@@ -18,9 +18,9 @@ import org.oersi.domain.MainEntityOfPage;
 import org.oersi.domain.Metadata;
 import org.oersi.domain.Provider;
 import org.oersi.domain.SourceOrganization;
-import org.oersi.dto.AudienceDto;
 import org.oersi.dto.LocalizedStringDto;
 import org.oersi.dto.MetadataAboutDto;
+import org.oersi.dto.MetadataAudienceDto;
 import org.oersi.dto.MetadataCreatorDto;
 import org.oersi.dto.MetadataDto;
 import org.oersi.dto.MetadataLearningResourceTypeDto;
@@ -131,8 +131,8 @@ public class WebConfig {
     // (I guess, because of the HashMap inheritance)
     modelMapper.typeMap(MetadataAboutDto.class, About.class).addMappings(mapper -> mapper
         .using(labelConverter).map(MetadataAboutDto::getPrefLabel, About::setPrefLabel));
-    modelMapper.typeMap(AudienceDto.class, Audience.class).addMappings(mapper -> mapper
-        .using(labelConverter).map(AudienceDto::getPrefLabel, Audience::setPrefLabel));
+    modelMapper.typeMap(MetadataAudienceDto.class, Audience.class).addMappings(mapper -> mapper
+        .using(labelConverter).map(MetadataAudienceDto::getPrefLabel, Audience::setPrefLabel));
     modelMapper.typeMap(MetadataLearningResourceTypeDto.class, LearningResourceType.class)
         .addMappings(mapper -> mapper.using(labelConverter)
             .map(MetadataLearningResourceTypeDto::getPrefLabel, LearningResourceType::setPrefLabel));
@@ -164,10 +164,10 @@ public class WebConfig {
       mapper.map(MetadataAboutDto::getId, About::setIdentifier);
       mapper.skip(About::setId);
     });
-    modelMapper.typeMap(Audience.class, AudienceDto.class)
-        .addMappings(mapper -> mapper.map(Audience::getIdentifier, AudienceDto::setId));
-    modelMapper.typeMap(AudienceDto.class, Audience.class).addMappings(mapper -> {
-      mapper.map(AudienceDto::getId, Audience::setIdentifier);
+    modelMapper.typeMap(Audience.class, MetadataAudienceDto.class)
+        .addMappings(mapper -> mapper.map(Audience::getIdentifier, MetadataAudienceDto::setId));
+    modelMapper.typeMap(MetadataAudienceDto.class, Audience.class).addMappings(mapper -> {
+      mapper.map(MetadataAudienceDto::getId, Audience::setIdentifier);
       mapper.skip(Audience::setId);
     });
     modelMapper.typeMap(Creator.class, MetadataCreatorDto.class)

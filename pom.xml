@@ -243,7 +243,7 @@
 				<configuration>
 					<basedir>${project.basedir}/target/generated-sources/swagger/org/oersi/dto</basedir>
 					<includes>
-						<include>AudienceDto.java</include>
+						<include>MetadataAudienceDto.java</include>
 						<include>MetadataLearningResourceTypeDto.java</include>
 						<include>MetadataAboutDto.java</include>
 					</includes>
