@@ -430,3 +430,8 @@ definitions:
         title: "The label of the concept"
         description: "A localized string for label of the classification"
         $ref: "#/definitions/LocalizedString"
+
+  LabelDefinitionBulk:
+    type: object
+    additionalProperties:
+      $ref: "#/definitions/LocalizedString"

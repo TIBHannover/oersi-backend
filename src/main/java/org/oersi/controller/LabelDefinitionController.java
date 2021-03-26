@@ -7,6 +7,8 @@ import org.modelmapper.MappingException;
 import org.modelmapper.ModelMapper;
 import org.oersi.api.LabelDefinitionControllerApi;
 import org.oersi.domain.LabelDefinition;
+import org.oersi.domain.LocalizedString;
+import org.oersi.dto.LabelDefinitionBulkDto;
 import org.oersi.dto.LabelDefinitionDto;
 import org.oersi.service.LabelDefinitionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,19 @@ public class LabelDefinitionController implements LabelDefinitionControllerApi {
 
   private final @NonNull LabelDefinitionService labelDefinitionService;
   private final @NonNull ModelMapper modelMapper;
+
+  private List<LabelDefinition> convertToEntity(final LabelDefinitionBulkDto dto) {
+    return dto.entrySet().stream().map(e -> {
+      LabelDefinition definition = new LabelDefinition();
+      definition.setIdentifier(e.getKey());
+      if (e.getValue() != null) {
+        LocalizedString labels = new LocalizedString();
+        labels.setLocalizedStrings(e.getValue());
+        definition.setLabel(labels);
+      }
+      return definition;
+    }).collect(Collectors.toList());
+  }
 
   private LabelDefinition convertToEntity(final LabelDefinitionDto dto) {
     return modelMapper.map(dto, LabelDefinition.class);
@@ -74,11 +89,10 @@ public class LabelDefinitionController implements LabelDefinitionControllerApi {
    * @return response
    */
   @Override
-  public ResponseEntity<List<LabelDefinitionDto>> createOrUpdateMany(@RequestBody final List<LabelDefinitionDto> labelDefinitionsDto) {
-    List<LabelDefinition> labelDefinitions = labelDefinitionsDto.stream().map(this::convertToEntity).collect(Collectors.toList());
-    List<LabelDefinition> resultEntities = labelDefinitionService.createOrUpdate(labelDefinitions);
-    List<LabelDefinitionDto> result = resultEntities.stream().map(this::convertToDto).collect(Collectors.toList());
-    return ResponseEntity.ok(result);
+  public ResponseEntity<Void> createOrUpdateMany(@RequestBody final LabelDefinitionBulkDto labelDefinitionsDto) {
+    List<LabelDefinition> labelDefinitions = convertToEntity(labelDefinitionsDto);
+    labelDefinitionService.createOrUpdate(labelDefinitions);
+    return ResponseEntity.ok().build();
   }
 
   /**

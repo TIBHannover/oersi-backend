@@ -41,16 +41,12 @@
         description: "label definitions that should be created or updated"
         required: true
         schema:
-          type: array
-          items:
-            $ref: "definitions.yaml#/definitions/LabelDefinition"
+          $ref: "definitions.yaml#/definitions/LabelDefinitionBulk"
+          example:
+            - '"asddsa": {"de": "Kurs"}'
     responses:
       '200':
         description: OK
-        schema:
-          type: array
-          items:
-            $ref: "definitions.yaml#/definitions/LabelDefinition"
       '400':
         description: Bad Request
       '401':

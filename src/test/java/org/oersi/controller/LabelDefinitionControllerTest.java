@@ -22,7 +22,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -98,13 +100,13 @@ class LabelDefinitionControllerTest {
 
   @Test
   void testCreateOrUpdateMany() throws Exception {
-    LabelDefinition data1 = getTestData();
-    LabelDefinition data2 = getTestData();
-    data2.setIdentifier("YYY");
+    Map<String, Map<String, String>> bulk = new HashMap<>();
+    bulk.put("XXX", new HashMap<>());
+    bulk.put("YYY", new HashMap<>());
+    bulk.get("XXX").put("en", "test");
     mvc.perform(post(LABEL_DEFINITION_CONTROLLER_BASE_PATH + "/bulk")
       .contentType(MediaType.APPLICATION_JSON)
-      .content(asJson(List.of(data1, data2)))).andExpect(status().isOk())
-      .andExpect(content().json("[{\"identifier\": \"XXX\"}, {\"identifier\": \"YYY\"}]"));
+      .content(asJson(bulk))).andExpect(status().isOk());
   }
 
   @Test
