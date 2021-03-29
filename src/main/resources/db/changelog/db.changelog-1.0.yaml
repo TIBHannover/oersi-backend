@@ -504,3 +504,46 @@ databaseChangeLog:
           - dropColumn:
                 columnName: audience_id
                 tableName: metadata
+
+- changeSet:
+    id: 1616656907161-1
+    author: hoffmann (generated)
+    changes:
+      - createTable:
+          columns:
+            - column:
+                autoIncrement: true
+                constraints:
+                  primaryKey: true
+                  primaryKeyName: label_definitionPK
+                name: id
+                type: BIGINT
+            - column:
+                constraints:
+                  nullable: false
+                name: identifier
+                type: VARCHAR(191)
+            - column:
+                name: label_id
+                type: BIGINT
+          tableName: label_definition
+- changeSet:
+    id: 1616656907161-2
+    author: hoffmann (generated)
+    changes:
+      - addUniqueConstraint:
+          columnNames: identifier
+          constraintName: UC_LABEL_DEFINITIONIDENTIFIER_COL
+          tableName: label_definition
+- changeSet:
+    id: 1616656907161-3
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: label_id
+          baseTableName: label_definition
+          constraintName: FK64wbrw24dfueet39vl7fv1o15
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: pref_label

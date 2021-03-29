@@ -9,24 +9,8 @@ import java.util.Map;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
-import org.oersi.domain.About;
-import org.oersi.domain.Audience;
-import org.oersi.domain.Creator;
-import org.oersi.domain.LearningResourceType;
-import org.oersi.domain.LocalizedString;
-import org.oersi.domain.MainEntityOfPage;
-import org.oersi.domain.Metadata;
-import org.oersi.domain.Provider;
-import org.oersi.domain.SourceOrganization;
-import org.oersi.dto.LocalizedStringDto;
-import org.oersi.dto.MetadataAboutDto;
-import org.oersi.dto.MetadataAudienceDto;
-import org.oersi.dto.MetadataCreatorDto;
-import org.oersi.dto.MetadataDto;
-import org.oersi.dto.MetadataLearningResourceTypeDto;
-import org.oersi.dto.MetadataMainEntityOfPageDto;
-import org.oersi.dto.MetadataSourceOrganizationDto;
-import org.oersi.dto.ProviderDto;
+import org.oersi.domain.*;
+import org.oersi.dto.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
@@ -129,6 +113,8 @@ public class WebConfig {
     modelMapper.addConverter(labelConverter, LocalizedStringDto.class, LocalizedString.class);
     // converter needs to be set directly, otherwise the mapping does not work
     // (I guess, because of the HashMap inheritance)
+    modelMapper.typeMap(LabelDefinitionDto.class, LabelDefinition.class).addMappings(mapper -> mapper
+      .using(labelConverter).map(LabelDefinitionDto::getLabel, LabelDefinition::setLabel));
     modelMapper.typeMap(MetadataAboutDto.class, About.class).addMappings(mapper -> mapper
         .using(labelConverter).map(MetadataAboutDto::getPrefLabel, About::setPrefLabel));
     modelMapper.typeMap(MetadataAudienceDto.class, Audience.class).addMappings(mapper -> mapper

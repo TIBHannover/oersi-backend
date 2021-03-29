@@ -246,6 +246,7 @@
 						<include>MetadataAudienceDto.java</include>
 						<include>MetadataLearningResourceTypeDto.java</include>
 						<include>MetadataAboutDto.java</include>
+						<include>LabelDefinitionDto.java</include>
 					</includes>
 					<replacements>
 						<replacement>
@@ -259,6 +260,10 @@
 						<replacement>
 							<token>ApiModelProperty\(value = "A localized string for prefLabel of the audience"\)</token>
 							<value>ApiModelProperty(example = "{'en': 'student', 'de': 'Lernende'}", value = "A localized string for prefLabel of the audience")</value>
+						</replacement>
+						<replacement>
+							<token>ApiModelProperty\(value = "A localized string for label of the classification"\)</token>
+							<value>ApiModelProperty(example = "{'de':'Mathematik', 'en':'Mathematics'}", value = "A localized string for label of the classification")</value>
 						</replacement>
 					</replacements>
 				</configuration>

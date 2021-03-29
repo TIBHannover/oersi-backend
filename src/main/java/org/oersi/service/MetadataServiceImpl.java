@@ -12,8 +12,11 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.oersi.domain.*;
+import org.oersi.repository.LabelDefinitionRepository;
 import org.oersi.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Implementation of {@link MetadataService}.
  */
 @Service
+@PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class MetadataServiceImpl implements MetadataService {
@@ -29,12 +33,17 @@ public class MetadataServiceImpl implements MetadataService {
   private static final String LABEL_GROUP_ID_LRT = "lrt";
   private static final String LABEL_GROUP_ID_SUBJECT = "subject";
 
-  private final @NonNull MetadataRepository oerMeatadataRepository;
+  private final @NonNull MetadataRepository oerMetadataRepository;
+  private final @NonNull LabelDefinitionRepository labelDefinitionRepository;
   private final @NonNull LabelService labelService;
+
+  @Value("${feature.add_missing_labels}")
+  private boolean featureAddMissingLabels;
 
   @Transactional
   @Override
   public Metadata createOrUpdate(final Metadata metadata) {
+    LabelUpdater labelUpdater = new LabelUpdater(labelDefinitionRepository);
     ValidatorResult validatorResult = new MetadataValidator(metadata).validate();
     if (!validatorResult.isValid()) {
       log.debug("invalid data: {}, violations: {}", metadata, validatorResult.getViolations());
@@ -60,8 +69,11 @@ public class MetadataServiceImpl implements MetadataService {
     metadata.setName(cutString(metadata.getName(), Metadata.NAME_LENGTH));
     metadata.setDescription(cutString(metadata.getDescription(), Metadata.DESCRIPTION_LENGTH));
     determineProviderNames(metadata);
+    if (featureAddMissingLabels) {
+      labelUpdater.addMissingLabels(metadata);
+    }
     storeLabels(metadata);
-    return oerMeatadataRepository.save(metadata);
+    return oerMetadataRepository.save(metadata);
   }
 
   /**
@@ -179,7 +191,7 @@ public class MetadataServiceImpl implements MetadataService {
     if (existingMetadata == null) {
       String url = metadata.getIdentifier();
       if (url != null) {
-        List<Metadata> metadataMatchingUrl = oerMeatadataRepository.findByIdentifier(url);
+        List<Metadata> metadataMatchingUrl = oerMetadataRepository.findByIdentifier(url);
         if (!metadataMatchingUrl.isEmpty()) {
           existingMetadata = metadataMatchingUrl.get(0);
         }
@@ -191,14 +203,14 @@ public class MetadataServiceImpl implements MetadataService {
   @Transactional
   @Override
   public void delete(final Metadata metadata) {
-    oerMeatadataRepository.delete(metadata);
+    oerMetadataRepository.delete(metadata);
   }
 
   @Transactional
   @Override
   public void deleteAll() {
     log.info("delete all metadata");
-    oerMeatadataRepository.deleteAll();
+    oerMetadataRepository.deleteAll();
   }
 
   @Transactional(readOnly = true)
@@ -207,7 +219,7 @@ public class MetadataServiceImpl implements MetadataService {
     if (id == null) {
       return null;
     }
-    Optional<Metadata> optional = oerMeatadataRepository.findById(id);
+    Optional<Metadata> optional = oerMetadataRepository.findById(id);
     return optional.orElse(null);
   }
 

@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.MappingException;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.spi.ErrorMessage;
 import org.oersi.api.MetadataControllerApi;
 import org.oersi.domain.Metadata;
 import org.oersi.dto.MetadataDto;
@@ -59,16 +58,7 @@ public class MetadataController implements MetadataControllerApi {
 
   @ExceptionHandler(MappingException.class)
   public ResponseEntity<String> handleMappingException(final MappingException e) {
-    final StringBuilder resultMsg = new StringBuilder();
-    for (ErrorMessage errorMessage : e.getErrorMessages()) {
-      resultMsg.append(errorMessage.getMessage());
-      if (errorMessage.getCause() != null) {
-        resultMsg.append(" - ").append(errorMessage.getCause().getMessage());
-      }
-      resultMsg.append(", ");
-    }
-    log.debug("Mapping exception: {}", resultMsg);
-    return ResponseEntity.badRequest().body(resultMsg.toString());
+    return ControllerUtil.handleMappingException(e);
   }
 
   /**
