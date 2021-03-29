@@ -50,7 +50,14 @@ API definition in [src/main/resources/model/api2.yaml](src/main/resources/model/
 
 * [Swagger](https://swagger.io/docs/specification/2-0/basic-structure/) is an open-source software framework backed by a large ecosystem of tools that helps developers design, build, document, and consume RESTful web services
 * The API is completely defined in a **Yaml** file. Swagger generates all java components from this file (like the data transfer objects (DTO, Model) and Controller). So if you want to modify, or create a new one (Model or Controller), adjust the **Yaml** in [src/main/resources/model/api2.yaml](src/main/resources/model/api2.yaml)
-       
+
+## Features
+
+#### Default Labels
+
+* Activate via feature-toggle `feature.add_missing_labels`.
+* If active, set all prefLabels during the metadata creation/update that are not included in the given data, but that are defined in `LabelDefinition` (see also `LabelDefinition` endpoint in API).
+
 ## Technologies
 
 * **springboot** - The backend is a springboot application, provided as war file
