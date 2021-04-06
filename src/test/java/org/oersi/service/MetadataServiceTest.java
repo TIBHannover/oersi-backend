@@ -230,14 +230,6 @@ class MetadataServiceTest {
   }
 
   @Test
-  void testCreateOrUpdateWithoutUrl() {
-    Metadata metadata = newMetadata();
-    metadata.setIdentifier(null);
-    service.createOrUpdate(metadata);
-    verify(repository, times(1)).save(metadata);
-  }
-
-  @Test
   void testCreateOrUpdateWithExistingDataFoundById() {
     Metadata metadata = newMetadata();
     metadata.setId(1L);
