@@ -4,6 +4,7 @@ import java.util.Locale;
 import java.util.Set;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.oersi.domain.*;
 
 /**
@@ -25,6 +26,7 @@ public class MetadataValidator {
    */
   public ValidatorResult validate() {
     result = new ValidatorResult();
+    validateMandatoryFields();
     if (metadata.getAbout() != null) {
       for (About about : metadata.getAbout()) {
         validatePrefLabel(about.getPrefLabel());
@@ -41,6 +43,15 @@ public class MetadataValidator {
       }
     }
     return result;
+  }
+
+  private void validateMandatoryFields() {
+    if (StringUtils.isEmpty(metadata.getIdentifier())) {
+      result.addViolation("Empty mandatory field 'identifier'");
+    }
+    if (StringUtils.isEmpty(metadata.getName())) {
+      result.addViolation("Empty mandatory field 'name'");
+    }
   }
 
   private void validatePrefLabel(final LocalizedString prefLabel) {

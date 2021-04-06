@@ -113,6 +113,19 @@ class MetadataServiceTest {
   }
 
   @Test
+  void testCreateOrUpdateWithEmptyMandatoryFields() {
+    Metadata metadata = newMetadata();
+    metadata.setIdentifier("");
+    metadata.setName("");
+    try {
+      service.createOrUpdate(metadata);
+      fail("Expect an exception as there are empty mandatory fields");
+    } catch (IllegalArgumentException e) {
+    }
+    verify(repository, times(0)).save(metadata);
+  }
+
+  @Test
   void testCreateOrUpdateWithIncompleteLabel() {
     Metadata metadata = newMetadata();
     LocalizedString lrtPrefLabel = new LocalizedString();
@@ -212,14 +225,6 @@ class MetadataServiceTest {
   void testCreateOrUpdateWithMissingMainEntityOfPageIdentifier() {
     Metadata metadata = newMetadata();
     metadata.getMainEntityOfPage().get(0).setIdentifier(null);
-    service.createOrUpdate(metadata);
-    verify(repository, times(1)).save(metadata);
-  }
-
-  @Test
-  void testCreateOrUpdateWithoutUrl() {
-    Metadata metadata = newMetadata();
-    metadata.setIdentifier(null);
     service.createOrUpdate(metadata);
     verify(repository, times(1)).save(metadata);
   }
