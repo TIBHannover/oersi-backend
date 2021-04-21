@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>org.oersi</groupId>
 	<artifactId>oersi-backend</artifactId>
-	<version>0.7.0</version>
+	<version>0.8.0-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<name>oersi-backend</name>
 	<description>API / Backend for the OER Search Index</description>
