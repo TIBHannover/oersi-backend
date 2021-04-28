@@ -547,3 +547,46 @@ databaseChangeLog:
           initiallyDeferred: false
           referencedColumnNames: id
           referencedTableName: pref_label
+
+- changeSet:
+    id: 1619583498684-1
+    author: hoffmann (generated)
+    changes:
+      - createTable:
+          columns:
+            - column:
+                constraints:
+                  nullable: false
+                name: metadata_id
+                type: BIGINT
+            - column:
+                name: in_language
+                type: VARCHAR(255)
+          tableName: in_language
+- changeSet:
+    id: 1619583498684-2
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: metadata_id
+          baseTableName: in_language
+          constraintName: FKa0dqchgpmwxvrl4tv18wswq35
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: metadata
+- changeSet:
+    id: 1619583498684-2-1
+    author: mhoffmann
+    comment: data migration to inLanguage as array
+    changes:
+      - sql:
+          comment: copy in_language to new table
+          sql: INSERT INTO in_language (metadata_id, in_language) SELECT id, in_language FROM metadata
+- changeSet:
+    id: 1619583498684-3
+    author: hoffmann (generated)
+    changes:
+      - dropColumn:
+          columnName: in_language
+          tableName: metadata

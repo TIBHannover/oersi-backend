@@ -66,7 +66,7 @@ class MetadataServiceTest {
     metadata.setAbout(subjects);
 
     metadata.setDescription("test description");
-    metadata.setInLanguage("de");
+    metadata.setInLanguage(new ArrayList<>(List.of("de")));
     metadata.setLicense("CC0");
     metadata.setName("Test Title");
     metadata.setIdentifier("http://www.test.de");
