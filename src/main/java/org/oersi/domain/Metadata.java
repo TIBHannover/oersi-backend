@@ -61,7 +61,10 @@ public class Metadata {
 
   private LocalDate dateCreated;
   private LocalDate datePublished;
-  private String inLanguage;
+
+  @ElementCollection
+  @CollectionTable(name = "inLanguage")
+  private List<String> inLanguage;
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "metadata_id", nullable = true)
