@@ -590,3 +590,31 @@ databaseChangeLog:
       - dropColumn:
           columnName: in_language
           tableName: metadata
+
+- changeSet:
+    id: 1623130327547-1
+    author: hoffmann (generated)
+    changes:
+      - createTable:
+          columns:
+            - column:
+                constraints:
+                  nullable: false
+                name: metadata_id
+                type: BIGINT
+            - column:
+                name: type
+                type: VARCHAR(255)
+          tableName: types
+- changeSet:
+    id: 1623130327547-2
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: metadata_id
+          baseTableName: types
+          constraintName: FKdl2a90yt4spoeosn7ks8g3jt1
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: metadata

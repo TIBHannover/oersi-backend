@@ -403,6 +403,15 @@ definitions:
               type: "string"
               description: "The name of the source organization"
               example: "Technische Hochschule Köln"
+      type:
+        title: "Type"
+        description: "The type (rdf:type / @type) of the learning resource, taken from sub-classes of sdo:CreativeWork."
+        type: "array"
+        example:
+          - LearningResource
+        items:
+          type: string
+          default: "LearningResource"
       keywords:
         title: "Keywords"
         description: "Keywords or tags used to describe this content"
