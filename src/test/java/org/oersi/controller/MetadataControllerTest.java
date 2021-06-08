@@ -131,7 +131,8 @@ class MetadataControllerTest {
     aboutPrefLabel.setLocalizedStrings(Map.of("de", "Mathematik", "en", "mathematics"));
     about.setPrefLabel(aboutPrefLabel);
     metadata.setAbout(List.of(about));
-    
+
+    metadata.setType(new ArrayList<>(List.of("Course", "LearningResource")));
     metadata.setKeywords(new ArrayList<>(List.of("Gitlab", "Multimedia")));
 
     metadata.setDescription("description");
@@ -208,7 +209,7 @@ class MetadataControllerTest {
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
             "{\"@context\": [\"https://w3id.org/kim/lrmi-profile/draft/context.jsonld\",{\"@language\": \"de\"}],\n" +
-                    "\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\",\"prefLabel\":{\"de\":\"Mathematik\",\"en\":\"mathematics\"}}],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"Kurs\",\"en\":\"course\"}}],\"audience\":[{\"id\":\"audience\",\"prefLabel\":{\"de\":\"Lernender\",\"en\":\"student\"}}],\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}], \"sourceOrganization\":[{\"name\":\"sourceOrganization\"}], \"keywords\":[\"Gitlab\", \"Multimedia\"]}"));
+                    "\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\",\"prefLabel\":{\"de\":\"Mathematik\",\"en\":\"mathematics\"}}],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"Kurs\",\"en\":\"course\"}}],\"audience\":[{\"id\":\"audience\",\"prefLabel\":{\"de\":\"Lernender\",\"en\":\"student\"}}],\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}], \"sourceOrganization\":[{\"name\":\"sourceOrganization\"}], \"keywords\":[\"Gitlab\", \"Multimedia\"], \"type\":[\"Course\", \"LearningResource\"]}"));
   }
 
   @Test
@@ -302,12 +303,25 @@ class MetadataControllerTest {
     metadata.setAudience(null);
     metadata.setMainEntityOfPage(null);
     metadata.setKeywords(null);
+    metadata.setType(null);
     metadata.setLearningResourceType(null);
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
-            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[],\"description\":\"description\",\"about\":[],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[],\"audience\":[],\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}]}"));
+            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[],\"description\":\"description\",\"about\":[],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[],\"audience\":[],\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}], \"type\":[\"LearningResource\"]}"));
+  }
+
+  @Test
+  void testPostRequestWithExistingEmptyType() throws Exception {
+    createTestMetadata();
+    MetadataDto metadata = getTestMetadataDto();
+    metadata.setType(new ArrayList<>());
+
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+      .content(asJson(metadata))).andExpect(status().isOk())
+      .andExpect(content().json(
+        "{\"type\":[\"LearningResource\"]}"));
   }
 
   @Test

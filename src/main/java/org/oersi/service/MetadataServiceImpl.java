@@ -3,6 +3,7 @@ package org.oersi.service;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Implementation of {@link MetadataService}.
@@ -44,6 +46,7 @@ public class MetadataServiceImpl implements MetadataService {
   @Override
   public Metadata createOrUpdate(final Metadata metadata) {
     LabelUpdater labelUpdater = new LabelUpdater(labelDefinitionRepository);
+    addDefaultValues(metadata);
     ValidatorResult validatorResult = new MetadataValidator(metadata).validate();
     if (!validatorResult.isValid()) {
       log.debug("invalid data: {}, violations: {}", metadata, validatorResult.getViolations());
@@ -74,6 +77,12 @@ public class MetadataServiceImpl implements MetadataService {
     }
     storeLabels(metadata);
     return oerMetadataRepository.save(metadata);
+  }
+
+  private void addDefaultValues(final Metadata metadata) {
+    if (CollectionUtils.isEmpty(metadata.getType())) {
+      metadata.setType(new ArrayList<>(List.of("LearningResource")));
+    }
   }
 
   /**

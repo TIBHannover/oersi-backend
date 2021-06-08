@@ -83,6 +83,10 @@ public class Metadata {
   private List<SourceOrganization> sourceOrganization;
 
   @ElementCollection
+  @CollectionTable(name = "types")
+  private List<String> type;
+
+  @ElementCollection
   @CollectionTable(name = "keywords")
   private List<String> keywords;
 
