@@ -6,6 +6,7 @@ import org.oersi.domain.*;
 import org.oersi.repository.LabelDefinitionRepository;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mail.javamail.JavaMailSender;
 
 import java.util.*;
 
@@ -20,6 +21,8 @@ class LabelUpdaterTest {
   @MockBean
   private LabelDefinitionRepository repository;
   private LabelUpdater labelUpdater;
+  @MockBean
+  private JavaMailSender mailSender;
 
   @BeforeEach
   void cleanup() {

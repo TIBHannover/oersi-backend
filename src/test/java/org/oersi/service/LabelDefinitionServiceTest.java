@@ -6,6 +6,7 @@ import org.oersi.repository.LabelDefinitionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mail.javamail.JavaMailSender;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,8 @@ class LabelDefinitionServiceTest {
   private LabelDefinitionService service;
   @MockBean
   private LabelDefinitionRepository repository;
+  @MockBean
+  private JavaMailSender mailSender;
 
   private LabelDefinition getTestData() {
     LabelDefinition definition = new LabelDefinition();

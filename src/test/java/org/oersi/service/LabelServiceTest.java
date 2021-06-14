@@ -7,6 +7,7 @@ import org.oersi.repository.LabelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mail.javamail.JavaMailSender;
 
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,8 @@ class LabelServiceTest {
   private LabelService service;
   @MockBean
   private LabelRepository repository;
+  @MockBean
+  private JavaMailSender mailSender;
 
   @BeforeEach
   void cleanup() {

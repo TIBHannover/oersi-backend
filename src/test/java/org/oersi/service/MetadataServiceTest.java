@@ -6,6 +6,7 @@ import org.oersi.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mail.javamail.JavaMailSender;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,8 @@ class MetadataServiceTest {
   private MetadataRepository repository;
   @MockBean
   private LabelService labelService;
+  @MockBean
+  private JavaMailSender mailSender;
 
   private Metadata newMetadata() {
     Metadata metadata = new Metadata();
