@@ -57,6 +57,9 @@ paths:
         '403':
           description: Forbidden
 
+  /contact:
+    $ref: "contact.yaml#/~1contact"
+
   /labeldefinition:
     $ref: "labeldefinition.yaml#/~1labeldefinition"
   /labeldefinition/bulk:

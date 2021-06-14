@@ -40,6 +40,10 @@ API definition in [src/main/resources/model/api2.yaml](src/main/resources/model/
     * In the data there are labels for some fields (for example `learningResourceType` or `about`) -> these labels can be accessed here directly
     * Labels can be retrieved for a given language - and optionally for a given field/group.
     * Provides a Map **LabelKey** -> **LabelValue** as result in format Json
+* **_ContactController_**: Create contact requests **/api/contact/**
+    * Internal use - this is not part of the public API
+    * User messages can be sent via Mail to the support address of the oersi instance
+        * Configure `spring.mail`-Properties and `oersi.support.mail` for this in _oersi.properties_
 
 #### Interactive documentation
 * An interactive documentation of the API can be found at ``http://<YOUR-HOST>:8080/oersi/swagger-ui.html`` (adjust tomcat port, application name if the standard values were not used)
