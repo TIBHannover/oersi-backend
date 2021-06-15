@@ -6,26 +6,29 @@
     description: "Send contact message."
     operationId: "contact"
     consumes:
-      - "application/x-www-form-urlencoded"
+      - "application/json"
     produces:
       - "application/json"
     parameters:
-      - in: "formData"
-        name: "email"
-        type: "string"
-        format: "email"
-        description: "mail of the person that submitted the contact request"
-        required: true
-      - in: "formData"
-        name: "subject"
-        type: "string"
-        description: "subject of the contact request"
-        required: true
-      - in: "formData"
-        name: "message"
-        type: "string"
-        description: "message of the contact request"
-        required: true
+      - in: "body"
+        name: "contact request"
+        schema:
+          type: "object"
+          required:
+            - "email"
+            - "subject"
+            - "message"
+          properties:
+            email:
+              type: "string"
+              format: "email"
+              description: "mail of the person that submitted the contact request"
+            subject:
+              type: "string"
+              description: "subject of the contact request"
+            message:
+              type: "string"
+              description: "message of the contact request"
     responses:
       '200':
         description: OK
