@@ -1,40 +1,45 @@
-/contact:
+/api/contact:
   post:
     tags:
       - "contact-controller"
     summary: "create contact request"
     description: "Send contact message."
     operationId: "contact"
-    consumes:
-      - "application/json"
-    produces:
-      - "application/json"
-    parameters:
-      - in: "body"
-        name: "contact request"
-        schema:
-          type: "object"
-          required:
-            - "email"
-            - "subject"
-            - "message"
-          properties:
-            email:
-              type: "string"
-              format: "email"
-              description: "mail of the person that submitted the contact request"
-            subject:
-              type: "string"
-              description: "subject of the contact request"
-            message:
-              type: "string"
-              description: "message of the contact request"
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ContactRequest"
+      required: false
     responses:
-      '200':
+      "200":
         description: OK
-      '400':
+        content: {}
+      "400":
         description: Bad Request
-      '401':
+        content: {}
+      "401":
         description: Unauthorized
-      '403':
+        content: {}
+      "403":
         description: Forbidden
+        content: {}
+components:
+  schemas:
+    ContactRequest:
+      required:
+        - "email"
+        - "message"
+        - "subject"
+      type: "object"
+      properties:
+        email:
+          type: "string"
+          description: "mail of the person that submitted the contact request"
+          format: "email"
+        subject:
+          type: "string"
+          description: "subject of the contact request"
+        message:
+          type: "string"
+          description: "message of the contact request"

@@ -27,7 +27,7 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestPropertySource(value = "classpath:application.properties")
-public class SearchControllerTest {
+class SearchControllerTest {
 
   private final static String testPath = "/test";
 
@@ -40,7 +40,7 @@ public class SearchControllerTest {
   private JavaMailSender mailSender;
 
   @Test
-  public void testGetRequest() throws Exception {
+  void testGetRequest() throws Exception {
     ResponseEntity<String> response = new ResponseEntity<String>("a result", HttpStatus.OK);
     when(restTemplateMock.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(
         String.class)))
@@ -51,7 +51,7 @@ public class SearchControllerTest {
   }
 
   @Test
-  public void testPostRequest() throws Exception {
+  void testPostRequest() throws Exception {
     ResponseEntity<String> response = new ResponseEntity<String>("a result", HttpStatus.OK);
     when(restTemplateMock.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(
         String.class)))
@@ -62,7 +62,7 @@ public class SearchControllerTest {
   }
 
   @Test
-  public void testHttpStatusCodeException() throws Exception {
+  void testHttpStatusCodeException() throws Exception {
     when(restTemplateMock.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(
         String.class)))
             .thenThrow(new HttpClientErrorException(HttpStatus.FORBIDDEN, "Forbidden"));
@@ -71,7 +71,7 @@ public class SearchControllerTest {
   }
 
   @Test
-  public void testRestClientException() throws Exception {
+  void testRestClientException() throws Exception {
     when(restTemplateMock.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(
         String.class)))
             .thenThrow(new ResourceAccessException("No access"));

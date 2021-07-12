@@ -95,26 +95,15 @@
 		</dependency>
 		<!--Add swagger Dependency -->
 		<dependency>
-			<groupId>io.springfox</groupId>
-			<artifactId>springfox-swagger2</artifactId>
-			<version>2.9.2</version>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>1.5.9</version>
 		</dependency>
-		<dependency>
-			<groupId>io.springfox</groupId>
-			<artifactId>springfox-swagger-ui</artifactId>
-			<version>2.9.2</version>
-		</dependency>
-		<dependency>
-			<groupId>io.swagger</groupId>
-			<artifactId>swagger-annotations</artifactId>
-			<version>1.5.13</version>
-		</dependency>
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 		</dependency>
-
-
 	</dependencies>
 
 	<build>
@@ -203,17 +192,17 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>io.swagger</groupId>
+				<groupId>io.swagger.codegen.v3</groupId>
 				<artifactId>swagger-codegen-maven-plugin</artifactId>
-				<version>2.4.12</version>
+				<version>3.0.27</version>
 				<executions>
 					<execution>
-						<id>generate-Api-V2</id>
+						<id>generate-Api-V3</id>
 						<goals>
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputSpec>${project.basedir}/src/main/resources/model/api2.yaml</inputSpec>
+							<inputSpec>${project.basedir}/src/main/resources/model/api.yaml</inputSpec>
 							<language>spring</language>
 							<generateSupportingFiles>false</generateSupportingFiles>
 							<invokerPackage>entities</invokerPackage>
@@ -231,7 +220,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!-- workaround to fix examples in swagger-ui (bug - see https://github.com/OpenAPITools/openapi-generator/issues/3140) -->
+			<!-- workaround to fix code generation of swagger-codegen-maven-plugin -->
 			<plugin>
 				<groupId>com.google.code.maven-replacer-plugin</groupId>
 				<artifactId>replacer</artifactId>
@@ -247,27 +236,19 @@
 				<configuration>
 					<basedir>${project.basedir}/target/generated-sources/swagger/org/oersi/dto</basedir>
 					<includes>
-						<include>MetadataAudienceDto.java</include>
-						<include>MetadataLearningResourceTypeDto.java</include>
-						<include>MetadataAboutDto.java</include>
-						<include>LabelDefinitionDto.java</include>
+						<include>MetadataDto.java</include>
+						<include>LocalizedStringDto.java</include>
 					</includes>
 					<replacements>
 						<replacement>
-							<token>ApiModelProperty\(value = "A localized string for prefLabel of the classification"\)</token>
-							<value>ApiModelProperty(example = "{'de':'Mathematik', 'en':'Mathematics'}", value = "A localized string for prefLabel of the classification")</value>
+							<!-- cannot handle propertyname with "@" inside -> fix in generated file -->
+							<token>public List.Object. getAtContext</token>
+							<value>@JsonProperty("@context") public List&lt;Object&gt; getAtContext</value>
 						</replacement>
 						<replacement>
-							<token>ApiModelProperty\(value = "A localized string for prefLabel of the learning resource type"\)</token>
-							<value>ApiModelProperty(example = "{'de':'Kurs', 'en':'Course'}", value = "A localized string for prefLabel of the learning resource type")</value>
-						</replacement>
-						<replacement>
-							<token>ApiModelProperty\(value = "A localized string for prefLabel of the audience"\)</token>
-							<value>ApiModelProperty(example = "{'en': 'student', 'de': 'Lernende'}", value = "A localized string for prefLabel of the audience")</value>
-						</replacement>
-						<replacement>
-							<token>ApiModelProperty\(value = "A localized string for label of the classification"\)</token>
-							<value>ApiModelProperty(example = "{'de':'Mathematik', 'en':'Mathematics'}", value = "A localized string for label of the classification")</value>
+							<!-- added missing localizedString example -->
+							<token>description = "A language-tagged string using JSON-LD</token>
+							<value>example = "{\\"de\\":\\"Mathematik\\", \\"en\\":\\"Mathematics\\"}", description = "A language-tagged string using JSON-LD</value>
 						</replacement>
 					</replacements>
 				</configuration>

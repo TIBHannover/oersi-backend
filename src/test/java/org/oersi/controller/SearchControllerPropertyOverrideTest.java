@@ -16,7 +16,7 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootTest(properties = {"elasticsearch.scheme="})
 @AutoConfigureMockMvc
 @TestPropertySource(value = "classpath:application.properties")
-public class SearchControllerPropertyOverrideTest {
+class SearchControllerPropertyOverrideTest {
 
   private final static String testPath = "/test";
 
@@ -29,7 +29,7 @@ public class SearchControllerPropertyOverrideTest {
   private JavaMailSender mailSender;
 
   @Test
-  public void testInvalidUri() throws Exception {
+  void testInvalidUri() throws Exception {
     // uri will be invalid because scheme is empty
     mvc.perform(get(SearchController.BASE_PATH + testPath))
         .andExpect(status().is5xxServerError());

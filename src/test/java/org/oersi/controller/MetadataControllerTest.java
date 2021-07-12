@@ -176,8 +176,8 @@ class MetadataControllerTest {
   @Test
   void testInvalidContextUri() throws Exception {
     MetadataDto metadata = getTestMetadataDto();
-    List<Object> context = List.of(3, metadata.getContext().get(1));
-    metadata.setContext(context);
+    List<Object> context = List.of(3, metadata.getAtContext().get(1));
+    metadata.setAtContext(context);
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isBadRequest());
@@ -192,14 +192,14 @@ class MetadataControllerTest {
   @Test
   void testInvalidContextLanguage() throws Exception {
     MetadataDto metadata = getTestMetadataDto();
-    List<Object> context = List.of(metadata.getContext().get(0), Map.of("invalid", "de"));
-    metadata.setContext(context);
+    List<Object> context = List.of(metadata.getAtContext().get(0), Map.of("invalid", "de"));
+    metadata.setAtContext(context);
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isBadRequest());
 
-    context = List.of(metadata.getContext().get(0), "invalid");
-    metadata.setContext(context);
+    context = List.of(metadata.getAtContext().get(0), "invalid");
+    metadata.setAtContext(context);
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isBadRequest());

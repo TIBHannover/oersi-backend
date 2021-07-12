@@ -1,0 +1,606 @@
+/api/metadata:
+  post:
+    tags:
+      - metadata-controller
+    summary: 'Create or Update '
+    description: 'With this end-point we can create or update  Metadata '
+    operationId: createOrUpdate
+    requestBody:
+      description: 'Metadata Object needs to be added   '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Metadata'
+      required: true
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Metadata'
+      "400":
+        description: Bad Request
+        content: {}
+      "401":
+        description: Unauthorized
+        content: {}
+      "403":
+        description: Forbidden
+        content: {}
+  delete:
+    tags:
+      - metadata-controller
+    summary: Delete all metadata
+    description: Delete all existing metadata
+    operationId: deleteAll
+    responses:
+      "200":
+        description: OK
+        content: {}
+      "400":
+        description: Bad Request
+        content: {}
+      "401":
+        description: Unauthorized
+        content: {}
+      "403":
+        description: Forbidden
+        content: {}
+/api/metadata/{id}:
+  get:
+    tags:
+      - metadata-controller
+    summary: Find Metadata by Id
+    description: With this end-point we can  get by Id  an existing  Metadata
+    operationId: findById
+    parameters:
+      - name: id
+        in: path
+        description: id
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Metadata'
+      "400":
+        description: Bad Request
+        content: {}
+      "401":
+        description: Unauthorized
+        content: {}
+      "403":
+        description: Forbidden
+        content: {}
+  put:
+    tags:
+      - metadata-controller
+    summary: Update an existing Metadata
+    description: 'With this end-point we can  update an existing  Metadata '
+    operationId: update
+    parameters:
+      - name: id
+        in: path
+        description: Id to update Metadata
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+    requestBody:
+      description: 'Metadata Object needs to be added '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Metadata'
+      required: true
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Metadata'
+      "400":
+        description: Bad Request
+        content: {}
+      "401":
+        description: Unauthorized
+        content: {}
+      "403":
+        description: Forbidden
+        content: {}
+  delete:
+    tags:
+      - metadata-controller
+    summary: Delete metadata by ID
+    description: For valid response try integer IDs with positive integer value.         Negative
+      or non-integer values will generate API errors
+    operationId: delete
+    parameters:
+      - name: id
+        in: path
+        description: ID of the metadata that needs to be deleted
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Metadata'
+      "400":
+        description: Bad Request
+        content: {}
+      "401":
+        description: Unauthorized
+        content: {}
+      "403":
+        description: Forbidden
+        content: {}
+components:
+  schemas:
+    Metadata:
+      required:
+        - id
+        - name
+      type: object
+      properties:
+        "@context":
+          title: JSON-LD Context
+          minItems: 2
+          type: array
+          description: The JSON-LD context for the structured resource descriptions
+          example:
+            - https://w3id.org/kim/lrmi-profile/draft/context.jsonld
+            - '@language': de
+          items:
+            type: object
+        id:
+          title: URL
+          type: string
+          description: The URI of the resource
+          format: uri
+          example: https://axel-klinger.gitlab.io/gitlab-for-documents/index.html
+        name:
+          title: Title
+          type: string
+          description: Title of the educational resource
+          example: GitLab für Texte
+        creator:
+          title: Creator
+          type: array
+          description: Creator
+          items:
+            $ref: '#/components/schemas/MetadataCreator'
+        description:
+          title: Description
+          type: string
+          description: A short description of the resource
+          example: an example description
+        about:
+          title: Subject
+          type: array
+          description: Classification of the educational resource
+          example:
+            - id: "https://w3id.org/kim/hochschulfaechersystematik/n105"
+              prefLabel:
+                'de': 'Mathematik'
+                'en': 'Mathematics'
+          items:
+            $ref: '#/components/schemas/MetadataAbout'
+        license:
+          title: License
+          type: string
+          description: URL of the License.
+          format: uri
+          example: https://creativecommons.org/licenses/by/4.0/deed.de
+        image:
+          title: Image
+          type: string
+          description: A link to an image of the resource
+          format: uri
+          example: https://www.oernds.de/edu-sharing/preview?nodeId=84400a83-9d1a-4738-a19f-00fc332df247&storeProtocol=workspace&storeId=SpacesStore&dontcache=1589890988103
+        dateCreated:
+          title: Creation Date
+          type: string
+          description: "date on which the educational resource was created. format:\
+            \ YYYY-MM-DD"
+          format: date
+          example: 2020-02-22
+        datePublished:
+          title: Publication Date
+          type: string
+          description: "date on which the educational resource was published. format:\
+            \ YYYY-MM-DD"
+          format: date
+          example: 2020-02-22
+        inLanguage:
+          title: Language
+          type: array
+          description: Language code ISO 639-1
+          example:
+            - de
+            - en
+          items:
+            type: string
+            enum:
+              - aa
+              - ab
+              - ae
+              - af
+              - ak
+              - am
+              - an
+              - ar
+              - as
+              - av
+              - ay
+              - az
+              - ba
+              - be
+              - bg
+              - bh
+              - bi
+              - bm
+              - bn
+              - bo
+              - br
+              - bs
+              - ca
+              - ce
+              - ch
+              - co
+              - cr
+              - cs
+              - cu
+              - cv
+              - cy
+              - da
+              - de
+              - dv
+              - dz
+              - ee
+              - el
+              - en
+              - eo
+              - es
+              - et
+              - eu
+              - fa
+              - ff
+              - fi
+              - fj
+              - fo
+              - fr
+              - fy
+              - ga
+              - gd
+              - gl
+              - gn
+              - gu
+              - gv
+              - ha
+              - hi
+              - ho
+              - hr
+              - ht
+              - hu
+              - hy
+              - hz
+              - ia
+              - ie
+              - ig
+              - ii
+              - ik
+              - io
+              - is
+              - it
+              - iu
+              - ja
+              - jv
+              - ka
+              - kg
+              - ki
+              - kj
+              - kk
+              - kl
+              - km
+              - kn
+              - ko
+              - kr
+              - ks
+              - ku
+              - kv
+              - kw
+              - ky
+              - la
+              - lb
+              - lg
+              - li
+              - ln
+              - lo
+              - lt
+              - lu
+              - lv
+              - mg
+              - mh
+              - mi
+              - mk
+              - ml
+              - mn
+              - mo
+              - mr
+              - ms
+              - mt
+              - my
+              - na
+              - nb
+              - nd
+              - ne
+              - ng
+              - nl
+              - nn
+              - "no"
+              - nr
+              - nv
+              - nvi
+              - ny
+              - oc
+              - oj
+              - om
+              - or
+              - os
+              - pa
+              - pi
+              - pl
+              - ps
+              - pt
+              - qu
+              - rm
+              - rn
+              - ro
+              - ru
+              - rw
+              - sa
+              - sc
+              - sd
+              - se
+              - sg
+              - si
+              - sk
+              - sl
+              - sm
+              - smi
+              - sn
+              - so
+              - sq
+              - sr
+              - ss
+              - st
+              - su
+              - sv
+              - sw
+              - ta
+              - te
+              - tg
+              - th
+              - ti
+              - tk
+              - tl
+              - tn
+              - to
+              - tr
+              - ts
+              - tt
+              - tw
+              - ty
+              - ug
+              - uk
+              - ur
+              - uz
+              - ve
+              - vi
+              - vo
+              - wa
+              - wo
+              - xh
+              - yo
+              - za
+              - zh
+              - zu
+        learningResourceType:
+          title: Learning Resource Type
+          type: array
+          description: Learning Resource Type
+          example:
+            - id: "https://w3id.org/kim/hcrt/course"
+              prefLabel:
+                'de': 'Kurs'
+                'en': 'Course'
+          items:
+            $ref: '#/components/schemas/MetadataLearningResourceType'
+        audience:
+          title: Audience
+          type: array
+          description: Audience / interactivity level
+          example:
+            - id: "http://purl.org/dcx/lrmi-vocabs/educationalAudienceRole/student"
+              prefLabel:
+                'de': 'Lernende'
+                'en': 'student'
+          items:
+            $ref: '#/components/schemas/MetadataAudience'
+        mainEntityOfPage:
+          title: metadata description
+          type: array
+          description: "This object contains metametadata, i.e. information about\
+            \ the description of the OER."
+          items:
+            $ref: '#/components/schemas/MetadataMainEntityOfPage'
+        sourceOrganization:
+          title: Source Organization
+          type: array
+          description: The Organization on whose behalf the creator was working.
+          items:
+            $ref: '#/components/schemas/MetadataSourceOrganization'
+        type:
+          title: Type
+          type: array
+          description: "The type (rdf:type / @type) of the learning resource, taken\
+            \ from sub-classes of sdo:CreativeWork."
+          example:
+            - LearningResource
+          items:
+            type: string
+            default: LearningResource
+        keywords:
+          title: Keywords
+          type: array
+          description: Keywords or tags used to describe this content
+          example:
+            - Multimedia
+            - GitLab
+          items:
+            type: string
+    MetadataCreator:
+      required:
+        - name
+        - type
+      type: object
+      properties:
+        type:
+          title: Type
+          type: string
+          description: Type
+          example: Person
+          enum:
+            - Person
+            - Organization
+        id:
+          type: string
+          description: "identifier of the person/organization like orcid, gnd or ror"
+          format: uri
+        name:
+          title: Name
+          type: string
+          description: The creator's name
+          example: Max Mustermann
+    MetadataAbout:
+      required:
+        - id
+      type: object
+      example:
+        id: "https://w3id.org/kim/hochschulfaechersystematik/n105"
+        prefLabel:
+          'de': 'Mathematik'
+          'en': 'Mathematics'
+      properties:
+        id:
+          type: string
+        prefLabel:
+          $ref: 'api.yaml#/components/schemas/LocalizedString'
+    MetadataLearningResourceType:
+      required:
+        - id
+      type: object
+      example:
+        id: "https://w3id.org/kim/hcrt/course"
+        prefLabel:
+          'de': 'Kurs'
+          'en': 'Course'
+      properties:
+        id:
+          type: string
+        prefLabel:
+          $ref: 'api.yaml#/components/schemas/LocalizedString'
+    MetadataAudience:
+      required:
+        - id
+      type: object
+      example:
+        id: "http://purl.org/dcx/lrmi-vocabs/educationalAudienceRole/student"
+        prefLabel:
+          'de': 'Lernende'
+          'en': 'student'
+      properties:
+        id:
+          type: string
+        prefLabel:
+          $ref: 'api.yaml#/components/schemas/LocalizedString'
+    Provider:
+      title: Provider
+      type: object
+      properties:
+        id:
+          type: string
+          description: The URI for the metadata provider
+          format: uri
+          example: https://oerworldmap.org/resource/urn:uuid:4062c64d-b0ac-4941-95c2-8116f137326d
+        type:
+          type: string
+          description: Type of the metadata provider
+          example: Service
+        name:
+          type: string
+          description: The name of the metadata provider
+          example: ZOERR
+      description: Site or service that is source of the metadata
+    MetadataMainEntityOfPage:
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          type: string
+          description: The URI of the metadata
+          format: uri
+          example: https://www.oernds.de/edu-sharing/components/render/84400a83-9d1a-4738-a19f-00fc332df247
+        type:
+          type: string
+          description: Type of the metadata description
+          example: WebPage
+        dateCreated:
+          title: Creation date of the metadata
+          type: string
+          description: "Creation date of the metadata. format: YYYY-MM-DD"
+          format: date
+          example: "2020-03-21"
+        dateModified:
+          title: Date of last modification of the metadata
+          type: string
+          description: "Date of last modification of the metadata. format: YYYY-MM-DD"
+          format: date
+          example: "2020-03-22"
+        provider:
+          $ref: '#/components/schemas/Provider'
+    MetadataSourceOrganization:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The URI for the source organization
+          format: uri
+          example: http://www.wikidata.org/entity/Q54166
+        type:
+          type: string
+          description: Type of the source organization
+          example: Organization
+        name:
+          type: string
+          description: The name of the source organization
+          example: Technische Hochschule Köln
