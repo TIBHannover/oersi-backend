@@ -8,8 +8,8 @@ import org.modelmapper.ModelMapper;
 import org.oersi.api.LabelDefinitionControllerApi;
 import org.oersi.domain.LabelDefinition;
 import org.oersi.domain.LocalizedString;
-import org.oersi.dto.LabelDefinitionBulkDto;
 import org.oersi.dto.LabelDefinitionDto;
+import org.oersi.dto.LocalizedStringDto;
 import org.oersi.service.LabelDefinitionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -29,7 +30,7 @@ public class LabelDefinitionController implements LabelDefinitionControllerApi {
   private final @NonNull LabelDefinitionService labelDefinitionService;
   private final @NonNull ModelMapper modelMapper;
 
-  private List<LabelDefinition> convertToEntity(final LabelDefinitionBulkDto dto) {
+  private List<LabelDefinition> convertToEntity(final Map<String, LocalizedStringDto> dto) {
     return dto.entrySet().stream().map(e -> {
       LabelDefinition definition = new LabelDefinition();
       definition.setIdentifier(e.getKey());
@@ -89,7 +90,7 @@ public class LabelDefinitionController implements LabelDefinitionControllerApi {
    * @return response
    */
   @Override
-  public ResponseEntity<Void> createOrUpdateMany(@RequestBody final LabelDefinitionBulkDto labelDefinitionsDto) {
+  public ResponseEntity<Void> createOrUpdateMany(@RequestBody final Map<String, LocalizedStringDto> labelDefinitionsDto) {
     List<LabelDefinition> labelDefinitions = convertToEntity(labelDefinitionsDto);
     labelDefinitionService.createOrUpdate(labelDefinitions);
     return ResponseEntity.ok().build();

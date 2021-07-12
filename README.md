@@ -25,7 +25,7 @@ The (backend) API is not part of the oersi public API. It is designed to be cons
 
 ## Rest API
 
-API definition in [src/main/resources/model/api2.yaml](src/main/resources/model/api2.yaml)
+API definition in [src/main/resources/model/api.yaml](src/main/resources/model/api.yaml)
 
 #### Endpoints
 * **_SearchController_**: Read-Access to the index data **/api/search/**
@@ -50,10 +50,10 @@ API definition in [src/main/resources/model/api2.yaml](src/main/resources/model/
     * You need to have access to the internal oersi system. The interactive swagger documentation is not available in the web.
     * use [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) for an application started locally with ``mvn spring-boot:run``
 
-#### Swagger Configuration
+#### OpenAPI (Swagger) Configuration
 
-* [Swagger](https://swagger.io/docs/specification/2-0/basic-structure/) is an open-source software framework backed by a large ecosystem of tools that helps developers design, build, document, and consume RESTful web services
-* The API is completely defined in a **Yaml** file. Swagger generates all java components from this file (like the data transfer objects (DTO, Model) and Controller). So if you want to modify, or create a new one (Model or Controller), adjust the **Yaml** in [src/main/resources/model/api2.yaml](src/main/resources/model/api2.yaml)
+* [OpenAPI](https://swagger.io/docs/specification/basic-structure/) is an open-source software framework backed by a large ecosystem of tools that helps developers design, build, document, and consume RESTful web services
+* The API is completely defined in a **Yaml** file. Swagger generates all java components from this file (like the data transfer objects (DTO, Model) and Controller). So if you want to modify, or create a new one (Model or Controller), adjust the **Yaml** in [src/main/resources/model/api.yaml](src/main/resources/model/api.yaml)
 
 ## Features
 

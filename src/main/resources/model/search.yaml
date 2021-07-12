@@ -1,0 +1,110 @@
+/api/search/**:
+  post:
+    tags:
+      - search-controller
+    summary: Find Metadata by Id
+    description: |
+      **Request Body Search**
+      <br/><br/>
+      **Specifies search criteria as request body parameters.**
+      <br/><br/>
+      <em>The search request can be executed with a search DSL, which includes the [Query DSL](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html), within its body.g.</em>
+      <br/><br/>
+      **Example**
+      <br/><br/>
+        **Request**
+       ```
+         GET /<index>/_search
+          {
+            "query": {<parameters>}
+          }
+       ```
+      <br/><br/>
+      Form more info about Request Body Search you can find here [Request Body Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html#search-request-body).
+    operationId: processElasticsearchPostRequest
+    requestBody:
+      description: "Elasticsearch query"
+      content:
+        '*/*':
+          schema:
+            type: string
+            example: "{\"query\": {\"match_all\": {}}}"
+      required: false
+    responses:
+      "200":
+        description: |
+          **Elastic Search Json Object**
+          <br/>
+          **This is a dynamic JSON come from elastic search**
+          <br/>
+          **Don't have a default Schema. Is a String**
+        content:
+          application/json:
+            schema:
+              type: string
+              example: 'Dynamic JSON String come from ElasticSearch '
+      "201":
+        description: Created
+        content: {}
+      "401":
+        description: Unauthorized
+        content: {}
+      "403":
+        description: Forbidden
+        content: {}
+      "404":
+        description: Not Found
+        content: {}
+/api/search/**/?{params}:
+  get:
+    tags:
+      - search-controller
+    summary: 'Find Metadata by params'
+    description:  |
+      **URI Search**
+      <br/><br/>
+      **Specifies search criteria as query parameters in the request URI.**
+      <br/><br/>
+      <em>You can use query parameters to define your search criteria directly in the request URI, rather than in the request body. Request URI searches do not support the full Elasticsearch Query DSL, but are handy for testing.</em>
+      <br/><br/>
+       **Example:**
+       <br/><br/>
+        **Request:**
+       ```
+       GET /<index>/_search?q=<parameter>
+       ```
+      <br/><br/>
+      Form more info about URI Search you can find here [URI Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-uri-request.html).
+    operationId: processElasticsearchGetRequest
+    parameters:
+      - name: params
+        in: path
+        description: e.g size=1000&pretty=true
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          default: size=1000&pretty=true
+    responses:
+      "200":
+        description: |
+          **Elastic Search Json Object**
+          <br/>
+          **This is a dynamic JSON come from elastic search**
+          <br/>
+           **Don't have a default Schema. Is a String**
+        content:
+          application/json:
+            schema:
+              type: string
+              example: 'Dynamic JSON String come from ElasticSearch '
+      "401":
+        description: Unauthorized
+        content: {}
+      "403":
+        description: Forbidden
+        content: {}
+      "404":
+        description: Not Found
+        content: {}

@@ -1,0 +1,59 @@
+openapi: 3.0.1
+info:
+  title: OER Search Index REST API
+  description: This is the Swagger Documentation of the OER Search Index REST API.
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
+  version: 1.0.0
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: /
+tags:
+  - name: label-controller
+    description: Endpoints for access to labels
+  - name: label-definition-controller
+    description: Endpoints for access to label definitions
+  - name: metadata-controller
+    description: Every EndPoint for Metadata Controller
+  - name: search-Controller
+    description: Every EndPoint for Search Controller
+paths:
+  /api/label/{language}:
+    $ref: "label.yaml#/~1api~1label~1{language}"
+
+  /api/contact:
+    $ref: "contact.yaml#/~1api~1contact"
+
+  /api/labeldefinition:
+    $ref: "labeldefinition.yaml#/~1api~1labeldefinition"
+  /api/labeldefinition/bulk:
+    $ref: "labeldefinition.yaml#/~1api~1labeldefinition~1bulk"
+  /api/labeldefinition/{id}:
+    $ref: "labeldefinition.yaml#/~1api~1labeldefinition~1{id}"
+
+  /api/metadata:
+    $ref: "metadata.yaml#/~1api~1metadata"
+  /api/metadata/{id}:
+    $ref: "metadata.yaml#/~1api~1metadata~1{id}"
+
+  /api/search/**:
+    $ref: "search.yaml#/~1api~1search~1**"
+  /api/search/**/?{params}:
+    $ref: "search.yaml#/~1api~1search~1**~1?{params}"
+
+components:
+  schemas:
+    LocalizedString:
+      title: Localized String
+      type: object
+      example:
+        de: 'Mathematik'
+        en: 'Mathematics'
+      additionalProperties:
+        type: string
+      description: "A language-tagged string using JSON-LD \"language maps\", see\
+        \ https://www.w3.org/TR/json-ld/#language-maps. Valid keys are ISO-639-1 language\
+        \ codes."
