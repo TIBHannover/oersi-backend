@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.2.4.RELEASE</version>
+		<version>2.5.2</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>org.oersi</groupId>
@@ -45,6 +45,10 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
 		<dependency>
@@ -54,12 +58,12 @@
 		<dependency>
 			<groupId>org.modelmapper</groupId>
 			<artifactId>modelmapper</artifactId>
-			<version>2.3.6</version>
+			<version>2.4.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.11</version>
+			<version>3.12.0</version>
 		</dependency>
 
 		<dependency>
@@ -115,7 +119,7 @@
 			<plugin>
 				<groupId>org.liquibase</groupId>
 				<artifactId>liquibase-maven-plugin</artifactId>
-				<version>3.5.5</version>
+				<version>4.4.1</version>
 				<configuration>
 					<!-- NOTE: h2 does not work here! -->
 					<!-- you can setup local mariadb via docker: docker run -e MYSQL_DATABASE=test -e MYSQL_USER=test -e MYSQL_PASSWORD=test -e MYSQL_ROOT_PASSWORD=xxx -p 3306:3306 -d mariadb:10.1 -->
@@ -132,24 +136,7 @@
 					<dependency>
 						<groupId>org.liquibase.ext</groupId>
 						<artifactId>liquibase-hibernate5</artifactId>
-						<version>3.6</version>
-					</dependency>
-
-					<!-- updated hibernate dependencies for correct handling of LocalDates -->
-					<dependency>
-						<groupId>org.hibernate</groupId>
-						<artifactId>hibernate-core</artifactId>
-						<version>5.3.7.Final</version>
-					</dependency>
-					<dependency>
-						<groupId>org.hibernate</groupId>
-						<artifactId>hibernate-entitymanager</artifactId>
-						<version>5.3.7.Final</version>
-					</dependency>
-					<dependency>
-						<groupId>org.hibernate</groupId>
-						<artifactId>hibernate-envers</artifactId>
-						<version>5.3.7.Final</version>
+						<version>4.3.5</version>
 					</dependency>
 
 					<dependency>
@@ -224,7 +211,7 @@
 			<plugin>
 				<groupId>com.google.code.maven-replacer-plugin</groupId>
 				<artifactId>replacer</artifactId>
-				<version>1.5.2</version>
+				<version>1.5.3</version>
 				<executions>
 					<execution>
 						<phase>process-sources</phase>
