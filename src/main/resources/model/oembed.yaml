@@ -1,0 +1,200 @@
+/api/oembed-json:
+  get:
+    tags:
+      - "oembed-controller"
+    summary: "oEmbed API"
+    description: "Implementation of oEmbed - see https://oembed.com/"
+    operationId: "oembed"
+    parameters:
+      - in: query
+        name: url
+        description: "The URL to retrieve embedding information for."
+        required: true
+        schema:
+          type: string
+          format: uri
+      - in: query
+        name: maxwidth
+        description: "The maximum width of the embedded resource. Only applies to some resource types (as specified below). For supported resource types, this parameter must be respected by providers."
+        required: false
+        schema:
+          type: integer
+      - in: query
+        name: maxheight
+        description: "The maximum height of the embedded resource. Only applies to some resource types (as specified below). For supported resource types, this parameter must be respected by providers."
+        required: false
+        schema:
+          type: integer
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OembedResponse"
+      "400":
+        description: Bad Request
+        content:
+          application/json:
+            schema: {}
+      "404":
+        description: "Not Found - no result for the requested url"
+        content:
+          application/json:
+            schema: {}
+/api/oembed-xml:
+  get:
+    tags:
+      - "oembed-controller"
+    summary: "oEmbed API"
+    description: "Implementation of oEmbed - see https://oembed.com/"
+    operationId: "oembedXmlWrapper"
+    parameters:
+      - in: query
+        name: url
+        description: "The URL to retrieve embedding information for."
+        required: true
+        schema:
+          type: string
+          format: uri
+      - in: query
+        name: maxwidth
+        description: "The maximum width of the embedded resource. Only applies to some resource types (as specified below). For supported resource types, this parameter must be respected by providers."
+        required: false
+        schema:
+          type: integer
+      - in: query
+        name: maxheight
+        description: "The maximum height of the embedded resource. Only applies to some resource types (as specified below). For supported resource types, this parameter must be respected by providers."
+        required: false
+        schema:
+          type: integer
+    responses:
+      "200":
+        description: OK
+        content:
+          text/xml:
+            schema:
+              $ref: "#/components/schemas/OembedResponse"
+      "400":
+        description: Bad Request
+        content:
+          text/xml:
+            schema: {}
+      "404":
+        description: "Not Found - no result for the requested url"
+        content:
+          text/xml:
+            schema: {}
+components:
+  schemas:
+    OembedResponse:
+      required:
+        - "type"
+        - "version"
+        - "title"
+      type: "object"
+      description: "The oEmbed provider response - see https://oembed.com/#section2.3. Also includes some additional fields."
+      xml:
+        name: "oembed"
+      properties:
+        type:
+          type: "string"
+          description: "The resource type."
+          example: "video"
+          enum:
+            - "photo"
+            - "video"
+            - "link"
+            - "rich"
+        version:
+          type: "string"
+          description: "The oEmbed version number. This must be 1.0."
+          default: "1.0"
+          example: "1.0"
+        title:
+          type: "string"
+          description: "A text title, describing the resource."
+          example: "Test title"
+        author_name:
+          type: "string"
+          description: "The name of the author/owner of the resource. (comma-separated for multiple authors/owners, consider using non-standard-oembed field 'authors' for better usage of multiple authors)"
+          example: "Maxi Mustermensch"
+        author_url:
+          type: "string"
+          format: uri
+          description: "A URL for the author/owner of the resource. (consider using non-standard-oembed field 'authors' for better usage of multiple authors)"
+          example: "https://orcid.org/0000-1234-1234-1234"
+        authors:
+          type: "array"
+          description: "non-standard-oembed field - better usage for multiple authors"
+          xml:
+            wrapped: true
+          example:
+            - name: "Maxi Mustermensch"
+              url: "https://orcid.org/0000-1234-1234-1234"
+            - name: "Jane Doe"
+            - name: "John Doe"
+          items:
+            type: "object"
+            xml:
+              name: "author"
+            properties:
+              name:
+                type: "string"
+                description: "The name of an author/owner of the resource."
+                example: "Maxi Mustermensch"
+              url:
+                type: "string"
+                format: uri
+                description: "A URL for the author/owner."
+                example: "https://orcid.org/0000-1234-1234-1234"
+        provider_name:
+          type: "string"
+          description: "The name of the resource provider."
+          example: "YouTube"
+        provider_url:
+          type: "string"
+          format: uri
+          description: "The url of the resource provider."
+          example: "https://youtube.com/"
+        cache_age:
+          type: "integer"
+          format: "int64"
+          description: "The suggested cache lifetime for this resource, in seconds. Consumers may choose to use this value or not."
+          example: 86400
+        thumbnail_url:
+          type: "string"
+          format: uri
+          description: "A URL to a thumbnail image representing the resource. The thumbnail must respect any maxwidth and maxheight parameters. If this parameter is present, thumbnail_width and thumbnail_height must also be present."
+          example: "https://www.twillo.de/edu-sharing/preview?nodeId=84400a83-9d1a-4738-a19f-00fc332df247&storeProtocol=workspace&storeId=SpacesStore&dontcache=1589890988103"
+        thumbnail_width:
+          type: "integer"
+          description: "The width of the optional thumbnail. If this parameter is present, thumbnail_url and thumbnail_height must also be present."
+          example: 560
+        thumbnail_height:
+          type: "integer"
+          description: "The height of the optional thumbnail. If this parameter is present, thumbnail_url and thumbnail_width must also be present."
+          example: 315
+        url:
+          type: "string"
+          format: uri
+          description: "Only used for type=photo (required there). The source URL of the image. Consumers should be able to insert this URL into an <img> element. Only HTTP and HTTPS URLs are valid."
+          example: "https://www.twillo.de/edu-sharing/preview?nodeId=84400a83-9d1a-4738-a19f-00fc332df247&storeProtocol=workspace&storeId=SpacesStore&dontcache=1589890988103"
+        width:
+          type: "integer"
+          description: "The width in pixels of the image / that are required to display the HTML (depending on type)"
+          example: 560
+        height:
+          type: "integer"
+          description: "The height in pixels of the image / that are required to display the HTML (depending on type)"
+          example: 315
+        html:
+          type: "string"
+          description: "Only used for type=video or type=rich (required there). The HTML required to embed a video player. The HTML should have no padding or margins. Consumers may wish to load the HTML in an off-domain iframe to avoid XSS vulnerabilities."
+          example: "https://www.twillo.de/edu-sharing/preview?nodeId=84400a83-9d1a-4738-a19f-00fc332df247&storeProtocol=workspace&storeId=SpacesStore&dontcache=1589890988103"
+        license_url:
+          type: "string"
+          format: uri
+          description: "non-standard-oembed field - URL of the license of the resource"
+          example: "https://creativecommons.org/licenses/by/4.0/"
