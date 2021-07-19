@@ -618,3 +618,87 @@ databaseChangeLog:
           initiallyDeferred: false
           referencedColumnNames: id
           referencedTableName: metadata
+
+- changeSet:
+    id: 1626349218752-1
+    author: hoffmann (generated)
+    changes:
+      - createTable:
+          columns:
+            - column:
+                autoIncrement: true
+                constraints:
+                  nullable: false
+                  primaryKey: true
+                  primaryKeyName: mediaPK
+                name: id
+                type: BIGINT
+            - column:
+                name: embed_url
+                type: VARCHAR(255)
+            - column:
+                name: encoding_format
+                type: VARCHAR(255)
+            - column:
+                name: type
+                type: VARCHAR(255)
+            - column:
+                name: metadata_id
+                type: BIGINT
+          tableName: media
+- changeSet:
+    id: 1626349218752-2
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: metadata_id
+          baseTableName: media
+          constraintName: FK4pwepm59fns548rpo5h7d6v2
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: metadata
+          validate: true
+- changeSet:
+    id: 1626441331288-1
+    author: hoffmann (generated)
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: provider_id
+                type: bigint
+          tableName: metadata
+- changeSet:
+    id: 1626441331288-2
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: provider_id
+          baseTableName: metadata
+          constraintName: FKeohu6oyfbk1k9732eef81u5hx
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: provider
+          validate: true
+- changeSet:
+    id: 1626671513984-1
+    author: hoffmann (generated)
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: image_height
+                type: integer
+          tableName: metadata
+- changeSet:
+    id: 1626671513984-2
+    author: hoffmann (generated)
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: image_width
+                type: integer
+          tableName: metadata

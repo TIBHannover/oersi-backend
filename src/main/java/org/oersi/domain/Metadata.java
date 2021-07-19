@@ -13,6 +13,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+
 import lombok.Data;
 import org.hibernate.validator.constraints.URL;
 
@@ -53,11 +55,19 @@ public class Metadata {
   @JoinColumn(name = "metadata_id", nullable = true)
   private List<About> about;
 
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "metadata_id", nullable = true)
+  private List<Media> encoding;
+  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+  private Provider provider;
+
   @URL
   private String license;
 
   @URL
   private String image;
+  private Integer imageWidth;
+  private Integer imageHeight;
 
   private LocalDate dateCreated;
   private LocalDate datePublished;

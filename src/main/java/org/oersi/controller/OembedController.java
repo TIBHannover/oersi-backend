@@ -1,9 +1,11 @@
 package org.oersi.controller;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.oersi.api.OembedControllerApi;
 import org.oersi.dto.OembedResponseDto;
+import org.oersi.service.OembedService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,11 +15,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class OembedController implements OembedControllerApi {
 
+  private final @NonNull OembedService oembedService;
+
   @Override
   public ResponseEntity<OembedResponseDto> oembed(String url, Integer maxwidth, Integer maxheight) {
-    var resp = new OembedResponseDto();
-
-    return ResponseEntity.ok(resp);
+    var oembed = oembedService.getOembedResponse(url, maxwidth, maxheight);
+    if (oembed == null) {
+      return ResponseEntity.notFound().build();
+    }
+    return ResponseEntity.ok(oembed);
   }
 
   @Override
