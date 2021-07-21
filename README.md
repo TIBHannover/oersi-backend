@@ -62,6 +62,11 @@ API definition in [src/main/resources/model/api.yaml](src/main/resources/model/a
 * Activate via feature-toggle `feature.add_missing_labels`.
 * If active, set all prefLabels during the metadata creation/update that are not included in the given data, but that are defined in `LabelDefinition` (see also `LabelDefinition` endpoint in API).
 
+#### Auto Update missing infos
+
+* Activate via feature-toggle `feature.add_missing_metadata_infos`. 
+* If active, set embed url, provider name/url and width/height of the image during the metadata creation/update. Only missing data will be set. Update by rules that apply if the id matches a regex: Is configured in the _oersi.properties_ -> **autoupdate**-properties
+
 ## Technologies
 
 * **springboot** - The backend is a springboot application, provided as war file
