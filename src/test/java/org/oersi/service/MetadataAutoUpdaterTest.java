@@ -28,6 +28,9 @@ class MetadataAutoUpdaterTest {
     metadataAutoUpdater.setImageLoader(new MetadataAutoUpdater.ImageLoader() {
       @Override
       public BufferedImage getImage(String source) throws IOException {
+        if ("null".equals(source)) {
+          return null;
+        }
         try (InputStream is = getClass().getClassLoader().getResourceAsStream(source)) {
           return ImageIO.read(is);
         }
@@ -64,6 +67,15 @@ class MetadataAutoUpdaterTest {
     metadataAutoUpdater.addMissingInfos(data);
     assertThat(data.getImageWidth()).isEqualTo(900);
     assertThat(data.getImageHeight()).isEqualTo(750);
+  }
+
+  @Test
+  void testImageNotLoadable() {
+    Metadata data = newMetadata();
+    data.setImage("null");
+    metadataAutoUpdater.addMissingInfos(data);
+    assertThat(data.getImageWidth()).isNull();
+    assertThat(data.getImageHeight()).isNull();
   }
 
   @Test

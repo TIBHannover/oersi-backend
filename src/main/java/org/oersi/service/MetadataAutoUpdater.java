@@ -111,13 +111,17 @@ public class MetadataAutoUpdater {
       log.debug("Set dimensions of image {}", data.getImage());
       try {
         BufferedImage image = imageLoader.getImage(data.getImage());
-        if (data.getImageWidth() == null) {
-          data.setImageWidth(image.getWidth());
-          log.debug("image width {}", data.getImageWidth());
-        }
-        if (data.getImageHeight() == null) {
-          data.setImageHeight(image.getHeight());
-          log.debug("image height {}", data.getImageHeight());
+        if (image == null) {
+          log.info("Could not read image {}", data.getImage());
+        } else {
+          if (data.getImageWidth() == null) {
+            data.setImageWidth(image.getWidth());
+            log.debug("image width {}", data.getImageWidth());
+          }
+          if (data.getImageHeight() == null) {
+            data.setImageHeight(image.getHeight());
+            log.debug("image height {}", data.getImageHeight());
+          }
         }
       } catch (IOException e) {
         log.debug("error while reading image", e);
