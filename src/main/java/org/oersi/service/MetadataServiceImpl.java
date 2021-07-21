@@ -38,9 +38,13 @@ public class MetadataServiceImpl implements MetadataService {
   private final @NonNull MetadataRepository oerMetadataRepository;
   private final @NonNull LabelDefinitionRepository labelDefinitionRepository;
   private final @NonNull LabelService labelService;
+  private final @NonNull MetadataAutoUpdater metadataAutoUpdater;
 
   @Value("${feature.add_missing_labels}")
   private boolean featureAddMissingLabels;
+
+  @Value("${feature.add_missing_metadata_infos}")
+  private boolean featureAddMissingMetadataInfos;
 
   @Transactional
   @Override
@@ -67,6 +71,7 @@ public class MetadataServiceImpl implements MetadataService {
           metadata.getMainEntityOfPage()));
       metadata.setSourceOrganization(updateExistingList(existingMetadata.getSourceOrganization(),
           metadata.getSourceOrganization()));
+      metadata.setEncoding(updateExistingList(existingMetadata.getEncoding(), metadata.getEncoding()));
     }
     metadata.setDateModifiedInternal(LocalDateTime.now());
     metadata.setName(cutString(metadata.getName(), Metadata.NAME_LENGTH));
@@ -74,6 +79,9 @@ public class MetadataServiceImpl implements MetadataService {
     determineProviderNames(metadata);
     if (featureAddMissingLabels) {
       labelUpdater.addMissingLabels(metadata);
+    }
+    if (featureAddMissingMetadataInfos) {
+      metadataAutoUpdater.addMissingInfos(metadata);
     }
     storeLabels(metadata);
     return oerMetadataRepository.save(metadata);

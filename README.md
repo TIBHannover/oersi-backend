@@ -44,6 +44,12 @@ API definition in [src/main/resources/model/api.yaml](src/main/resources/model/a
     * Internal use - this is not part of the public API
     * User messages can be sent via Mail to the support address of the oersi instance
         * Configure `spring.mail`-Properties and `oersi.support.mail` for this in _oersi.properties_
+* **_oEmbedController_**: Provide an [oEmbed](https://oembed.com/) API **/api/oembed-json** and **/api/oembed-xml**
+    * supports only types `video` and `link` at the moment
+    * thumbnails are available whenever the `image` at the resource is available
+    * additional response parameters are provided
+        * **license_url** - URL of the license of the resource
+        * **authors** - array of authors (better usage for multiple authors)
 
 #### Interactive documentation
 * An interactive documentation of the API can be found at ``http://<YOUR-HOST>:8080/oersi/swagger-ui.html`` (adjust tomcat port, application name if the standard values were not used)
@@ -61,6 +67,11 @@ API definition in [src/main/resources/model/api.yaml](src/main/resources/model/a
 
 * Activate via feature-toggle `feature.add_missing_labels`.
 * If active, set all prefLabels during the metadata creation/update that are not included in the given data, but that are defined in `LabelDefinition` (see also `LabelDefinition` endpoint in API).
+
+#### Auto Update missing infos
+
+* Activate via feature-toggle `feature.add_missing_metadata_infos`. 
+* If active, set embed url, provider name/url and width/height of the image during the metadata creation/update. Only missing data will be set. Update by rules that apply if the id matches a regex: Is configured in the _oersi.properties_ -> **autoupdate**-properties
 
 ## Technologies
 

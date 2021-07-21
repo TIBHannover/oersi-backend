@@ -18,6 +18,8 @@ tags:
     description: Endpoints for access to label definitions
   - name: metadata-controller
     description: Every EndPoint for Metadata Controller
+  - name: oembed-Controller
+    description: oEmbed provider endpoint
   - name: search-Controller
     description: Every EndPoint for Search Controller
 paths:
@@ -38,6 +40,11 @@ paths:
     $ref: "metadata.yaml#/~1api~1metadata"
   /api/metadata/{id}:
     $ref: "metadata.yaml#/~1api~1metadata~1{id}"
+
+  /api/oembed-json:
+    $ref: "oembed.yaml#/~1api~1oembed-json"
+  /api/oembed-xml:
+    $ref: "oembed.yaml#/~1api~1oembed-xml"
 
   /api/search/**:
     $ref: "search.yaml#/~1api~1search~1**"
