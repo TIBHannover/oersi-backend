@@ -46,10 +46,12 @@ API definition in [src/main/resources/model/api.yaml](src/main/resources/model/a
         * Configure `spring.mail`-Properties and `oersi.support.mail` for this in _oersi.properties_
 * **_oEmbedController_**: Provide an [oEmbed](https://oembed.com/) API **/api/oembed-json** and **/api/oembed-xml**
     * supports only types `video` and `link` at the moment
-    * thumbnails are available whenever the `image` at the resource is available
+    * thumbnails are available whenever the `image` at the resource is available and the dimension match
     * additional response parameters are provided
         * **license_url** - URL of the license of the resource
         * **authors** - array of authors (better usage for multiple authors)
+    * default value for public adress: **/resources/api/oembed-json** respectively **/resources/api/oembed-xml**
+    * example `curl -L oersi.de/resources/api/oembed-json?url=https%3A%2F%2Foersi.de%2Fresources%2FaHR0cHM6Ly9heGVsLWtsaW5nZXIuZ2l0bGFiLmlvL2dpdGxhYi1mb3ItZG9jdW1lbnRzL2luZGV4Lmh0bWw%3D`
 
 #### Interactive documentation
 * An interactive documentation of the API can be found at ``http://<YOUR-HOST>:8080/oersi/swagger-ui.html`` (adjust tomcat port, application name if the standard values were not used)
