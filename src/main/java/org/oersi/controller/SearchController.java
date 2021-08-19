@@ -2,6 +2,8 @@ package org.oersi.controller;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import javax.servlet.http.HttpServletRequest;
 import lombok.NonNull;
@@ -114,8 +116,12 @@ public class SearchController implements SearchControllerApi {
     String requestPath =
         originalPath.substring(originalPath.indexOf(BASE_PATH) + BASE_PATH.length());
     String path = elasticsearchBasePath + requestPath;
+    String queryString = originalRequest.getQueryString();
+    if (queryString != null) {
+      queryString = URLDecoder.decode(queryString, StandardCharsets.UTF_8);
+    }
     return new URI(elasticsearchScheme, null, elasticsearchHost, elasticsearchPort, path,
-        originalRequest.getQueryString(), null);
+      queryString, null);
   }
 
   private HttpHeaders buildElasticsearchHeaders() {

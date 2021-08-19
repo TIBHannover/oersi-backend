@@ -51,6 +51,17 @@ class SearchControllerTest {
   }
 
   @Test
+  void testGetRequestWithQuery() throws Exception {
+    ResponseEntity<String> response = new ResponseEntity<String>("a result", HttpStatus.OK);
+    when(restTemplateMock.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(
+      String.class)))
+      .thenReturn(response);
+
+    mvc.perform(get(SearchController.BASE_PATH + testPath + "?q=test:test"))
+      .andExpect(status().is(response.getStatusCodeValue()));
+  }
+
+  @Test
   void testPostRequest() throws Exception {
     ResponseEntity<String> response = new ResponseEntity<String>("a result", HttpStatus.OK);
     when(restTemplateMock.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(
