@@ -702,3 +702,44 @@ databaseChangeLog:
                 name: image_width
                 type: integer
           tableName: metadata
+
+- changeSet:
+    id: 1629437805310-1
+    author: hoffmann (generated)
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: bitrate
+                type: varchar(255)
+          tableName: media
+- changeSet:
+    id: 1629437805310-2
+    author: hoffmann (generated)
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: content_size
+                type: varchar(255)
+          tableName: media
+- changeSet:
+    id: 1629437805310-3
+    author: hoffmann (generated)
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: content_url
+                type: varchar(255)
+          tableName: media
+- changeSet:
+    id: 1629437805310-4
+    author: hoffmann (generated)
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: sha256
+                type: varchar(255)
+          tableName: media

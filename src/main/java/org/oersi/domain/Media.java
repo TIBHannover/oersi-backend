@@ -16,10 +16,19 @@ public class Media {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
+  private String bitrate;
+
+  @URL
+  private String contentUrl;
+
+  private String contentSize;
+
   @URL
   private String embedUrl;
 
   private String encodingFormat;
+
+  private String sha256;
 
   private String type = "MediaObject";
 
