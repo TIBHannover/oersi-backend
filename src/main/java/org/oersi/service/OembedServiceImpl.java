@@ -50,7 +50,9 @@ public class OembedServiceImpl implements OembedService {
       oembed.setProviderName(data.getProvider().getName());
       oembed.setProviderUrl(data.getProvider().getIdentifier());
     }
-    oembed.setLicenseUrl(data.getLicense());
+    if (data.getLicense() != null) {
+      oembed.setLicenseUrl(data.getLicense().getIdentifier());
+    }
 
     setThumbnailFields(data, oembed, maxwidth, maxheight);
     setVideoFieldsIfIsVideo(data, oembed, maxwidth, maxheight);

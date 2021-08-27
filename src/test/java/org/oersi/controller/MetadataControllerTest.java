@@ -31,6 +31,7 @@ import org.oersi.domain.About;
 import org.oersi.domain.Audience;
 import org.oersi.domain.Creator;
 import org.oersi.domain.LearningResourceType;
+import org.oersi.domain.License;
 import org.oersi.domain.LocalizedString;
 import org.oersi.domain.MainEntityOfPage;
 import org.oersi.domain.Metadata;
@@ -141,7 +142,9 @@ class MetadataControllerTest {
 
     metadata.setDescription("description");
     metadata.setInLanguage(new ArrayList<>(List.of("en")));
-    metadata.setLicense("https://creativecommons.org/licenses/by/4.0/deed.de");
+    License license = new License();
+    license.setIdentifier("https://creativecommons.org/licenses/by/4.0/");
+    metadata.setLicense(license);
     metadata.setName("name");
     metadata.setIdentifier("http://example.url");
 
@@ -213,7 +216,7 @@ class MetadataControllerTest {
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
             "{\"@context\": [\"https://w3id.org/kim/lrmi-profile/draft/context.jsonld\",{\"@language\": \"de\"}],\n" +
-                    "\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\",\"prefLabel\":{\"de\":\"Mathematik\",\"en\":\"mathematics\"}}],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"Kurs\",\"en\":\"course\"}}],\"audience\":[{\"id\":\"audience\",\"prefLabel\":{\"de\":\"Lernender\",\"en\":\"student\"}}],\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}], \"sourceOrganization\":[{\"name\":\"sourceOrganization\"}], \"keywords\":[\"Gitlab\", \"Multimedia\"], \"type\":[\"Course\", \"LearningResource\"]}"));
+                    "\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\",\"prefLabel\":{\"de\":\"Mathematik\",\"en\":\"mathematics\"}}],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"Kurs\",\"en\":\"course\"}}],\"audience\":[{\"id\":\"audience\",\"prefLabel\":{\"de\":\"Lernender\",\"en\":\"student\"}}],\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}], \"sourceOrganization\":[{\"name\":\"sourceOrganization\"}], \"keywords\":[\"Gitlab\", \"Multimedia\"], \"type\":[\"Course\", \"LearningResource\"]}"));
   }
 
   @Test
@@ -313,7 +316,7 @@ class MetadataControllerTest {
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
-            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[],\"description\":\"description\",\"about\":[],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[],\"audience\":[],\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}], \"type\":[\"LearningResource\"]}"));
+            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[],\"description\":\"description\",\"about\":[],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[],\"audience\":[],\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}], \"type\":[\"LearningResource\"]}"));
   }
 
   @Test
@@ -346,7 +349,7 @@ class MetadataControllerTest {
     mvc.perform(put(METADATA_CONTROLLER_BASE_PATH + "/" + existingMetadata.getId())
         .contentType(MediaType.APPLICATION_JSON).content(asJson(metadata)))
         .andExpect(status().isOk()).andExpect(content().json(
-            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\"}],\"license\":\"https://creativecommons.org/licenses/by/4.0/deed.de\",\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[{\"id\":\"learningResourceType\"}],\"audience\":[{\"id\":\"audience\"}],\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}, {\"id\":\"http://example2.url/desc/123\"}]}"));
+            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\"}],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[{\"id\":\"learningResourceType\"}],\"audience\":[{\"id\":\"audience\"}],\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}, {\"id\":\"http://example2.url/desc/123\"}]}"));
 
     Assert.assertEquals(1, repository.count());
   }

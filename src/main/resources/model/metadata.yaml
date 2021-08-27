@@ -154,6 +154,17 @@
         content: {}
 components:
   schemas:
+    License:
+      required:
+        - id
+      type: object
+      title: License
+      properties:
+        id:
+          type: string
+          description: URL of the License.
+          format: uri
+          example: https://creativecommons.org/licenses/by/4.0/
     Metadata:
       required:
         - id
@@ -204,11 +215,7 @@ components:
           items:
             $ref: '#/components/schemas/MetadataAbout'
         license:
-          title: License
-          type: string
-          description: URL of the License.
-          format: uri
-          example: https://creativecommons.org/licenses/by/4.0/deed.de
+          $ref: '#/components/schemas/License'
         image:
           title: Image
           type: string

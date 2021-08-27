@@ -169,6 +169,13 @@ public class WebConfig {
           mapper.map(MetadataLearningResourceTypeDto::getId, LearningResourceType::setIdentifier);
           mapper.skip(LearningResourceType::setId);
         });
+    modelMapper.typeMap(License.class, LicenseDto.class).addMappings(
+      mapper -> mapper.map(License::getIdentifier, LicenseDto::setId));
+    modelMapper.typeMap(LicenseDto.class, License.class)
+      .addMappings(mapper -> {
+        mapper.map(LicenseDto::getId, License::setIdentifier);
+        mapper.skip(License::setId);
+      });
     modelMapper.typeMap(Provider.class, ProviderDto.class)
         .addMappings(mapper -> mapper.map(Provider::getIdentifier, ProviderDto::setId));
     modelMapper.typeMap(ProviderDto.class, Provider.class).addMappings(mapper -> {
