@@ -791,13 +791,13 @@ databaseChangeLog:
           referencedTableName: license
           validate: true
 - changeSet:
-    id: 1630039144355-4
+    id: 1630039144355-4-1
     author: mhoffmann
     comment: data migration license as object
     changes:
       - sql:
           comment: copy license url to new table
-          sql: INSERT INTO license (identifier, tmp_metadata_id) SELECT license, id FROM metadata
+          sql: INSERT INTO license (identifier, tmp_metadata_id) SELECT license, id FROM metadata where license is not null
       - sql:
           comment: update license id
           sql: UPDATE metadata m SET license_id = (SELECT tmp_metadata_id FROM license WHERE tmp_metadata_id = m.id)
