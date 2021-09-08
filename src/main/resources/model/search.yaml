@@ -2,7 +2,7 @@
   post:
     tags:
       - search-controller
-    summary: Find Metadata by Id
+    summary: elasticsearch post queries
     description: |
       **Request Body Search**
       <br/><br/>
@@ -14,22 +14,22 @@
       <br/><br/>
         **Request**
        ```
-         GET /<index>/_search
+         POST /<index>/_search
           {
             "query": {<parameters>}
           }
        ```
       <br/><br/>
-      Form more info about Request Body Search you can find here [Request Body Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html#search-request-body).
+      Form more info about Request Body Search you can find here [Request Body Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-search.html).
     operationId: processElasticsearchPostRequest
     requestBody:
-      description: "Elasticsearch query"
+      description: "body of elasticsearch POST-request"
+      required: false
       content:
         '*/*':
           schema:
             type: string
             example: "{\"query\": {\"match_all\": {}}}"
-      required: false
     responses:
       "200":
         description: |
@@ -74,7 +74,7 @@
        GET /<index>/_search?q=<parameter>
        ```
       <br/><br/>
-      Form more info about URI Search you can find here [URI Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-uri-request.html).
+      Form more info about URI Search you can find here [URI Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-search.html).
     operationId: processElasticsearchGetRequest
     parameters:
       - name: params

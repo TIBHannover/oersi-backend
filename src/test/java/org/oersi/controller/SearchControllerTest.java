@@ -64,12 +64,23 @@ class SearchControllerTest {
   @Test
   void testPostRequest() throws Exception {
     ResponseEntity<String> response = new ResponseEntity<String>("a result", HttpStatus.OK);
-    when(restTemplateMock.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(
+    when(restTemplateMock.exchange(isA(URI.class), eq(HttpMethod.POST), isA(HttpEntity.class), eq(
         String.class)))
             .thenReturn(response);
 
     mvc.perform(post(SearchController.BASE_PATH + testPath).content("{ \"test\":\"test\" }"))
         .andExpect(status().is(response.getStatusCodeValue()));
+  }
+
+  @Test
+  void testPostRequestWithoutBody() throws Exception {
+    ResponseEntity<String> response = new ResponseEntity<String>("a result", HttpStatus.OK);
+    when(restTemplateMock.exchange(isA(URI.class), eq(HttpMethod.POST), isA(HttpEntity.class), eq(
+      String.class)))
+      .thenReturn(response);
+
+    mvc.perform(post(SearchController.BASE_PATH + testPath))
+      .andExpect(status().is(response.getStatusCodeValue()));
   }
 
   @Test
