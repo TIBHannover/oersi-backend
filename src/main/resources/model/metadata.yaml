@@ -254,7 +254,6 @@ components:
               - ba
               - be
               - bg
-              - bh
               - bi
               - bm
               - bn
@@ -295,6 +294,7 @@ components:
               - gu
               - gv
               - ha
+              - he
               - hi
               - ho
               - hr
@@ -303,6 +303,7 @@ components:
               - hy
               - hz
               - ia
+              - id
               - ie
               - ig
               - ii
@@ -343,7 +344,6 @@ components:
               - mk
               - ml
               - mn
-              - mo
               - mr
               - ms
               - mt
@@ -355,10 +355,9 @@ components:
               - ng
               - nl
               - nn
-              - "no"
+              - no
               - nr
               - nv
-              - nvi
               - ny
               - oc
               - oj
@@ -385,7 +384,6 @@ components:
               - sk
               - sl
               - sm
-              - smi
               - sn
               - so
               - sq
@@ -419,6 +417,7 @@ components:
               - wa
               - wo
               - xh
+              - yi
               - yo
               - za
               - zh
