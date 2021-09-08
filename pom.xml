@@ -238,11 +238,12 @@
 					</execution>
 				</executions>
 				<configuration>
-					<basedir>${project.basedir}/target/generated-sources/swagger/org/oersi/dto</basedir>
+					<basedir>${project.basedir}/target/generated-sources/swagger/org/oersi</basedir>
 					<includes>
-						<include>MetadataDto.java</include>
-						<include>LocalizedStringDto.java</include>
-						<include>OembedResponseDto.java</include>
+						<include>dto/MetadataDto.java</include>
+						<include>dto/LocalizedStringDto.java</include>
+						<include>dto/OembedResponseDto.java</include>
+						<include>api/SearchControllerApi.java</include>
 					</includes>
 					<replacements>
 						<replacement>
@@ -259,6 +260,11 @@
 							<!-- workaround for wrapping object-array 'authors' -->
 							<token>private List.OembedResponseAuthorsDto. authors = null;</token>
 							<value>@XmlElementWrapper(name = "authors") private List&lt;OembedResponseAuthorsDto&gt; authors = null;</value>
+						</replacement>
+						<replacement>
+							<!-- workaround for request body not marked as optional (https://github.com/swagger-api/swagger-codegen/issues/10463) -->
+							<token>description = "body of elasticsearch POST-request", schema=@Schema... @Valid @RequestBody</token>
+							<value>description = "body of elasticsearch POST-request", schema=@Schema()) @Valid @RequestBody(required = false)</value>
 						</replacement>
 					</replacements>
 				</configuration>
