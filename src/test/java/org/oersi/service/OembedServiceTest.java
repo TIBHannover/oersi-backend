@@ -3,6 +3,7 @@ package org.oersi.service;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.oersi.domain.Creator;
+import org.oersi.domain.License;
 import org.oersi.domain.Media;
 import org.oersi.domain.Metadata;
 import org.oersi.domain.Provider;
@@ -37,7 +38,9 @@ class OembedServiceTest {
 
     metadata.setCreator(creators);
 
-    metadata.setLicense("https://creativecommons.org/licenses/by/4.0/");
+    License license = new License();
+    license.setIdentifier("https://creativecommons.org/licenses/by/4.0/");
+    metadata.setLicense(license);
     metadata.setName("Test Title");
     metadata.setIdentifier("https://www.test.de");
 

@@ -61,8 +61,8 @@ public class Metadata {
   @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
   private Provider provider;
 
-  @URL
-  private String license;
+  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+  private License license;
 
   @URL
   private String image;

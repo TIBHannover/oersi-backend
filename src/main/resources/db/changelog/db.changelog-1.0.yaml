@@ -743,3 +743,76 @@ databaseChangeLog:
                 name: sha256
                 type: varchar(255)
           tableName: media
+
+- changeSet:
+    id: 1630039144355-1
+    author: hoffmann (generated)
+    changes:
+      - createTable:
+          columns:
+            - column:
+                autoIncrement: true
+                constraints:
+                  nullable: false
+                  primaryKey: true
+                  primaryKeyName: licensePK
+                name: id
+                type: BIGINT
+            - column:
+                constraints:
+                  nullable: false
+                name: identifier
+                type: VARCHAR(255)
+            - column:
+                name: tmp_metadata_id
+                type: bigint
+          tableName: license
+- changeSet:
+    id: 1630039144355-2
+    author: hoffmann (generated)
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: license_id
+                type: bigint
+          tableName: metadata
+- changeSet:
+    id: 1630039144355-3
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: license_id
+          baseTableName: metadata
+          constraintName: FKhv72rgobwjnh5j0he4tlujidv
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: license
+          validate: true
+- changeSet:
+    id: 1630039144355-4-2
+    author: mhoffmann
+    comment: data migration license as object
+    changes:
+      - sql:
+          comment: copy license url to new table
+          sql: INSERT INTO license (identifier, tmp_metadata_id) SELECT license, id FROM metadata where license is not null
+      - sql:
+          comment: update license id
+          sql: UPDATE metadata m SET license_id = (SELECT id FROM license WHERE tmp_metadata_id = m.id) WHERE exists(SELECT 1 FROM license WHERE tmp_metadata_id = m.id)
+- changeSet:
+    id: 1630039144355-5
+    author: mhoffmann
+    comment: drop temp migration column
+    changes:
+      - dropColumn:
+          columnName: tmp_metadata_id
+          tableName: license
+- changeSet:
+    id: 1630039144355-6
+    author: hoffmann (generated)
+    changes:
+      - dropColumn:
+          columnName: license
+          tableName: metadata

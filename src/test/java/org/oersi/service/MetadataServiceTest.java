@@ -70,7 +70,9 @@ class MetadataServiceTest {
 
     metadata.setDescription("test description");
     metadata.setInLanguage(new ArrayList<>(List.of("de")));
-    metadata.setLicense("CC0");
+    License license = new License();
+    license.setIdentifier("https://creativecommons.org/publicdomain/zero/1.0/");
+    metadata.setLicense(license);
     metadata.setName("Test Title");
     metadata.setIdentifier("http://www.test.de");
     return metadata;
