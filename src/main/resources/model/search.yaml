@@ -105,3 +105,33 @@
       "404":
         description: Not Found
         content: {}
+  delete:
+    tags:
+      - search-controller
+    summary: elasticsearch delete queries
+    description: "DELETE queries for elasticsearch (for example 'delete PIT' or 'delete scroll-id' is feasible also for readonly privileges)"
+    operationId: processElasticsearchDeleteRequest
+    requestBody:
+      description: "body of elasticsearch-request"
+      required: false
+      content:
+        '*/*':
+          schema:
+            type: string
+            example: "{\"id\": \"xxx\"}"
+    responses:
+      "200":
+        description: "json response from elasticsearch"
+        content:
+          application/json:
+            schema:
+              type: string
+      "401":
+        description: Unauthorized
+        content: {}
+      "403":
+        description: Forbidden
+        content: {}
+      "404":
+        description: Not Found
+        content: {}

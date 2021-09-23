@@ -87,6 +87,18 @@ public class SearchController implements SearchControllerApi {
     return processElasticsearchRequest(body, HttpMethod.POST, this.request);
   }
 
+  /**
+   * Perform the given DELETE-request on the configured elasticsearch instance with the configured
+   * oer-readonly-user.
+   *
+   * @param body body of the request
+   * @return response from elasticsearch.
+   */
+  @Override
+  public ResponseEntity<String> processElasticsearchDeleteRequest(@RequestBody final String body) {
+    return processElasticsearchRequest(body, HttpMethod.DELETE, this.request);
+  }
+
   private ResponseEntity<String> processElasticsearchRequest(final String body,
       final HttpMethod method, final HttpServletRequest request) {
     try {
