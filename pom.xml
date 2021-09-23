@@ -263,8 +263,8 @@
 						</replacement>
 						<replacement>
 							<!-- workaround for request body not marked as optional (https://github.com/swagger-api/swagger-codegen/issues/10463) -->
-							<token>description = "body of elasticsearch POST-request", schema=@Schema... @Valid @RequestBody</token>
-							<value>description = "body of elasticsearch POST-request", schema=@Schema()) @Valid @RequestBody(required = false)</value>
+							<token>description = "body of elasticsearch-request", schema=@Schema... @Valid @RequestBody</token>
+							<value>description = "body of elasticsearch-request", schema=@Schema()) @Valid @RequestBody(required = false)</value>
 						</replacement>
 					</replacements>
 				</configuration>

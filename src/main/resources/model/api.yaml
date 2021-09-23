@@ -48,8 +48,6 @@ paths:
 
   /api/search/**:
     $ref: "search.yaml#/~1api~1search~1**"
-  /api/search/**/?{params}:
-    $ref: "search.yaml#/~1api~1search~1**~1?{params}"
 
 components:
   schemas:

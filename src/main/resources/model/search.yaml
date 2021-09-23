@@ -23,7 +23,7 @@
       Form more info about Request Body Search you can find here [Request Body Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-search.html).
     operationId: processElasticsearchPostRequest
     requestBody:
-      description: "body of elasticsearch POST-request"
+      description: "body of elasticsearch-request"
       required: false
       content:
         '*/*':
@@ -55,7 +55,6 @@
       "404":
         description: Not Found
         content: {}
-/api/search/**/?{params}:
   get:
     tags:
       - search-controller
@@ -76,16 +75,14 @@
       <br/><br/>
       Form more info about URI Search you can find here [URI Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-search.html).
     operationId: processElasticsearchGetRequest
-    parameters:
-      - name: params
-        in: path
-        description: e.g size=1000&pretty=true
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          default: size=1000&pretty=true
+    requestBody:
+      description: "body of elasticsearch-request"
+      required: false
+      content:
+        '*/*':
+          schema:
+            type: string
+            example: "{\"query\": {\"match_all\": {}}}"
     responses:
       "200":
         description: |
