@@ -3,6 +3,7 @@ package org.oersi.controller;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -70,6 +71,17 @@ class SearchControllerTest {
 
     mvc.perform(post(SearchController.BASE_PATH + testPath).content("{ \"test\":\"test\" }"))
         .andExpect(status().is(response.getStatusCodeValue()));
+  }
+
+  @Test
+  void testDeleteRequest() throws Exception {
+    ResponseEntity<String> response = new ResponseEntity<String>("a result", HttpStatus.OK);
+    when(restTemplateMock.exchange(isA(URI.class), eq(HttpMethod.DELETE), isA(HttpEntity.class), eq(
+      String.class)))
+      .thenReturn(response);
+
+    mvc.perform(delete(SearchController.BASE_PATH + testPath).content("{ \"test\":\"test\" }"))
+      .andExpect(status().is(response.getStatusCodeValue()));
   }
 
   @Test
