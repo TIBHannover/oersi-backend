@@ -102,7 +102,6 @@ public class MetadataAutoUpdater {
     }
     Media videoEncoding = new Media();
     videoEncoding.setEmbedUrl(embedUrl);
-    videoEncoding.setEncodingFormat("video");
     encoding.add(videoEncoding);
   }
 
@@ -137,8 +136,7 @@ public class MetadataAutoUpdater {
     return data.getProvider() != null && data.getProvider().getIdentifier() != null;
   }
   private boolean hasEmbedUrl(Metadata data) {
-    return data.getEncoding() != null && data.getEncoding().stream().anyMatch(
-      e -> e.getEncodingFormat() != null && e.getEmbedUrl() != null && e.getEncodingFormat().startsWith("video"));
+    return data.getEncoding() != null && data.getEncoding().stream().anyMatch(e -> e.getEmbedUrl() != null);
   }
 
 }

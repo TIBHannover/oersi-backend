@@ -82,7 +82,7 @@ public class OembedServiceImpl implements OembedService {
   private boolean setVideoFieldsIfIsVideo(Metadata data, OembedResponseDto oembed, Integer maxwidth, Integer maxheight) {
     if (!CollectionUtils.isEmpty(data.getEncoding())) {
       List<Media> videoEmbeddings = data.getEncoding().stream()
-        .filter(e -> e.getEncodingFormat() != null && e.getEmbedUrl() != null && e.getEncodingFormat().startsWith("video"))
+        .filter(e -> e.getEmbedUrl() != null)
         .collect(Collectors.toList());
       if (!videoEmbeddings.isEmpty()) {
         oembed.setType(OembedResponseDto.TypeEnum.VIDEO);

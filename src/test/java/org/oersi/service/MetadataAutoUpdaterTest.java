@@ -117,23 +117,22 @@ class MetadataAutoUpdaterTest {
     data.setIdentifier("https://av.tib.eu/media/12345");
 
     Media videoEncoding = new Media();
-    videoEncoding.setEncodingFormat("video/mp4");
     videoEncoding.setEmbedUrl("https://embed.url");
     data.setEncoding(new ArrayList<>(List.of(videoEncoding)));
     metadataAutoUpdater.addMissingInfos(data);
-    Media resultVideoEncoding = data.getEncoding().stream().filter(e -> e.getEncodingFormat().startsWith("video")).findAny().get();
+    Media resultVideoEncoding = data.getEncoding().stream().filter(e -> e.getEmbedUrl() != null).findAny().get();
     assertThat(resultVideoEncoding.getEmbedUrl()).isEqualTo("https://embed.url");
 
     Media otherEncoding = new Media();
     otherEncoding.setEncodingFormat("image/png");
     data.setEncoding(new ArrayList<>(List.of(otherEncoding)));
     metadataAutoUpdater.addMissingInfos(data);
-    resultVideoEncoding = data.getEncoding().stream().filter(e -> e.getEncodingFormat().startsWith("video")).findAny().get();
+    resultVideoEncoding = data.getEncoding().stream().filter(e -> e.getEmbedUrl() != null).findAny().get();
     assertThat(resultVideoEncoding.getEmbedUrl()).isEqualTo("https://av.tib.eu/player/12345");
 
     data.setEncoding(null);
     metadataAutoUpdater.addMissingInfos(data);
-    resultVideoEncoding = data.getEncoding().stream().filter(e -> e.getEncodingFormat().startsWith("video")).findAny().get();
+    resultVideoEncoding = data.getEncoding().stream().filter(e -> e.getEmbedUrl() != null).findAny().get();
     assertThat(resultVideoEncoding.getEmbedUrl()).isEqualTo("https://av.tib.eu/player/12345");
   }
 }
