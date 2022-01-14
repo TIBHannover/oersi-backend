@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -111,6 +112,14 @@ class SearchControllerTest {
             .thenThrow(new ResourceAccessException("No access"));
     mvc.perform(get(SearchController.BASE_PATH + testPath))
         .andExpect(status().is5xxServerError());
+  }
+
+  @Test
+  void testCorsPreflightRequest() throws Exception {
+    mvc.perform(options(SearchController.BASE_PATH + testPath)
+      .header("Access-Control-Request-Method", "GET")
+      .header("Origin", "https://example.com"))
+      .andExpect(status().isOk());
   }
 
 }
