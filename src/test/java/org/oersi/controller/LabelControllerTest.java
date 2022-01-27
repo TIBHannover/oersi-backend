@@ -13,6 +13,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -72,5 +73,13 @@ class LabelControllerTest {
     mvc.perform(get(LABEL_CONTROLLER_BASE_PATH + "/en").param("vocab", "audience"))
       .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
       .andExpect(jsonPath("$").isEmpty());
+  }
+
+  @Test
+  void testCorsPreflightRequest() throws Exception {
+    mvc.perform(options(LABEL_CONTROLLER_BASE_PATH + "/en")
+                    .header("Access-Control-Request-Method", "GET")
+                    .header("Origin", "https://example.com"))
+            .andExpect(status().isOk());
   }
 }
