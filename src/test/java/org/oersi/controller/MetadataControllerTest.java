@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.oersi.domain.About;
@@ -37,6 +38,7 @@ import org.oersi.domain.MainEntityOfPage;
 import org.oersi.domain.Metadata;
 import org.oersi.domain.SourceOrganization;
 import org.oersi.dto.LocalizedStringDto;
+import org.oersi.dto.MediaObjectDto;
 import org.oersi.dto.MetadataAudienceDto;
 import org.oersi.dto.MetadataDto;
 import org.oersi.dto.MetadataLearningResourceTypeDto;
@@ -422,5 +424,18 @@ class MetadataControllerTest {
     Metadata entity = modelMapper.map(metadata, Metadata.class);
     assertNotNull(entity.getDateCreated());
     Assert.assertEquals(dateCreated, entity.getDateCreated());
+  }
+
+  @Test
+  void testConvertEncodingType() {
+    MetadataDto metadata = new MetadataDto();
+    MediaObjectDto encoding = new MediaObjectDto();
+    encoding.setType(MediaObjectDto.TypeEnum.MEDIAOBJECT);
+    metadata.setEncoding(List.of(encoding));
+    Metadata entity = modelMapper.map(metadata, Metadata.class);
+    MetadataDto result = modelMapper.map(entity, MetadataDto.class);
+    Assertions.assertNotNull(result.getEncoding());
+    Assertions.assertTrue(result.getEncoding().size() > 0);
+    Assertions.assertEquals(MediaObjectDto.TypeEnum.MEDIAOBJECT, result.getEncoding().get(0).getType());
   }
 }

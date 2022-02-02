@@ -138,6 +138,12 @@ public class WebConfig {
         String.class, MetadataCreatorDto.TypeEnum.class);
     modelMapper.addConverter(ctx -> ctx.getSource() == null ? null : ctx.getSource().toString(),
         MetadataCreatorDto.TypeEnum.class, String.class);
+    modelMapper.addConverter(
+      ctx -> ctx.getSource() == null ? null
+        : MediaObjectDto.TypeEnum.fromValue(ctx.getSource()),
+      String.class, MediaObjectDto.TypeEnum.class);
+    modelMapper.addConverter(ctx -> ctx.getSource() == null ? null : ctx.getSource().toString(),
+      MediaObjectDto.TypeEnum.class, String.class);
   }
 
   private void addIdMapping(final ModelMapper modelMapper) {
