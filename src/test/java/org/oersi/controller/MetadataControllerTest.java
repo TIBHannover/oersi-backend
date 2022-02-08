@@ -36,6 +36,7 @@ import org.oersi.domain.License;
 import org.oersi.domain.LocalizedString;
 import org.oersi.domain.MainEntityOfPage;
 import org.oersi.domain.Metadata;
+import org.oersi.domain.Publisher;
 import org.oersi.domain.SourceOrganization;
 import org.oersi.dto.LocalizedStringDto;
 import org.oersi.dto.MediaObjectDto;
@@ -124,6 +125,12 @@ class MetadataControllerTest {
     SourceOrganization sourceOrganization = new SourceOrganization();
     sourceOrganization.setName("sourceOrganization");
     metadata.setSourceOrganization(new ArrayList<>(List.of(sourceOrganization)));
+
+    Publisher publisher = new Publisher();
+    publisher.setName("publisher");
+    publisher.setIdentifier("http://example.url/desc/123");
+    publisher.setType("Organization");
+    metadata.setPublisher(new ArrayList<>(List.of(publisher)));
 
     LearningResourceType learningResourceType = new LearningResourceType();
     learningResourceType.setIdentifier("learningResourceType");
@@ -218,7 +225,7 @@ class MetadataControllerTest {
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
             "{\"@context\": [\"https://w3id.org/kim/lrmi-profile/draft/context.jsonld\",{\"@language\": \"de\"}],\n" +
-                    "\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\",\"prefLabel\":{\"de\":\"Mathematik\",\"en\":\"mathematics\"}}],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"Kurs\",\"en\":\"course\"}}],\"audience\":[{\"id\":\"audience\",\"prefLabel\":{\"de\":\"Lernender\",\"en\":\"student\"}}],\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}], \"sourceOrganization\":[{\"name\":\"sourceOrganization\"}], \"keywords\":[\"Gitlab\", \"Multimedia\"], \"type\":[\"Course\", \"LearningResource\"]}"));
+                    "\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\",\"prefLabel\":{\"de\":\"Mathematik\",\"en\":\"mathematics\"}}],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"Kurs\",\"en\":\"course\"}}],\"audience\":[{\"id\":\"audience\",\"prefLabel\":{\"de\":\"Lernender\",\"en\":\"student\"}}],\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}], \"publisher\":[{\"name\":\"publisher\"}], \"sourceOrganization\":[{\"name\":\"sourceOrganization\"}], \"keywords\":[\"Gitlab\", \"Multimedia\"], \"type\":[\"Course\", \"LearningResource\"]}"));
   }
 
   @Test

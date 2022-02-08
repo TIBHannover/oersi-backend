@@ -458,6 +458,12 @@ components:
             \ the description of the OER."
           items:
             $ref: '#/components/schemas/MetadataMainEntityOfPage'
+        publisher:
+          title: Publisher
+          type: array
+          description: The publisher of the educational resource.
+          items:
+            $ref: '#/components/schemas/MetadataPublisher'
         sourceOrganization:
           title: Source Organization
           type: array
@@ -633,6 +639,25 @@ components:
           example: "2020-03-22"
         provider:
           $ref: '#/components/schemas/Provider'
+    MetadataPublisher:
+      required:
+        - name
+        - type
+      type: object
+      properties:
+        id:
+          type: string
+          description: The URI for the organization
+          format: uri
+          example: https://www.wikidata.org/entity/Q54166
+        type:
+          type: string
+          description: Type of the organization
+          example: Organization
+        name:
+          type: string
+          description: The name of the organization
+          example: Technische Hochschule Köln
     MetadataSourceOrganization:
       type: object
       properties:
@@ -640,7 +665,7 @@ components:
           type: string
           description: The URI for the source organization
           format: uri
-          example: http://www.wikidata.org/entity/Q54166
+          example: https://www.wikidata.org/entity/Q54166
         type:
           type: string
           description: Type of the source organization

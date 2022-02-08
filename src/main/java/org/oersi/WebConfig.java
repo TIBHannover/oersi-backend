@@ -195,6 +195,14 @@ public class WebConfig {
           mapper.map(MetadataMainEntityOfPageDto::getId, MainEntityOfPage::setIdentifier);
           mapper.skip(MainEntityOfPage::setId);
         });
+    modelMapper.typeMap(Publisher.class, MetadataPublisherDto.class)
+      .addMappings(mapper -> mapper.map(Publisher::getIdentifier,
+        MetadataPublisherDto::setId));
+    modelMapper.typeMap(MetadataPublisherDto.class, Publisher.class)
+      .addMappings(mapper -> {
+        mapper.map(MetadataPublisherDto::getId, Publisher::setIdentifier);
+        mapper.skip(Publisher::setId);
+      });
     modelMapper.typeMap(SourceOrganization.class, MetadataSourceOrganizationDto.class)
         .addMappings(mapper -> mapper.map(SourceOrganization::getIdentifier,
             MetadataSourceOrganizationDto::setId));

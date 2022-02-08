@@ -90,6 +90,10 @@ public class Metadata {
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "metadata_id", nullable = true)
+  private List<Publisher> publisher;
+
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "metadata_id", nullable = true)
   private List<SourceOrganization> sourceOrganization;
 
   @ElementCollection

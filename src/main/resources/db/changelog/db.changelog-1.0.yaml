@@ -816,3 +816,44 @@ databaseChangeLog:
       - dropColumn:
           columnName: license
           tableName: metadata
+
+- changeSet:
+    id: 1644328843861-1
+    author: hoffmann (generated)
+    changes:
+      - createTable:
+          columns:
+            - column:
+                autoIncrement: true
+                constraints:
+                  nullable: false
+                  primaryKey: true
+                  primaryKeyName: publisherPK
+                name: id
+                type: BIGINT
+            - column:
+                name: identifier
+                type: VARCHAR(255)
+            - column:
+                name: name
+                type: VARCHAR(255)
+            - column:
+                name: type
+                type: VARCHAR(255)
+            - column:
+                name: metadata_id
+                type: BIGINT
+          tableName: publisher
+- changeSet:
+    id: 1644328843861-2
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: metadata_id
+          baseTableName: publisher
+          constraintName: FKf21enfsvofr83sgj2cfet0bf0
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: metadata
+          validate: true
