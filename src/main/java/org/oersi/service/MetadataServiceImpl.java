@@ -69,6 +69,7 @@ public class MetadataServiceImpl implements MetadataService {
       metadata.setLearningResourceType(updateExistingList(existingMetadata.getLearningResourceType(), metadata.getLearningResourceType()));
       metadata.setMainEntityOfPage(mergeMainEntityOfPageList(existingMetadata.getMainEntityOfPage(),
           metadata.getMainEntityOfPage()));
+      metadata.setPublisher(updateExistingList(existingMetadata.getPublisher(), metadata.getPublisher()));
       metadata.setSourceOrganization(updateExistingList(existingMetadata.getSourceOrganization(),
           metadata.getSourceOrganization()));
       metadata.setEncoding(updateExistingList(existingMetadata.getEncoding(), metadata.getEncoding()));
