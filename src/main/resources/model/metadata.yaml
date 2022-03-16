@@ -154,6 +154,27 @@
         content: {}
 components:
   schemas:
+    Affiliation:
+      required:
+        - name
+        - type
+      type: object
+      title: Affiliation
+      description: The organization a creator or contributor was affiliated with in the context of the creation of the resource
+      properties:
+        id:
+          type: string
+          description: The URI of the organization
+          format: uri
+          example: https://www.wikidata.org/entity/Q54166
+        type:
+          type: string
+          description: Type of the organization
+          example: Organization
+        name:
+          type: string
+          description: The name of the organization
+          example: Technische Hochschule Köln
     License:
       required:
         - id
@@ -198,6 +219,12 @@ components:
           description: Creator
           items:
             $ref: '#/components/schemas/MetadataCreator'
+        contributor:
+          title: Contributor
+          type: array
+          description: Contributor
+          items:
+            $ref: '#/components/schemas/MetadataContributor'
         description:
           title: Description
           type: string
@@ -334,6 +361,32 @@ components:
           type: string
           description: The creator's name
           example: Max Mustermann
+    MetadataContributor:
+      required:
+        - name
+        - type
+      type: object
+      properties:
+        type:
+          title: Type
+          type: string
+          description: Type
+          example: Person
+        id:
+          type: string
+          description: "identifier of the person/organization like orcid, gnd or ror"
+          format: uri
+        name:
+          title: Name
+          type: string
+          description: The contributor's name
+          example: Maxi Mustermensch
+        honorificPrefix:
+          title: like academic title
+          type: string
+          example: Dr.
+        affiliation:
+          $ref: '#/components/schemas/Affiliation'
     MetadataAbout:
       required:
         - id

@@ -150,8 +150,14 @@ public class WebConfig {
     // map DTO id field <-> Domain identifier field
     // ATTENTION: consider order of definitions (a mapping m that is used in another mapping n has
     // to be defined before n)
+    modelMapper.typeMap(Affiliation.class, AffiliationDto.class)
+        .addMappings(mapper -> mapper.map(Affiliation::getIdentifier, AffiliationDto::setId));
+    modelMapper.typeMap(AffiliationDto.class, Affiliation.class).addMappings(mapper -> {
+      mapper.map(AffiliationDto::getId, Affiliation::setIdentifier);
+      mapper.skip(Affiliation::setId);
+    });
     modelMapper.typeMap(About.class, MetadataAboutDto.class)
-        .addMappings(mapper -> mapper.map(About::getIdentifier, MetadataAboutDto::setId));
+      .addMappings(mapper -> mapper.map(About::getIdentifier, MetadataAboutDto::setId));
     modelMapper.typeMap(MetadataAboutDto.class, About.class).addMappings(mapper -> {
       mapper.map(MetadataAboutDto::getId, About::setIdentifier);
       mapper.skip(About::setId);
@@ -162,8 +168,14 @@ public class WebConfig {
       mapper.map(MetadataAudienceDto::getId, Audience::setIdentifier);
       mapper.skip(Audience::setId);
     });
+    modelMapper.typeMap(Contributor.class, MetadataContributorDto.class)
+        .addMappings(mapper -> mapper.map(Contributor::getIdentifier, MetadataContributorDto::setId));
+    modelMapper.typeMap(MetadataContributorDto.class, Contributor.class).addMappings(mapper -> {
+      mapper.map(MetadataContributorDto::getId, Contributor::setIdentifier);
+      mapper.skip(Contributor::setId);
+    });
     modelMapper.typeMap(Creator.class, MetadataCreatorDto.class)
-        .addMappings(mapper -> mapper.map(Creator::getIdentifier, MetadataCreatorDto::setId));
+      .addMappings(mapper -> mapper.map(Creator::getIdentifier, MetadataCreatorDto::setId));
     modelMapper.typeMap(MetadataCreatorDto.class, Creator.class).addMappings(mapper -> {
       mapper.map(MetadataCreatorDto::getId, Creator::setIdentifier);
       mapper.skip(Creator::setId);

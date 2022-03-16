@@ -29,7 +29,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.oersi.domain.About;
+import org.oersi.domain.Affiliation;
 import org.oersi.domain.Audience;
+import org.oersi.domain.Contributor;
 import org.oersi.domain.Creator;
 import org.oersi.domain.LearningResourceType;
 import org.oersi.domain.License;
@@ -111,6 +113,16 @@ class MetadataControllerTest {
     institution.setType("Organization");
     institution.setName("name");
     metadata.setCreator(List.of(author, institution));
+
+    Contributor contributor = new Contributor();
+    contributor.setName("Jane Doe");
+    contributor.setType("Person");
+    contributor.setHonorificPrefix("Dr.");
+    Affiliation contributorAffiliation = new Affiliation();
+    contributorAffiliation.setName("name");
+    contributorAffiliation.setType("Organization");
+    contributor.setAffiliation(contributorAffiliation);
+    metadata.setContributor(List.of(contributor));
 
     Audience audience = new Audience();
     audience.setIdentifier("audience");
@@ -226,7 +238,7 @@ class MetadataControllerTest {
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
             "{\"@context\": [\"https://w3id.org/kim/lrmi-profile/draft/context.jsonld\",{\"@language\": \"de\"}],\n" +
-                    "\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\",\"prefLabel\":{\"de\":\"Mathematik\",\"en\":\"mathematics\"}}],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"Kurs\",\"en\":\"course\"}}],\"audience\":[{\"id\":\"audience\",\"prefLabel\":{\"de\":\"Lernender\",\"en\":\"student\"}}],\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}], \"publisher\":[{\"name\":\"publisher\"}], \"sourceOrganization\":[{\"name\":\"sourceOrganization\"}], \"keywords\":[\"Gitlab\", \"Multimedia\"], \"type\":[\"Course\", \"LearningResource\"]}"));
+                    "\"id\":\"http://example.url\",\"name\":\"name\",\"contributor\":[{\"name\":\"Jane Doe\",\"type\":\"Person\",\"affiliation\": {\"name\":\"name\"}}],\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\",\"prefLabel\":{\"de\":\"Mathematik\",\"en\":\"mathematics\"}}],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"Kurs\",\"en\":\"course\"}}],\"audience\":[{\"id\":\"audience\",\"prefLabel\":{\"de\":\"Lernender\",\"en\":\"student\"}}],\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}], \"publisher\":[{\"name\":\"publisher\"}], \"sourceOrganization\":[{\"name\":\"sourceOrganization\"}], \"keywords\":[\"Gitlab\", \"Multimedia\"], \"type\":[\"Course\", \"LearningResource\"]}"));
   }
 
   @Test
@@ -317,6 +329,7 @@ class MetadataControllerTest {
     MetadataDto metadata = getTestMetadataDto();
     metadata.setAbout(null);
     metadata.setCreator(null);
+    metadata.setContributor(null);
     metadata.setAudience(null);
     metadata.setMainEntityOfPage(null);
     metadata.setKeywords(null);

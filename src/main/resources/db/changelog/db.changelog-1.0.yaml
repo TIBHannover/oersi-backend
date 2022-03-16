@@ -857,3 +857,87 @@ databaseChangeLog:
           referencedColumnNames: id
           referencedTableName: metadata
           validate: true
+
+- changeSet:
+    id: 1647413894913-1
+    author: hoffmann (generated)
+    changes:
+      - createTable:
+          columns:
+            - column:
+                autoIncrement: true
+                constraints:
+                  nullable: false
+                  primaryKey: true
+                  primaryKeyName: affiliationPK
+                name: id
+                type: BIGINT
+            - column:
+                name: identifier
+                type: VARCHAR(255)
+            - column:
+                name: name
+                type: VARCHAR(255)
+            - column:
+                name: type
+                type: VARCHAR(255)
+          tableName: affiliation
+- changeSet:
+    id: 1647413894913-2
+    author: hoffmann (generated)
+    changes:
+      - createTable:
+          columns:
+            - column:
+                autoIncrement: true
+                constraints:
+                  nullable: false
+                  primaryKey: true
+                  primaryKeyName: contributorPK
+                name: id
+                type: BIGINT
+            - column:
+                name: honorific_prefix
+                type: VARCHAR(255)
+            - column:
+                name: identifier
+                type: VARCHAR(255)
+            - column:
+                name: name
+                type: VARCHAR(255)
+            - column:
+                name: type
+                type: VARCHAR(255)
+            - column:
+                name: affiliation_id
+                type: BIGINT
+            - column:
+                name: metadata_id
+                type: BIGINT
+          tableName: contributor
+- changeSet:
+    id: 1647413894913-3
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: affiliation_id
+          baseTableName: contributor
+          constraintName: FKhc67iu03e1wdcbvu2fi7o30sy
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: affiliation
+          validate: true
+- changeSet:
+    id: 1647413894913-4
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: metadata_id
+          baseTableName: contributor
+          constraintName: FKpd6kujapl18iirmg8ls45fvmq
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: metadata
+          validate: true

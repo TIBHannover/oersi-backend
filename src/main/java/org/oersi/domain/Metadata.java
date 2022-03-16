@@ -48,6 +48,10 @@ public class Metadata {
   @JoinColumn(name = "metadata_id", nullable = true)
   private List<Creator> creator;
 
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "metadata_id", nullable = true)
+  private List<Contributor> contributor;
+
   @Column(length = DESCRIPTION_LENGTH)
   private String description;
 
