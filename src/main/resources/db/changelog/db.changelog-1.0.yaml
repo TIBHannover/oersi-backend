@@ -941,3 +941,37 @@ databaseChangeLog:
           referencedColumnNames: id
           referencedTableName: metadata
           validate: true
+
+- changeSet:
+    id: 1647416185353-1
+    author: hoffmann (generated)
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: affiliation_id
+                type: bigint
+          tableName: creator
+- changeSet:
+    id: 1647416185353-2
+    author: hoffmann (generated)
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: honorific_prefix
+                type: varchar(255)
+          tableName: creator
+- changeSet:
+    id: 1647416185353-3
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: affiliation_id
+          baseTableName: creator
+          constraintName: FKnewhiiuwyjg7hmpqbjjo97548
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: affiliation
+          validate: true

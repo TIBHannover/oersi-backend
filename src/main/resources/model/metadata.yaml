@@ -361,6 +361,12 @@ components:
           type: string
           description: The creator's name
           example: Max Mustermann
+        honorificPrefix:
+          title: like academic title
+          type: string
+          example: Dr.
+        affiliation:
+          $ref: '#/components/schemas/Affiliation'
     MetadataContributor:
       required:
         - name
