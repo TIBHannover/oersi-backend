@@ -52,6 +52,9 @@ public class Metadata {
   @JoinColumn(name = "metadata_id", nullable = true)
   private List<Contributor> contributor;
 
+  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+  private ConditionsOfAccess conditionsOfAccess;
+
   @Column(length = DESCRIPTION_LENGTH)
   private String description;
 

@@ -175,6 +175,25 @@ components:
           type: string
           description: The name of the organization
           example: Technische Hochschule Köln
+    ConditionsOfAccess:
+      required:
+        - id
+      type: object
+      title: conditionsOfAccess
+      description: Description if login is needed to use the source.
+      properties:
+        type:
+          type: string
+          example: Concept
+        id:
+          type: string
+          format: uri
+          example: "https://w3id.org/kim/conditionsOfAccess/no_login"
+        prefLabel:
+          $ref: 'api.yaml#/components/schemas/LocalizedString'
+          example:
+            'de': 'keine Anmeldung erforderlich'
+            'en': 'no login required'
     License:
       required:
         - id
@@ -225,6 +244,8 @@ components:
           description: Contributor
           items:
             $ref: '#/components/schemas/MetadataContributor'
+        conditionsOfAccess:
+          $ref: '#/components/schemas/ConditionsOfAccess'
         description:
           title: Description
           type: string

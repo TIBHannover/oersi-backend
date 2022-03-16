@@ -975,3 +975,64 @@ databaseChangeLog:
           referencedColumnNames: id
           referencedTableName: affiliation
           validate: true
+
+- changeSet:
+    id: 1647434092460-1
+    author: hoffmann (generated)
+    changes:
+      - createTable:
+          columns:
+            - column:
+                autoIncrement: true
+                constraints:
+                  nullable: false
+                  primaryKey: true
+                  primaryKeyName: conditions_of_accessPK
+                name: id
+                type: BIGINT
+            - column:
+                name: identifier
+                type: VARCHAR(255)
+            - column:
+                name: type
+                type: VARCHAR(255)
+            - column:
+                name: pref_label_id
+                type: BIGINT
+          tableName: conditions_of_access
+- changeSet:
+    id: 1647434092460-2
+    author: hoffmann (generated)
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: conditions_of_access_id
+                type: bigint
+          tableName: metadata
+- changeSet:
+    id: 1647434092460-3
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: pref_label_id
+          baseTableName: conditions_of_access
+          constraintName: FK6495ekkoicar50ovdapxosd5
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: pref_label
+          validate: true
+- changeSet:
+    id: 1647434092460-4
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: conditions_of_access_id
+          baseTableName: metadata
+          constraintName: FKerrgp69a25bv7f04p3sip82hp
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: conditions_of_access
+          validate: true
