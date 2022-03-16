@@ -93,6 +93,9 @@ public class MetadataServiceImpl implements MetadataService {
     if (CollectionUtils.isEmpty(metadata.getType())) {
       metadata.setType(new ArrayList<>(List.of("LearningResource")));
     }
+    if (metadata.getIsAccessibleForFree() == null) {
+      metadata.setIsAccessibleForFree(true);
+    }
   }
 
   /**

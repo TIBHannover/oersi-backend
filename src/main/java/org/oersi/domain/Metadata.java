@@ -58,6 +58,8 @@ public class Metadata {
   @Column(length = DESCRIPTION_LENGTH)
   private String description;
 
+  private Boolean isAccessibleForFree;
+
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "metadata_id", nullable = true)
   private List<About> about;

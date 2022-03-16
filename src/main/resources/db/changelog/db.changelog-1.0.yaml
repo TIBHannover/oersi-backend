@@ -1036,3 +1036,14 @@ databaseChangeLog:
           referencedColumnNames: id
           referencedTableName: conditions_of_access
           validate: true
+
+- changeSet:
+    id: 1647434850082-1
+    author: hoffmann (generated)
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: is_accessible_for_free
+                type: bit
+          tableName: metadata

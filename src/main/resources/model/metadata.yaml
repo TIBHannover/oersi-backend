@@ -251,6 +251,10 @@ components:
           type: string
           description: A short description of the resource
           example: an example description
+        isAccessibleForFree:
+          title: Status of free accessibility
+          description: States if a ressource is free to access and to use. This also can be a ressource without an open license
+          type: boolean
         about:
           title: Subject
           type: array
