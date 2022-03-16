@@ -128,10 +128,10 @@ public class WebConfig {
     // map enums <-> strings
     modelMapper.addConverter(
         ctx -> ctx.getSource() == null ? null
-            : MetadataDto.InLanguageEnum.fromValue(ctx.getSource()),
-        String.class, MetadataDto.InLanguageEnum.class);
+            : LanguageDto.fromValue(ctx.getSource()),
+        String.class, LanguageDto.class);
     modelMapper.addConverter(ctx -> ctx.getSource() == null ? null : ctx.getSource().toString(),
-        MetadataDto.InLanguageEnum.class, String.class);
+      LanguageDto.class, String.class);
     modelMapper.addConverter(
         ctx -> ctx.getSource() == null ? null
             : MetadataCreatorDto.TypeEnum.fromValue(ctx.getSource()),

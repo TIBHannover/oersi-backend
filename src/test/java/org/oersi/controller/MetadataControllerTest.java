@@ -38,6 +38,7 @@ import org.oersi.domain.MainEntityOfPage;
 import org.oersi.domain.Metadata;
 import org.oersi.domain.Publisher;
 import org.oersi.domain.SourceOrganization;
+import org.oersi.dto.LanguageDto;
 import org.oersi.dto.LocalizedStringDto;
 import org.oersi.dto.MediaObjectDto;
 import org.oersi.dto.MetadataAudienceDto;
@@ -302,7 +303,7 @@ class MetadataControllerTest {
   @Test
   void testPostRequestCreateMultipleLanguages() throws Exception {
     MetadataDto metadata = getTestMetadataDto();
-    metadata.getInLanguage().add(MetadataDto.InLanguageEnum.FR);
+    metadata.getInLanguage().add(LanguageDto.FR);
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
       .content(asJson(metadata))).andExpect(status().isOk())
