@@ -29,7 +29,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.oersi.domain.About;
+import org.oersi.domain.Affiliation;
 import org.oersi.domain.Audience;
+import org.oersi.domain.ConditionsOfAccess;
+import org.oersi.domain.Contributor;
 import org.oersi.domain.Creator;
 import org.oersi.domain.LearningResourceType;
 import org.oersi.domain.License;
@@ -38,6 +41,7 @@ import org.oersi.domain.MainEntityOfPage;
 import org.oersi.domain.Metadata;
 import org.oersi.domain.Publisher;
 import org.oersi.domain.SourceOrganization;
+import org.oersi.dto.LanguageDto;
 import org.oersi.dto.LocalizedStringDto;
 import org.oersi.dto.MediaObjectDto;
 import org.oersi.dto.MetadataAudienceDto;
@@ -106,10 +110,28 @@ class MetadataControllerTest {
     Creator author = new Creator();
     author.setType("Person");
     author.setName("GivenName FamilyName");
+    Affiliation authorAffiliation = new Affiliation();
+    authorAffiliation.setName("name");
+    authorAffiliation.setType("Organization");
+    author.setAffiliation(authorAffiliation);
     Creator institution = new Creator();
     institution.setType("Organization");
     institution.setName("name");
     metadata.setCreator(List.of(author, institution));
+
+    Contributor contributor = new Contributor();
+    contributor.setName("Jane Doe");
+    contributor.setType("Person");
+    contributor.setHonorificPrefix("Dr.");
+    Affiliation contributorAffiliation = new Affiliation();
+    contributorAffiliation.setName("name");
+    contributorAffiliation.setType("Organization");
+    contributor.setAffiliation(contributorAffiliation);
+    metadata.setContributor(List.of(contributor));
+
+    ConditionsOfAccess conditionsOfAccess = new ConditionsOfAccess();
+    conditionsOfAccess.setIdentifier("https://w3id.org/kim/conditionsOfAccess/no_login");
+    metadata.setConditionsOfAccess(conditionsOfAccess);
 
     Audience audience = new Audience();
     audience.setIdentifier("audience");
@@ -157,7 +179,7 @@ class MetadataControllerTest {
     metadata.setName("name");
     metadata.setIdentifier("http://example.url");
 
-    metadata.setDateCreated(LocalDate.of(2020, 4, 8));
+    metadata.setDateCreated("2020-04-08");
 
     metadata.setDateModifiedInternal(LocalDateTime.now());
 
@@ -225,7 +247,7 @@ class MetadataControllerTest {
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
             "{\"@context\": [\"https://w3id.org/kim/lrmi-profile/draft/context.jsonld\",{\"@language\": \"de\"}],\n" +
-                    "\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\",\"prefLabel\":{\"de\":\"Mathematik\",\"en\":\"mathematics\"}}],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"Kurs\",\"en\":\"course\"}}],\"audience\":[{\"id\":\"audience\",\"prefLabel\":{\"de\":\"Lernender\",\"en\":\"student\"}}],\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}], \"publisher\":[{\"name\":\"publisher\"}], \"sourceOrganization\":[{\"name\":\"sourceOrganization\"}], \"keywords\":[\"Gitlab\", \"Multimedia\"], \"type\":[\"Course\", \"LearningResource\"]}"));
+                    "\"id\":\"http://example.url\",\"name\":\"name\",\"conditionsOfAccess\":{\"id\":\"https://w3id.org/kim/conditionsOfAccess/no_login\"},\"contributor\":[{\"name\":\"Jane Doe\",\"type\":\"Person\",\"affiliation\": {\"name\":\"name\"}}],\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\",\"affiliation\": {\"name\":\"name\"}},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"isAccessibleForFree\":true,\"about\":[{\"id\":\"subject\",\"prefLabel\":{\"de\":\"Mathematik\",\"en\":\"mathematics\"}}],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"Kurs\",\"en\":\"course\"}}],\"audience\":[{\"id\":\"audience\",\"prefLabel\":{\"de\":\"Lernender\",\"en\":\"student\"}}],\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}], \"publisher\":[{\"name\":\"publisher\"}], \"sourceOrganization\":[{\"name\":\"sourceOrganization\"}], \"keywords\":[\"Gitlab\", \"Multimedia\"], \"type\":[\"Course\", \"LearningResource\"]}"));
   }
 
   @Test
@@ -302,7 +324,7 @@ class MetadataControllerTest {
   @Test
   void testPostRequestCreateMultipleLanguages() throws Exception {
     MetadataDto metadata = getTestMetadataDto();
-    metadata.getInLanguage().add(MetadataDto.InLanguageEnum.FR);
+    metadata.getInLanguage().add(LanguageDto.FR);
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
       .content(asJson(metadata))).andExpect(status().isOk())
@@ -316,6 +338,7 @@ class MetadataControllerTest {
     MetadataDto metadata = getTestMetadataDto();
     metadata.setAbout(null);
     metadata.setCreator(null);
+    metadata.setContributor(null);
     metadata.setAudience(null);
     metadata.setMainEntityOfPage(null);
     metadata.setKeywords(null);
@@ -414,23 +437,25 @@ class MetadataControllerTest {
   }
 
   @Test
-  void testMapperConvertDateToDto() {
-    Metadata metadata = new Metadata();
-    LocalDate dateCreated = LocalDate.of(2020, 4, 8);
-    metadata.setDateCreated(dateCreated);
-    MetadataDto dto = modelMapper.map(metadata, MetadataDto.class);
-    assertNotNull(dto.getDateCreated());
-    Assert.assertEquals(dateCreated, dto.getDateCreated());
+  void testDatesWithoutTime() throws Exception {
+    MetadataDto metadata = getTestMetadataDto();
+    metadata.setDateCreated("2020-04-08");
+    metadata.setDatePublished("2022-07-08");
+
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+        .content(asJson(metadata))).andExpect(status().isOk())
+      .andExpect(content().json("{\"dateCreated\": \"2020-04-08\", \"datePublished\": \"2022-07-08\"}"));
   }
 
   @Test
-  void testMapperConvertDateTimeToEntity() {
-    MetadataDto metadata = new MetadataDto();
-    LocalDate dateCreated = LocalDate.of(2020, 4, 8);
-    metadata.setDateCreated(dateCreated);
-    Metadata entity = modelMapper.map(metadata, Metadata.class);
-    assertNotNull(entity.getDateCreated());
-    Assert.assertEquals(dateCreated, entity.getDateCreated());
+  void testDatesWithTime() throws Exception {
+    MetadataDto metadata = getTestMetadataDto();
+    metadata.setDateCreated("2020-04-08T10:00:00Z");
+    metadata.setDatePublished("2022-07-08T12:34:56Z");
+
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+        .content(asJson(metadata))).andExpect(status().isOk())
+      .andExpect(content().json("{\"dateCreated\": \"2020-04-08T10:00:00Z\", \"datePublished\": \"2022-07-08T12:34:56Z\"}"));
   }
 
   @Test

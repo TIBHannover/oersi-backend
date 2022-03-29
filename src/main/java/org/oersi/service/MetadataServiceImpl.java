@@ -32,6 +32,7 @@ import org.springframework.util.CollectionUtils;
 public class MetadataServiceImpl implements MetadataService {
 
   private static final String LABEL_GROUP_ID_AUDIENCE = "audience";
+  private static final String LABEL_GROUP_ID_CONDITIONS_OF_ACCESS = "conditionsOfAccess";
   private static final String LABEL_GROUP_ID_LRT = "lrt";
   private static final String LABEL_GROUP_ID_SUBJECT = "subject";
 
@@ -66,6 +67,7 @@ public class MetadataServiceImpl implements MetadataService {
       metadata.setAbout(updateExistingList(existingMetadata.getAbout(), metadata.getAbout()));
       metadata.setAudience(updateExistingList(existingMetadata.getAudience(), metadata.getAudience()));
       metadata.setCreator(updateExistingList(existingMetadata.getCreator(), metadata.getCreator()));
+      metadata.setContributor(updateExistingList(existingMetadata.getContributor(), metadata.getContributor()));
       metadata.setLearningResourceType(updateExistingList(existingMetadata.getLearningResourceType(), metadata.getLearningResourceType()));
       metadata.setMainEntityOfPage(mergeMainEntityOfPageList(existingMetadata.getMainEntityOfPage(),
           metadata.getMainEntityOfPage()));
@@ -92,6 +94,9 @@ public class MetadataServiceImpl implements MetadataService {
     if (CollectionUtils.isEmpty(metadata.getType())) {
       metadata.setType(new ArrayList<>(List.of("LearningResource")));
     }
+    if (metadata.getIsAccessibleForFree() == null) {
+      metadata.setIsAccessibleForFree(true);
+    }
   }
 
   /**
@@ -108,6 +113,9 @@ public class MetadataServiceImpl implements MetadataService {
       for (Audience audience : metadata.getAudience()) {
         storeLabels(audience.getIdentifier(), audience.getPrefLabel(), LABEL_GROUP_ID_AUDIENCE);
       }
+    }
+    if (metadata.getConditionsOfAccess() != null) {
+      storeLabels(metadata.getConditionsOfAccess().getIdentifier(), metadata.getConditionsOfAccess().getPrefLabel(), LABEL_GROUP_ID_CONDITIONS_OF_ACCESS);
     }
     if (metadata.getLearningResourceType() != null) {
       for (LearningResourceType lrt : metadata.getLearningResourceType()) {

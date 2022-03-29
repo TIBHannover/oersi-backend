@@ -1,6 +1,5 @@
 package org.oersi.domain;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import javax.persistence.CascadeType;
@@ -48,8 +47,17 @@ public class Metadata {
   @JoinColumn(name = "metadata_id", nullable = true)
   private List<Creator> creator;
 
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "metadata_id", nullable = true)
+  private List<Contributor> contributor;
+
+  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+  private ConditionsOfAccess conditionsOfAccess;
+
   @Column(length = DESCRIPTION_LENGTH)
   private String description;
+
+  private Boolean isAccessibleForFree;
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "metadata_id", nullable = true)
@@ -69,8 +77,8 @@ public class Metadata {
   private Integer imageWidth;
   private Integer imageHeight;
 
-  private LocalDate dateCreated;
-  private LocalDate datePublished;
+  private String dateCreated;
+  private String datePublished;
 
   @ElementCollection
   @CollectionTable(name = "inLanguage")

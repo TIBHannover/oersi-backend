@@ -857,3 +857,286 @@ databaseChangeLog:
           referencedColumnNames: id
           referencedTableName: metadata
           validate: true
+
+- changeSet:
+    id: 1647413894913-1
+    author: hoffmann (generated)
+    changes:
+      - createTable:
+          columns:
+            - column:
+                autoIncrement: true
+                constraints:
+                  nullable: false
+                  primaryKey: true
+                  primaryKeyName: affiliationPK
+                name: id
+                type: BIGINT
+            - column:
+                name: identifier
+                type: VARCHAR(255)
+            - column:
+                name: name
+                type: VARCHAR(255)
+            - column:
+                name: type
+                type: VARCHAR(255)
+          tableName: affiliation
+- changeSet:
+    id: 1647413894913-2
+    author: hoffmann (generated)
+    changes:
+      - createTable:
+          columns:
+            - column:
+                autoIncrement: true
+                constraints:
+                  nullable: false
+                  primaryKey: true
+                  primaryKeyName: contributorPK
+                name: id
+                type: BIGINT
+            - column:
+                name: honorific_prefix
+                type: VARCHAR(255)
+            - column:
+                name: identifier
+                type: VARCHAR(255)
+            - column:
+                name: name
+                type: VARCHAR(255)
+            - column:
+                name: type
+                type: VARCHAR(255)
+            - column:
+                name: affiliation_id
+                type: BIGINT
+            - column:
+                name: metadata_id
+                type: BIGINT
+          tableName: contributor
+- changeSet:
+    id: 1647413894913-3
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: affiliation_id
+          baseTableName: contributor
+          constraintName: FKhc67iu03e1wdcbvu2fi7o30sy
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: affiliation
+          validate: true
+- changeSet:
+    id: 1647413894913-4
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: metadata_id
+          baseTableName: contributor
+          constraintName: FKpd6kujapl18iirmg8ls45fvmq
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: metadata
+          validate: true
+
+- changeSet:
+    id: 1647416185353-1
+    author: hoffmann (generated)
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: affiliation_id
+                type: bigint
+          tableName: creator
+- changeSet:
+    id: 1647416185353-2
+    author: hoffmann (generated)
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: honorific_prefix
+                type: varchar(255)
+          tableName: creator
+- changeSet:
+    id: 1647416185353-3
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: affiliation_id
+          baseTableName: creator
+          constraintName: FKnewhiiuwyjg7hmpqbjjo97548
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: affiliation
+          validate: true
+
+- changeSet:
+    id: 1647434092460-1
+    author: hoffmann (generated)
+    changes:
+      - createTable:
+          columns:
+            - column:
+                autoIncrement: true
+                constraints:
+                  nullable: false
+                  primaryKey: true
+                  primaryKeyName: conditions_of_accessPK
+                name: id
+                type: BIGINT
+            - column:
+                name: identifier
+                type: VARCHAR(255)
+            - column:
+                name: type
+                type: VARCHAR(255)
+            - column:
+                name: pref_label_id
+                type: BIGINT
+          tableName: conditions_of_access
+- changeSet:
+    id: 1647434092460-2
+    author: hoffmann (generated)
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: conditions_of_access_id
+                type: bigint
+          tableName: metadata
+- changeSet:
+    id: 1647434092460-3
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: pref_label_id
+          baseTableName: conditions_of_access
+          constraintName: FK6495ekkoicar50ovdapxosd5
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: pref_label
+          validate: true
+- changeSet:
+    id: 1647434092460-4
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: conditions_of_access_id
+          baseTableName: metadata
+          constraintName: FKerrgp69a25bv7f04p3sip82hp
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: conditions_of_access
+          validate: true
+
+- changeSet:
+    id: 1647434850082-1
+    author: hoffmann (generated)
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: is_accessible_for_free
+                type: bit
+          tableName: metadata
+
+- changeSet:
+    id: 1647434870000-1
+    author: mhoffmann
+    changes:
+      - addColumn:
+          tableName: metadata
+          columns:
+            - column:
+                name: date_created_tmp
+                type: VARCHAR(255)
+      - sql:
+          comment: migrate old date column values into string column
+          sql: UPDATE metadata set date_created_tmp = date_created
+      - dropColumn:
+          tableName: metadata
+          columns:
+            - column:
+                name: date_created
+      - renameColumn:
+          tableName: metadata
+          oldColumnName: date_created_tmp
+          newColumnName: date_created
+          columnDataType: VARCHAR(255)
+- changeSet:
+    id: 1647434870000-2
+    author: mhoffmann
+    changes:
+      - addColumn:
+          tableName: metadata
+          columns:
+            - column:
+                name: date_published_tmp
+                type: VARCHAR(255)
+      - sql:
+          comment: migrate old date column values into string column
+          sql: UPDATE metadata set date_published_tmp = date_published
+      - dropColumn:
+          tableName: metadata
+          columns:
+            - column:
+                name: date_published
+      - renameColumn:
+          tableName: metadata
+          oldColumnName: date_published_tmp
+          newColumnName: date_published
+          columnDataType: VARCHAR(255)
+- changeSet:
+    id: 1647434870000-3
+    author: mhoffmann
+    changes:
+      - addColumn:
+          tableName: main_entity_of_page
+          columns:
+            - column:
+                name: date_created_tmp
+                type: VARCHAR(255)
+      - sql:
+          comment: migrate old date column values into string column
+          sql: UPDATE main_entity_of_page set date_created_tmp = date_created
+      - dropColumn:
+          tableName: main_entity_of_page
+          columns:
+            - column:
+                name: date_created
+      - renameColumn:
+          tableName: main_entity_of_page
+          oldColumnName: date_created_tmp
+          newColumnName: date_created
+          columnDataType: VARCHAR(255)
+- changeSet:
+    id: 1647434870000-4
+    author: mhoffmann
+    changes:
+      - addColumn:
+          tableName: main_entity_of_page
+          columns:
+            - column:
+                name: date_modified_tmp
+                type: VARCHAR(255)
+      - sql:
+          comment: migrate old date column values into string column
+          sql: UPDATE main_entity_of_page set date_modified_tmp = date_modified
+      - dropColumn:
+          tableName: main_entity_of_page
+          columns:
+            - column:
+                name: date_modified
+      - renameColumn:
+          tableName: main_entity_of_page
+          oldColumnName: date_modified_tmp
+          newColumnName: date_modified
+          columnDataType: VARCHAR(255)

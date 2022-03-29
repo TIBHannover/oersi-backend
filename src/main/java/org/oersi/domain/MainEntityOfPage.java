@@ -1,6 +1,5 @@
 package org.oersi.domain;
 
-import java.time.LocalDate;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -19,8 +18,8 @@ public class MainEntityOfPage {
 
   private String identifier;
   private String type;
-  private LocalDate dateCreated;
-  private LocalDate dateModified;
+  private String dateCreated;
+  private String dateModified;
   @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
   private Provider provider;
 

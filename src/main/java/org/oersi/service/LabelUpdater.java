@@ -26,6 +26,10 @@ public class LabelUpdater {
         audience.setPrefLabel(addMissingLabels(audience.getIdentifier(), audience.getPrefLabel()));
       }
     }
+    if (metadata.getConditionsOfAccess() != null) {
+      ConditionsOfAccess coa = metadata.getConditionsOfAccess();
+      coa.setPrefLabel(addMissingLabels(coa.getIdentifier(), coa.getPrefLabel()));
+    }
     if (metadata.getLearningResourceType() != null) {
       for (LearningResourceType lrt : metadata.getLearningResourceType()) {
         lrt.setPrefLabel(addMissingLabels(lrt.getIdentifier(), lrt.getPrefLabel()));

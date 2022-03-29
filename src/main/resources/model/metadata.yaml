@@ -154,6 +154,46 @@
         content: {}
 components:
   schemas:
+    Affiliation:
+      required:
+        - name
+        - type
+      type: object
+      title: Affiliation
+      description: The organization a creator or contributor was affiliated with in the context of the creation of the resource
+      properties:
+        id:
+          type: string
+          description: The URI of the organization
+          format: uri
+          example: https://www.wikidata.org/entity/Q54166
+        type:
+          type: string
+          description: Type of the organization
+          example: Organization
+        name:
+          type: string
+          description: The name of the organization
+          example: Technische Hochschule Köln
+    ConditionsOfAccess:
+      required:
+        - id
+      type: object
+      title: conditionsOfAccess
+      description: Description if login is needed to use the source.
+      properties:
+        type:
+          type: string
+          example: Concept
+        id:
+          type: string
+          format: uri
+          example: "https://w3id.org/kim/conditionsOfAccess/no_login"
+        prefLabel:
+          $ref: 'api.yaml#/components/schemas/LocalizedString'
+          example:
+            'de': 'keine Anmeldung erforderlich'
+            'en': 'no login required'
     License:
       required:
         - id
@@ -198,11 +238,23 @@ components:
           description: Creator
           items:
             $ref: '#/components/schemas/MetadataCreator'
+        contributor:
+          title: Contributor
+          type: array
+          description: Contributor
+          items:
+            $ref: '#/components/schemas/MetadataContributor'
+        conditionsOfAccess:
+          $ref: '#/components/schemas/ConditionsOfAccess'
         description:
           title: Description
           type: string
           description: A short description of the resource
           example: an example description
+        isAccessibleForFree:
+          title: Status of free accessibility
+          description: States if a ressource is free to access and to use. This also can be a ressource without an open license
+          type: boolean
         about:
           title: Subject
           type: array
@@ -225,17 +277,15 @@ components:
         dateCreated:
           title: Creation Date
           type: string
-          description: "date on which the educational resource was created. format:\
-            \ YYYY-MM-DD"
-          format: date
-          example: 2020-02-22
+          description: "date on which the educational resource was created. format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ"
+          pattern: '^\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])([tT]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(\.\d+)?([zZ]|([\+-])([01][0-9]|2[0-3]):([0-5][0-9])))?$'
+          example: "2020-02-22"
         datePublished:
           title: Publication Date
           type: string
-          description: "date on which the educational resource was published. format:\
-            \ YYYY-MM-DD"
-          format: date
-          example: 2020-02-22
+          description: "date on which the educational resource was published. format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ"
+          pattern: '^\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])([tT]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(\.\d+)?([zZ]|([\+-])([01][0-9]|2[0-3]):([0-5][0-9])))?$'
+          example: "2020-02-22"
         inLanguage:
           title: Language
           type: array
@@ -244,191 +294,7 @@ components:
             - de
             - en
           items:
-            type: string
-            enum:
-              - aa
-              - ab
-              - ae
-              - af
-              - ak
-              - am
-              - an
-              - ar
-              - as
-              - av
-              - ay
-              - az
-              - ba
-              - be
-              - bg
-              - bi
-              - bm
-              - bn
-              - bo
-              - br
-              - bs
-              - ca
-              - ce
-              - ch
-              - co
-              - cr
-              - cs
-              - cu
-              - cv
-              - cy
-              - da
-              - de
-              - dv
-              - dz
-              - ee
-              - el
-              - en
-              - eo
-              - es
-              - et
-              - eu
-              - fa
-              - ff
-              - fi
-              - fj
-              - fo
-              - fr
-              - fy
-              - ga
-              - gd
-              - gl
-              - gn
-              - gu
-              - gv
-              - ha
-              - he
-              - hi
-              - ho
-              - hr
-              - ht
-              - hu
-              - hy
-              - hz
-              - ia
-              - id
-              - ie
-              - ig
-              - ii
-              - ik
-              - io
-              - is
-              - it
-              - iu
-              - ja
-              - jv
-              - ka
-              - kg
-              - ki
-              - kj
-              - kk
-              - kl
-              - km
-              - kn
-              - ko
-              - kr
-              - ks
-              - ku
-              - kv
-              - kw
-              - ky
-              - la
-              - lb
-              - lg
-              - li
-              - ln
-              - lo
-              - lt
-              - lu
-              - lv
-              - mg
-              - mh
-              - mi
-              - mk
-              - ml
-              - mn
-              - mr
-              - ms
-              - mt
-              - my
-              - na
-              - nb
-              - nd
-              - ne
-              - ng
-              - nl
-              - nn
-              - no
-              - nr
-              - nv
-              - ny
-              - oc
-              - oj
-              - om
-              - or
-              - os
-              - pa
-              - pi
-              - pl
-              - ps
-              - pt
-              - qu
-              - rm
-              - rn
-              - ro
-              - ru
-              - rw
-              - sa
-              - sc
-              - sd
-              - se
-              - sg
-              - si
-              - sk
-              - sl
-              - sm
-              - sn
-              - so
-              - sq
-              - sr
-              - ss
-              - st
-              - su
-              - sv
-              - sw
-              - ta
-              - te
-              - tg
-              - th
-              - ti
-              - tk
-              - tl
-              - tn
-              - to
-              - tr
-              - ts
-              - tt
-              - tw
-              - ty
-              - ug
-              - uk
-              - ur
-              - uz
-              - ve
-              - vi
-              - vo
-              - wa
-              - wo
-              - xh
-              - yi
-              - yo
-              - za
-              - zh
-              - zu
+            $ref: 'Language.yaml#/components/schemas/Language'
         learningResourceType:
           title: Learning Resource Type
           type: array
@@ -518,6 +384,38 @@ components:
           type: string
           description: The creator's name
           example: Max Mustermann
+        honorificPrefix:
+          title: like academic title
+          type: string
+          example: Dr.
+        affiliation:
+          $ref: '#/components/schemas/Affiliation'
+    MetadataContributor:
+      required:
+        - name
+        - type
+      type: object
+      properties:
+        type:
+          title: Type
+          type: string
+          description: Type
+          example: Person
+        id:
+          type: string
+          description: "identifier of the person/organization like orcid, gnd or ror"
+          format: uri
+        name:
+          title: Name
+          type: string
+          description: The contributor's name
+          example: Maxi Mustermensch
+        honorificPrefix:
+          title: like academic title
+          type: string
+          example: Dr.
+        affiliation:
+          $ref: '#/components/schemas/Affiliation'
     MetadataAbout:
       required:
         - id
@@ -628,14 +526,14 @@ components:
         dateCreated:
           title: Creation date of the metadata
           type: string
-          description: "Creation date of the metadata. format: YYYY-MM-DD"
-          format: date
+          description: "Creation date of the metadata. format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ"
+          pattern: '^\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])([tT]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(\.\d+)?([zZ]|([\+-])([01][0-9]|2[0-3]):([0-5][0-9])))?$'
           example: "2020-03-21"
         dateModified:
           title: Date of last modification of the metadata
           type: string
-          description: "Date of last modification of the metadata. format: YYYY-MM-DD"
-          format: date
+          description: "Date of last modification of the metadata. format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ"
+          pattern: '^\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])([tT]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(\.\d+)?([zZ]|([\+-])([01][0-9]|2[0-3]):([0-5][0-9])))?$'
           example: "2020-03-22"
         provider:
           $ref: '#/components/schemas/Provider'
