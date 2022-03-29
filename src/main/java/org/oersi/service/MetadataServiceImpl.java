@@ -32,6 +32,7 @@ import org.springframework.util.CollectionUtils;
 public class MetadataServiceImpl implements MetadataService {
 
   private static final String LABEL_GROUP_ID_AUDIENCE = "audience";
+  private static final String LABEL_GROUP_ID_CONDITIONS_OF_ACCESS = "conditionsOfAccess";
   private static final String LABEL_GROUP_ID_LRT = "lrt";
   private static final String LABEL_GROUP_ID_SUBJECT = "subject";
 
@@ -112,6 +113,9 @@ public class MetadataServiceImpl implements MetadataService {
       for (Audience audience : metadata.getAudience()) {
         storeLabels(audience.getIdentifier(), audience.getPrefLabel(), LABEL_GROUP_ID_AUDIENCE);
       }
+    }
+    if (metadata.getConditionsOfAccess() != null) {
+      storeLabels(metadata.getConditionsOfAccess().getIdentifier(), metadata.getConditionsOfAccess().getPrefLabel(), LABEL_GROUP_ID_CONDITIONS_OF_ACCESS);
     }
     if (metadata.getLearningResourceType() != null) {
       for (LearningResourceType lrt : metadata.getLearningResourceType()) {
