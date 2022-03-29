@@ -1,6 +1,5 @@
 package org.oersi.domain;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import javax.persistence.CascadeType;
@@ -78,8 +77,8 @@ public class Metadata {
   private Integer imageWidth;
   private Integer imageHeight;
 
-  private LocalDate dateCreated;
-  private LocalDate datePublished;
+  private String dateCreated;
+  private String datePublished;
 
   @ElementCollection
   @CollectionTable(name = "inLanguage")

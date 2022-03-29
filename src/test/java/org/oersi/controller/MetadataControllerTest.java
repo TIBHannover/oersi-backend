@@ -179,7 +179,7 @@ class MetadataControllerTest {
     metadata.setName("name");
     metadata.setIdentifier("http://example.url");
 
-    metadata.setDateCreated(LocalDate.of(2020, 4, 8));
+    metadata.setDateCreated("2020-04-08");
 
     metadata.setDateModifiedInternal(LocalDateTime.now());
 
@@ -437,23 +437,25 @@ class MetadataControllerTest {
   }
 
   @Test
-  void testMapperConvertDateToDto() {
-    Metadata metadata = new Metadata();
-    LocalDate dateCreated = LocalDate.of(2020, 4, 8);
-    metadata.setDateCreated(dateCreated);
-    MetadataDto dto = modelMapper.map(metadata, MetadataDto.class);
-    assertNotNull(dto.getDateCreated());
-    Assert.assertEquals(dateCreated, dto.getDateCreated());
+  void testDatesWithoutTime() throws Exception {
+    MetadataDto metadata = getTestMetadataDto();
+    metadata.setDateCreated("2020-04-08");
+    metadata.setDatePublished("2022-07-08");
+
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+        .content(asJson(metadata))).andExpect(status().isOk())
+      .andExpect(content().json("{\"dateCreated\": \"2020-04-08\", \"datePublished\": \"2022-07-08\"}"));
   }
 
   @Test
-  void testMapperConvertDateTimeToEntity() {
-    MetadataDto metadata = new MetadataDto();
-    LocalDate dateCreated = LocalDate.of(2020, 4, 8);
-    metadata.setDateCreated(dateCreated);
-    Metadata entity = modelMapper.map(metadata, Metadata.class);
-    assertNotNull(entity.getDateCreated());
-    Assert.assertEquals(dateCreated, entity.getDateCreated());
+  void testDatesWithTime() throws Exception {
+    MetadataDto metadata = getTestMetadataDto();
+    metadata.setDateCreated("2020-04-08T10:00:00Z");
+    metadata.setDatePublished("2022-07-08T12:34:56Z");
+
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+        .content(asJson(metadata))).andExpect(status().isOk())
+      .andExpect(content().json("{\"dateCreated\": \"2020-04-08T10:00:00Z\", \"datePublished\": \"2022-07-08T12:34:56Z\"}"));
   }
 
   @Test

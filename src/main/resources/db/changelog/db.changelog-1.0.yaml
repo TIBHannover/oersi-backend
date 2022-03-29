@@ -1047,3 +1047,96 @@ databaseChangeLog:
                 name: is_accessible_for_free
                 type: bit
           tableName: metadata
+
+- changeSet:
+    id: 1647434870000-1
+    author: mhoffmann
+    changes:
+      - addColumn:
+          tableName: metadata
+          columns:
+            - column:
+                name: date_created_tmp
+                type: VARCHAR(255)
+      - sql:
+          comment: migrate old date column values into string column
+          sql: UPDATE metadata set date_created_tmp = date_created
+      - dropColumn:
+          tableName: metadata
+          columns:
+            - column:
+                name: date_created
+      - renameColumn:
+          tableName: metadata
+          oldColumnName: date_created_tmp
+          newColumnName: date_created
+          columnDataType: VARCHAR(255)
+- changeSet:
+    id: 1647434870000-2
+    author: mhoffmann
+    changes:
+      - addColumn:
+          tableName: metadata
+          columns:
+            - column:
+                name: date_published_tmp
+                type: VARCHAR(255)
+      - sql:
+          comment: migrate old date column values into string column
+          sql: UPDATE metadata set date_published_tmp = date_published
+      - dropColumn:
+          tableName: metadata
+          columns:
+            - column:
+                name: date_published
+      - renameColumn:
+          tableName: metadata
+          oldColumnName: date_published_tmp
+          newColumnName: date_published
+          columnDataType: VARCHAR(255)
+- changeSet:
+    id: 1647434870000-3
+    author: mhoffmann
+    changes:
+      - addColumn:
+          tableName: main_entity_of_page
+          columns:
+            - column:
+                name: date_created_tmp
+                type: VARCHAR(255)
+      - sql:
+          comment: migrate old date column values into string column
+          sql: UPDATE main_entity_of_page set date_created_tmp = date_created
+      - dropColumn:
+          tableName: main_entity_of_page
+          columns:
+            - column:
+                name: date_created
+      - renameColumn:
+          tableName: main_entity_of_page
+          oldColumnName: date_created_tmp
+          newColumnName: date_created
+          columnDataType: VARCHAR(255)
+- changeSet:
+    id: 1647434870000-4
+    author: mhoffmann
+    changes:
+      - addColumn:
+          tableName: main_entity_of_page
+          columns:
+            - column:
+                name: date_modified_tmp
+                type: VARCHAR(255)
+      - sql:
+          comment: migrate old date column values into string column
+          sql: UPDATE main_entity_of_page set date_modified_tmp = date_modified
+      - dropColumn:
+          tableName: main_entity_of_page
+          columns:
+            - column:
+                name: date_modified
+      - renameColumn:
+          tableName: main_entity_of_page
+          oldColumnName: date_modified_tmp
+          newColumnName: date_modified
+          columnDataType: VARCHAR(255)
