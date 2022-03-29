@@ -64,6 +64,10 @@ class LabelUpdaterTest {
     About about = new About();
     about.setIdentifier(TEST_IDENTIFIER);
     metadata.setAbout(new ArrayList<>(List.of(about)));
+
+    ConditionsOfAccess coa = new ConditionsOfAccess();
+    coa.setIdentifier(TEST_IDENTIFIER);
+    metadata.setConditionsOfAccess(coa);
     return metadata;
   }
 
@@ -120,6 +124,8 @@ class LabelUpdaterTest {
     assertThat(metadata.getAbout().get(0).getPrefLabel().getLocalizedStrings()).hasSize(3);
     assertThat(metadata.getAudience().get(0).getPrefLabel()).isNotNull();
     assertThat(metadata.getAudience().get(0).getPrefLabel().getLocalizedStrings()).hasSize(3);
+    assertThat(metadata.getConditionsOfAccess().getPrefLabel()).isNotNull();
+    assertThat(metadata.getConditionsOfAccess().getPrefLabel().getLocalizedStrings()).hasSize(3);
     assertThat(metadata.getLearningResourceType().get(0).getPrefLabel()).isNotNull();
     assertThat(metadata.getLearningResourceType().get(0).getPrefLabel().getLocalizedStrings()).hasSize(3);
   }
@@ -131,6 +137,7 @@ class LabelUpdaterTest {
     labelUpdater.addMissingLabels(metadata);
     assertThat(metadata.getAbout()).isNull();
     assertThat(metadata.getAudience()).isNull();
+    assertThat(metadata.getConditionsOfAccess()).isNull();
     assertThat(metadata.getLearningResourceType()).isNull();
   }
 
