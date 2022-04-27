@@ -32,7 +32,7 @@ API definition in [src/main/resources/model/api.yaml](src/main/resources/model/a
     * Sets a user that has read-only access to the elasticsearch index **oer_data** and execute the request in elasticsearch (GET, POST).
     * Use directly the elasticsearch API - see [Elasticsearch Search API](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-search.html) and [Elasticsearch Query DSL](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-script-query.html)
     * default value for public adress: **/resources/api-internal/search/oer_data/**
-    * example `curl -L oersi.de/resources/api-internal/search/oer_data/_search`
+    * example `curl -L oersi.org/resources/api-internal/search/oer_data/_search`
 * **_MetadataController_**: CRUD-operations to the sql data **/api/metadata/**
     * based on https://dini-ag-kim.github.io/lrmi-profile/draft/schemas/schema.json ([conversion](https://gitlab.com/oersi/oersi-backend/-/issues/8#note_344342881))
 * **_LabelController_**: Retrieve labels from the data **/api/label/**
@@ -51,7 +51,7 @@ API definition in [src/main/resources/model/api.yaml](src/main/resources/model/a
         * **license_url** - URL of the license of the resource
         * **authors** - array of authors (better usage for multiple authors)
     * default value for public adress: **/resources/api/oembed-json** respectively **/resources/api/oembed-xml**
-    * example `curl -L oersi.de/resources/api/oembed-json?url=https%3A%2F%2Foersi.de%2Fresources%2FaHR0cHM6Ly9heGVsLWtsaW5nZXIuZ2l0bGFiLmlvL2dpdGxhYi1mb3ItZG9jdW1lbnRzL2luZGV4Lmh0bWw%3D`
+    * example `curl -L oersi.org/resources/api/oembed-json?url=https%3A%2F%2Foersi.org%2Fresources%2FaHR0cHM6Ly9heGVsLWtsaW5nZXIuZ2l0bGFiLmlvL2dpdGxhYi1mb3ItZG9jdW1lbnRzL2luZGV4Lmh0bWw%3D`
 
 #### Interactive documentation
 * An interactive documentation of the API can be found at ``http://<YOUR-HOST>:8080/oersi/swagger-ui.html`` (adjust tomcat port, application name if the standard values were not used)
