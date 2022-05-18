@@ -146,6 +146,12 @@ public class WebConfig {
       String.class, MediaObjectDto.TypeEnum.class);
     modelMapper.addConverter(ctx -> ctx.getSource() == null ? null : ctx.getSource().toString(),
       MediaObjectDto.TypeEnum.class, String.class);
+    modelMapper.addConverter(
+      ctx -> ctx.getSource() == null ? null
+        : CaptionDto.TypeEnum.fromValue(ctx.getSource()),
+      String.class, CaptionDto.TypeEnum.class);
+    modelMapper.addConverter(ctx -> ctx.getSource() == null ? null : ctx.getSource().toString(),
+      CaptionDto.TypeEnum.class, String.class);
   }
 
   private void addIdMapping(final ModelMapper modelMapper) {
@@ -169,6 +175,12 @@ public class WebConfig {
     modelMapper.typeMap(MetadataAudienceDto.class, Audience.class).addMappings(mapper -> {
       mapper.map(MetadataAudienceDto::getId, Audience::setIdentifier);
       mapper.skip(Audience::setId);
+    });
+    modelMapper.typeMap(Caption.class, CaptionDto.class)
+      .addMappings(mapper -> mapper.map(Caption::getIdentifier, CaptionDto::setId));
+    modelMapper.typeMap(CaptionDto.class, Caption.class).addMappings(mapper -> {
+      mapper.map(CaptionDto::getId, Caption::setIdentifier);
+      mapper.skip(Caption::setId);
     });
     modelMapper.typeMap(ConditionsOfAccess.class, ConditionsOfAccessDto.class)
       .addMappings(mapper -> mapper.map(ConditionsOfAccess::getIdentifier, ConditionsOfAccessDto::setId));

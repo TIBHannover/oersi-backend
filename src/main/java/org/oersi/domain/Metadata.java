@@ -38,6 +38,10 @@ public class Metadata {
   @Column(nullable = false, length = NAME_LENGTH)
   private String name;
 
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "metadata_id", nullable = true)
+  private List<Caption> caption;
+
   @URL
   private String contextUri;
 

@@ -1151,3 +1151,47 @@ databaseChangeLog:
                 name: duration
                 type: varchar(255)
           tableName: metadata
+
+- changeSet:
+    id: 1652876692555-1
+    author: hoffmann (generated)
+    changes:
+      - createTable:
+          columns:
+            - column:
+                autoIncrement: true
+                constraints:
+                  nullable: false
+                  primaryKey: true
+                  primaryKeyName: captionPK
+                name: id
+                type: BIGINT
+            - column:
+                name: encoding_format
+                type: VARCHAR(255)
+            - column:
+                name: identifier
+                type: VARCHAR(255)
+            - column:
+                name: in_language
+                type: VARCHAR(255)
+            - column:
+                name: type
+                type: VARCHAR(255)
+            - column:
+                name: metadata_id
+                type: BIGINT
+          tableName: caption
+- changeSet:
+    id: 1652876692555-2
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: metadata_id
+          baseTableName: caption
+          constraintName: FKckkj1omwa8mtnwhvmxv72r9hy
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: metadata
+          validate: true

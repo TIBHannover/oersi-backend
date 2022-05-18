@@ -66,6 +66,7 @@ public class MetadataServiceImpl implements MetadataService {
       // see https://gitlab.com/oersi/oersi-backend/-/issues/9
       metadata.setAbout(updateExistingList(existingMetadata.getAbout(), metadata.getAbout()));
       metadata.setAudience(updateExistingList(existingMetadata.getAudience(), metadata.getAudience()));
+      metadata.setCaption(updateExistingList(existingMetadata.getCaption(), metadata.getCaption()));
       metadata.setCreator(updateExistingList(existingMetadata.getCreator(), metadata.getCreator()));
       metadata.setContributor(updateExistingList(existingMetadata.getContributor(), metadata.getContributor()));
       metadata.setLearningResourceType(updateExistingList(existingMetadata.getLearningResourceType(), metadata.getLearningResourceType()));

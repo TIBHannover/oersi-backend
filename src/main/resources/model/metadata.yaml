@@ -175,6 +175,29 @@ components:
           type: string
           description: The name of the organization
           example: Technische Hochschule Köln
+    Caption:
+      required:
+        - id
+        - type
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - MediaObject
+          example: MediaObject
+        id:
+          type: string
+          format: uri
+          example: "https://example.org/subs-de.vtt"
+        encodingFormat:
+          type: string
+          title: Encoding Format
+          description: The media type of the media object, conforming to https://www.iana.org/assignments/media-types/media-types.xml
+          example: text/vtt
+        inLanguage:
+          $ref: 'Language.yaml#/components/schemas/Language'
+          example: de
     ConditionsOfAccess:
       required:
         - id
@@ -232,6 +255,12 @@ components:
           type: string
           description: Title of the educational resource
           example: GitLab für Texte
+        caption:
+          title: Caption
+          description: The caption/subtitle file for an audio/video resource
+          type: array
+          items:
+            $ref: '#/components/schemas/Caption'
         creator:
           title: Creator
           type: array
