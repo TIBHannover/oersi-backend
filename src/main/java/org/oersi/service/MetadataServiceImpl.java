@@ -237,6 +237,13 @@ public class MetadataServiceImpl implements MetadataService {
     oerMetadataRepository.deleteAll();
   }
 
+  @Transactional
+  @Override
+  public void deleteByProviderName(String providerName) {
+    log.info("delete metadata for provider {}", providerName);
+    oerMetadataRepository.deleteByMainEntityOfPageProviderName(providerName);
+  }
+
   @Transactional(readOnly = true)
   @Override
   public Metadata findById(final Long id) {

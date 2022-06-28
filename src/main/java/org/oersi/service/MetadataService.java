@@ -28,6 +28,13 @@ public interface MetadataService {
   void deleteAll();
 
   /**
+   * Delete existing {@link Metadata} that match the given provider name.
+   *
+   * @param providerName provider name
+   */
+  void deleteByProviderName(String providerName);
+
+  /**
    * Retrieve {@link Metadata} for the given id.
    *
    * @param id id

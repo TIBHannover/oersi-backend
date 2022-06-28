@@ -47,6 +47,32 @@
       "403":
         description: Forbidden
         content: {}
+/api/metadata/bulk:
+  delete:
+    tags:
+      - metadata-controller
+    summary: Bulk delete metadata
+    description: Delete existing metadata
+    operationId: deleteMany
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MetadataBulkDelete"
+      required: true
+    responses:
+      "200":
+        description: OK
+        content: {}
+      "400":
+        description: Bad Request
+        content: {}
+      "401":
+        description: Unauthorized
+        content: {}
+      "403":
+        description: Forbidden
+        content: {}
 /api/metadata/{id}:
   get:
     tags:
@@ -607,3 +633,10 @@ components:
           type: string
           description: The name of the source organization
           example: Technische Hochschule Köln
+    MetadataBulkDelete:
+      type: object
+      properties:
+        providerName:
+          type: string
+          description: name of the provider whose metadata should be deleted
+          example: twillo

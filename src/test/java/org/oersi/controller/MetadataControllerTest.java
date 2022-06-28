@@ -40,6 +40,7 @@ import org.oersi.domain.License;
 import org.oersi.domain.LocalizedString;
 import org.oersi.domain.MainEntityOfPage;
 import org.oersi.domain.Metadata;
+import org.oersi.domain.Provider;
 import org.oersi.domain.Publisher;
 import org.oersi.domain.SourceOrganization;
 import org.oersi.dto.LanguageDto;
@@ -150,6 +151,9 @@ class MetadataControllerTest {
 
     MainEntityOfPage mainEntityOfPage = new MainEntityOfPage();
     mainEntityOfPage.setIdentifier("http://example.url/desc/123");
+    Provider provider = new Provider();
+    provider.setName("testname");
+    mainEntityOfPage.setProvider(provider);
     metadata.setMainEntityOfPage(new ArrayList<>(List.of(mainEntityOfPage)));
 
     SourceOrganization sourceOrganization = new SourceOrganization();
@@ -433,6 +437,17 @@ class MetadataControllerTest {
 
     mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH)
         .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+
+    Assert.assertEquals(0, repository.count());
+  }
+
+  @Test
+  void testDeleteByProviderName() throws Exception {
+    createTestMetadata();
+
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/bulk")
+      .contentType(MediaType.APPLICATION_JSON).content("{\"providerName\": \"testname\"}"))
+      .andExpect(status().isOk());
 
     Assert.assertEquals(0, repository.count());
   }
