@@ -17,4 +17,6 @@ public interface MetadataRepository extends JpaRepository<Metadata, Long> {
    */
   List<Metadata> findByIdentifier(String url);
 
+  void deleteByMainEntityOfPageProviderName(String providerName);
+
 }

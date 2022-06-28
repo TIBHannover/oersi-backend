@@ -7,6 +7,7 @@ import org.modelmapper.MappingException;
 import org.modelmapper.ModelMapper;
 import org.oersi.api.MetadataControllerApi;
 import org.oersi.domain.Metadata;
+import org.oersi.dto.MetadataBulkDeleteDto;
 import org.oersi.dto.MetadataDto;
 import org.oersi.service.MetadataService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,6 +114,15 @@ public class MetadataController implements MetadataControllerApi {
   public ResponseEntity<Void> deleteAll() {
     metadataService.deleteAll();
     return ResponseEntity.ok().build();
+  }
+
+  @Override
+  public ResponseEntity<Void> deleteMany(MetadataBulkDeleteDto body) {
+    if (body.getProviderName() != null) {
+      metadataService.deleteByProviderName(body.getProviderName());
+      return ResponseEntity.ok().build();
+    }
+    return ResponseEntity.badRequest().build();
   }
 
 }
