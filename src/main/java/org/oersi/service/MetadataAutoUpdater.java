@@ -1,15 +1,20 @@
 package org.oersi.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.oersi.AutoUpdateProperties;
+import org.oersi.domain.About;
 import org.oersi.domain.Media;
 import org.oersi.domain.Metadata;
 import org.oersi.domain.Provider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -17,9 +22,14 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Helper class that sets missing infos at {@link org.oersi.domain.Metadata} (like embed-url of known videos, image width and height, provider)
@@ -30,6 +40,11 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @Setter
 public class MetadataAutoUpdater {
+
+  @Value("${feature.add_missing_parent_items_of_hierarchical_vocabs}")
+  private boolean featureAddMissingParentItems;
+
+  private final @NonNull ResourceLoader resourceLoader;
 
   public interface ImageLoader {
     BufferedImage getImage(String source) throws IOException;
@@ -46,6 +61,9 @@ public class MetadataAutoUpdater {
   private ImageLoader imageLoader = new UrlImageLoader();
 
   public void addMissingInfos(Metadata data) {
+    if (featureAddMissingParentItems) {
+      addMissingParentItemsForHierarchicalVocab(data);
+    }
     setImageDimensions(data);
 
     boolean shouldUpdateByDefinitions = !hasEmbedUrl(data) || !hasProviderName(data) || !hasProviderUrl(data);
@@ -59,6 +77,48 @@ public class MetadataAutoUpdater {
         }
       }
     }
+  }
+
+  private Map<String, String> aboutParentMap = null;
+  private Map<String, String> getAboutParentMap() {
+    if (aboutParentMap == null) {
+      try (var is = resourceLoader.getResource("classpath:hochschulfaechersystematik-parentMap.json").getInputStream()) {
+        ObjectMapper mapper = new ObjectMapper();
+        aboutParentMap = mapper.readValue(is, new TypeReference<>() {});
+      } catch (IOException e) {
+        log.error("Cannot open resource", e);
+        aboutParentMap = new HashMap<>();
+      }
+    }
+    return aboutParentMap;
+  }
+  private void addMissingParentItemsForHierarchicalVocab(Metadata data) {
+    // TODO experimental, simplified solution just to test the feature for the about field with hardcoded vocab-structure
+    if (data.getAbout() != null) {
+      Set<String> ids = data.getAbout().stream().map(About::getIdentifier).collect(Collectors.toSet());
+      Set<String> idsToAdd = getParentIdsToAdd(ids, getAboutParentMap());
+      for (String id: idsToAdd) {
+        About about = new About();
+        about.setIdentifier(id);
+        data.getAbout().add(about);
+      }
+    }
+  }
+  private Set<String> getParentIdsToAdd(Set<String> ids, Map<String, String> parentMap) {
+    Set<String> idsToAdd = new HashSet<>();
+    for (String id : ids) {
+      String parentId = parentMap.get(id);
+      if (parentId != null && !ids.contains(parentId)) {
+        idsToAdd.add(parentId);
+      }
+    }
+    if (!idsToAdd.isEmpty()) {
+      Set<String> allIds = new HashSet<>();
+      allIds.addAll(ids);
+      allIds.addAll(idsToAdd);
+      idsToAdd.addAll(getParentIdsToAdd(allIds, parentMap));
+    }
+    return idsToAdd;
   }
 
   private void updateMissingProviderInfo(Metadata data, AutoUpdateProperties.Entry definition) {
