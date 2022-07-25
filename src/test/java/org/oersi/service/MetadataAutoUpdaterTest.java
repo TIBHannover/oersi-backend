@@ -2,6 +2,7 @@ package org.oersi.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.oersi.domain.About;
 import org.oersi.domain.Media;
 import org.oersi.domain.Metadata;
 import org.oersi.domain.Provider;
@@ -134,5 +135,17 @@ class MetadataAutoUpdaterTest {
     metadataAutoUpdater.addMissingInfos(data);
     resultVideoEncoding = data.getEncoding().stream().filter(e -> e.getEmbedUrl() != null).findAny().get();
     assertThat(resultVideoEncoding.getEmbedUrl()).isEqualTo("https://av.tib.eu/player/12345");
+  }
+
+  @Test
+  void testAddParentItemsForHierarchicalVocab() {
+    Metadata data = newMetadata();
+    About about = new About();
+    about.setIdentifier("https://w3id.org/kim/hochschulfaechersystematik/n009");
+    data.setAbout(new ArrayList<>(List.of(about)));
+    metadataAutoUpdater.setFeatureAddMissingParentItems(true);
+    metadataAutoUpdater.addMissingInfos(data);
+
+    assertThat(data.getAbout()).hasSize(3);
   }
 }

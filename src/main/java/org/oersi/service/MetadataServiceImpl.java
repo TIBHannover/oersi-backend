@@ -81,11 +81,11 @@ public class MetadataServiceImpl implements MetadataService {
     metadata.setName(cutString(metadata.getName(), Metadata.NAME_LENGTH));
     metadata.setDescription(cutString(metadata.getDescription(), Metadata.DESCRIPTION_LENGTH));
     determineProviderNames(metadata);
-    if (featureAddMissingLabels) {
-      labelUpdater.addMissingLabels(metadata);
-    }
     if (featureAddMissingMetadataInfos) {
       metadataAutoUpdater.addMissingInfos(metadata);
+    }
+    if (featureAddMissingLabels) {
+      labelUpdater.addMissingLabels(metadata);
     }
     storeLabels(metadata);
     return oerMetadataRepository.save(metadata);
