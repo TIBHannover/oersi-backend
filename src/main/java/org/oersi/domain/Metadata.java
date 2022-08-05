@@ -10,9 +10,11 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Table;
 
 import lombok.Data;
 import org.hibernate.validator.constraints.URL;
@@ -22,6 +24,7 @@ import org.hibernate.validator.constraints.URL;
  */
 @Data
 @Entity
+@Table(indexes = @Index(name = "identifier", columnList = "identifier"))
 public class Metadata {
   
   public static final int NAME_LENGTH = 500;

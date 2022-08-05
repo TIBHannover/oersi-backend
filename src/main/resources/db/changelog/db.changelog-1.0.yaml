@@ -1195,3 +1195,21 @@ databaseChangeLog:
           referencedColumnNames: id
           referencedTableName: metadata
           validate: true
+- changeSet:
+    id: 1659443477042-2
+    author: mhoffmann
+    changes:
+      - sql:
+          dbms: mariadb, mysql
+          comment: set row_format of metadata to dynamic
+          sql: ALTER TABLE metadata ROW_FORMAT=DYNAMIC
+- changeSet:
+    id: 1659443477042-3
+    author: hoffmann (generated)
+    changes:
+      - createIndex:
+          columns:
+            - column:
+                name: identifier
+          indexName: identifier
+          tableName: metadata
