@@ -13,7 +13,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.oersi.domain.*;
-import org.oersi.repository.LabelDefinitionRepository;
 import org.oersi.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,7 +36,7 @@ public class MetadataServiceImpl implements MetadataService {
   private static final String LABEL_GROUP_ID_SUBJECT = "subject";
 
   private final @NonNull MetadataRepository oerMetadataRepository;
-  private final @NonNull LabelDefinitionRepository labelDefinitionRepository;
+  private final @NonNull LabelDefinitionService labelDefinitionService;
   private final @NonNull LabelService labelService;
   private final @NonNull MetadataAutoUpdater metadataAutoUpdater;
 
@@ -50,7 +49,7 @@ public class MetadataServiceImpl implements MetadataService {
   @Transactional
   @Override
   public Metadata createOrUpdate(final Metadata metadata) {
-    LabelUpdater labelUpdater = new LabelUpdater(labelDefinitionRepository);
+    LabelUpdater labelUpdater = new LabelUpdater(labelDefinitionService);
     addDefaultValues(metadata);
     ValidatorResult validatorResult = new MetadataValidator(metadata).validate();
     if (!validatorResult.isValid()) {

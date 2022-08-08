@@ -1,5 +1,6 @@
 package org.oersi.service;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.oersi.domain.*;
 import org.oersi.repository.MetadataRepository;
@@ -29,6 +30,11 @@ class MetadataServiceTest {
   private LabelService labelService;
   @MockBean
   private JavaMailSender mailSender;
+
+  @AfterEach
+  void tearDown() {
+    labelService.clearCache();
+  }
 
   private Metadata newMetadata() {
     Metadata metadata = new Metadata();

@@ -1,5 +1,6 @@
 package org.oersi.service;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.oersi.domain.Label;
@@ -31,6 +32,11 @@ class LabelServiceTest {
     service.clearCache();
   }
 
+  @AfterEach
+  void tearDown() {
+    service.clearCache();
+  }
+
   private Label newLabel() {
     Label label = new Label();
     label.setLabelKey("key");
@@ -43,6 +49,7 @@ class LabelServiceTest {
   @Test
   void testCreateOrUpdateWithoutExistingData() {
     Label label = newLabel();
+    when(repository.findAll()).thenReturn(List.of());
     service.createOrUpdate(label.getLanguageCode(), label.getLabelKey(), label.getLabelValue(), label.getGroupId());
     verify(repository, times(1)).save(label);
   }
@@ -51,7 +58,7 @@ class LabelServiceTest {
   @Test
   void testCreateOrUpdateWithExistingDataFoundByIdWithoutChange() {
     Label label = newLabel();
-    when(repository.findByLanguageCodeAndLabelKey(label.getLanguageCode(), label.getLabelKey())).thenReturn(Optional.of(label));
+    when(repository.findAll()).thenReturn(List.of(label));
     service.createOrUpdate(label.getLanguageCode(), label.getLabelKey(), label.getLabelValue(), label.getGroupId());
     verify(repository, times(0)).save(label);
   }
@@ -59,6 +66,7 @@ class LabelServiceTest {
   @Test
   void testCreateOrUpdateWithExistingDataFoundByIdWithChangedValue() {
     Label label = newLabel();
+    when(repository.findAll()).thenReturn(List.of(label));
     when(repository.findByLanguageCodeAndLabelKey(label.getLanguageCode(), label.getLabelKey())).thenReturn(Optional.of(label));
     service.createOrUpdate(label.getLanguageCode(), label.getLabelKey(), "changedValue", label.getGroupId());
     verify(repository, times(1)).save(label);
@@ -67,6 +75,7 @@ class LabelServiceTest {
   @Test
   void testCreateOrUpdateWithExistingDataFoundByIdWithChangedGroup() {
     Label label = newLabel();
+    when(repository.findAll()).thenReturn(List.of(label));
     when(repository.findByLanguageCodeAndLabelKey(label.getLanguageCode(), label.getLabelKey())).thenReturn(Optional.of(label));
     service.createOrUpdate(label.getLanguageCode(), label.getLabelKey(), label.getLabelValue(), "changedGroup");
     verify(repository, times(1)).save(label);

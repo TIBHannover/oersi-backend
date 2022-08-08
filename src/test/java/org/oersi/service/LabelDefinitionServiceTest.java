@@ -1,5 +1,6 @@
 package org.oersi.service;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.oersi.domain.LabelDefinition;
 import org.oersi.repository.LabelDefinitionRepository;
@@ -24,6 +25,11 @@ class LabelDefinitionServiceTest {
   private LabelDefinitionRepository repository;
   @MockBean
   private JavaMailSender mailSender;
+
+  @AfterEach
+  void tearDown() {
+    service.clearCache();
+  }
 
   private LabelDefinition getTestData() {
     LabelDefinition definition = new LabelDefinition();

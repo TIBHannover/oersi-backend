@@ -37,13 +37,22 @@ public class LabelDefinitionServiceImpl implements LabelDefinitionService {
         labelsToUpdate.add(labelDefinition);
       }
     }
-    return labelDefinitionRepository.saveAll(labelsToUpdate);
+    List<LabelDefinition> result;
+    synchronized (labelDefinitionRepository) {
+      result = labelDefinitionRepository.saveAll(labelsToUpdate);
+      clearCache();
+      initLabelByLanguageCache(result);
+    }
+    return result;
   }
 
   @Transactional
   @Override
   public void delete(LabelDefinition labelDefinition) {
-    labelDefinitionRepository.delete(labelDefinition);
+    synchronized (labelDefinitionRepository) {
+      labelDefinitionRepository.delete(labelDefinition);
+      clearCache();
+    }
   }
 
   @Transactional(readOnly = true)
@@ -55,4 +64,39 @@ public class LabelDefinitionServiceImpl implements LabelDefinitionService {
     Optional<LabelDefinition> optional = labelDefinitionRepository.findById(id);
     return optional.orElse(null);
   }
+
+  @Transactional(readOnly = true)
+  @Override
+  public Map<String, String> getLocalizedLabelsByIdentifier(String identifier) {
+    return getLocalizedLabelByIdentifierCache().get(identifier);
+  }
+
+  private Map<String, Map<String, String>> localizedLabelByIdentifier = null;
+  private Map<String, Map<String, String>> initLabelByLanguageCache(List<LabelDefinition> labelDefinitions) {
+    Map<String, Map<String, String>> result = Collections.synchronizedMap(new HashMap<>());
+    for (LabelDefinition labelDefinition : labelDefinitions) {
+      Map<String, String> localizedLabels = result.computeIfAbsent(labelDefinition.getIdentifier(), k -> Collections.synchronizedMap(new HashMap<>()));
+      if (labelDefinition.getLabel() != null && labelDefinition.getLabel().getLocalizedStrings() != null) {
+        localizedLabels.putAll(labelDefinition.getLabel().getLocalizedStrings());
+      }
+    }
+    localizedLabelByIdentifier = result;
+    return result;
+  }
+  private Map<String, Map<String, String>> getLocalizedLabelByIdentifierCache() {
+    Map<String, Map<String, String>> result = localizedLabelByIdentifier;
+    if (result == null) {
+      log.debug("Init labelDefinition cache (byIdentifier)");
+      synchronized (labelDefinitionRepository) {
+        List<LabelDefinition> labelDefinitions = labelDefinitionRepository.findAll();
+        result = initLabelByLanguageCache(labelDefinitions);
+      }
+    }
+    return result;
+  }
+
+  public void clearCache() {
+    localizedLabelByIdentifier = null;
+  }
+
 }

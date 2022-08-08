@@ -50,6 +50,7 @@ class LabelDefinitionControllerTest {
 
   @BeforeEach
   void cleanup() {
+    labelDefinitionService.clearCache();
     labelDefinitionRepository.deleteAll();
     labelDefinitionRepository.flush();
   }

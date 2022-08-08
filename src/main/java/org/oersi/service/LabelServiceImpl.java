@@ -8,6 +8,7 @@ import org.oersi.domain.Label;
 import org.oersi.repository.LabelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -21,16 +22,17 @@ public class LabelServiceImpl implements LabelService {
   private Map<String, Map<String, String>> labelByLanguage = null;
   private Map<String, Map<String, Map<String, String>>> labelByLanguageAndGroup = null;
 
+  @Transactional
   @Override
   public Label createOrUpdate(String languageCode, String labelKey, String labelValue, String groupId) {
+    String currentValue = findByLanguageAndGroup(languageCode, groupId).get(labelKey);
+    if (StringUtils.equals(currentValue, labelValue)) {
+      return null;
+    }
     Optional<Label> existing = labelRepository.findByLanguageCodeAndLabelKey(languageCode, labelKey);
     Label label;
     if (existing.isPresent()) {
       label = existing.get();
-      if (StringUtils.equals(label.getLabelValue(), labelValue) && StringUtils.equals(label.getGroupId(), groupId)) {
-        log.debug("Skip label update, because there is no change {}", label);
-        return label;
-      }
     } else {
       label = new Label();
       label.setLanguageCode(languageCode);
