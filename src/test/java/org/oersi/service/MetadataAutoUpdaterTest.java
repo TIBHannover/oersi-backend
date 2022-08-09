@@ -1,6 +1,5 @@
 package org.oersi.service;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.oersi.domain.About;
 import org.oersi.domain.Media;
@@ -9,10 +8,6 @@ import org.oersi.domain.Provider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,59 +19,10 @@ class MetadataAutoUpdaterTest {
   @Autowired
   private MetadataAutoUpdater metadataAutoUpdater;
 
-  @BeforeEach
-  void init() {
-    metadataAutoUpdater.setImageLoader(new MetadataAutoUpdater.ImageLoader() {
-      @Override
-      public BufferedImage getImage(String source) throws IOException {
-        if ("null".equals(source)) {
-          return null;
-        }
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream(source)) {
-          return ImageIO.read(is);
-        }
-      }
-    });
-  }
-
   private Metadata newMetadata() {
     Metadata metadata = new Metadata();
     metadata.setIdentifier("https://www.test.de");
     return metadata;
-  }
-
-  @Test
-  void testImageDimensions() {
-    Metadata data = newMetadata();
-    metadataAutoUpdater.addMissingInfos(data);
-    assertThat(data.getImageWidth()).isNull();
-    assertThat(data.getImageHeight()).isNull();
-
-    data.setImage("media/image001.png");
-    metadataAutoUpdater.addMissingInfos(data);
-    assertThat(data.getImageWidth()).isEqualTo(900);
-    assertThat(data.getImageHeight()).isEqualTo(772);
-
-    data.setImageWidth(800);
-    data.setImageHeight(null);
-    metadataAutoUpdater.addMissingInfos(data);
-    assertThat(data.getImageWidth()).isEqualTo(800);
-    assertThat(data.getImageHeight()).isEqualTo(772);
-
-    data.setImageWidth(null);
-    data.setImageHeight(750);
-    metadataAutoUpdater.addMissingInfos(data);
-    assertThat(data.getImageWidth()).isEqualTo(900);
-    assertThat(data.getImageHeight()).isEqualTo(750);
-  }
-
-  @Test
-  void testImageNotLoadable() {
-    Metadata data = newMetadata();
-    data.setImage("null");
-    metadataAutoUpdater.addMissingInfos(data);
-    assertThat(data.getImageWidth()).isNull();
-    assertThat(data.getImageHeight()).isNull();
   }
 
   @Test

@@ -2,6 +2,7 @@ package org.oersi.service;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.oersi.domain.Creator;
 import org.oersi.domain.Media;
@@ -13,6 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
@@ -23,9 +28,22 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@Setter
 public class OembedServiceImpl implements OembedService {
 
   private final @NonNull MetadataRepository metadataRepository;
+
+  public interface ImageLoader {
+    BufferedImage getImage(String source) throws IOException;
+  }
+
+  public static class UrlImageLoader implements ImageLoader {
+    @Override
+    public BufferedImage getImage(String source) throws IOException {
+      return ImageIO.read(new URL(source));
+    }
+  }
+  private ImageLoader imageLoader = new UrlImageLoader();
 
   @Override
   public OembedResponseDto getOembedResponse(String url, Integer maxwidth, Integer maxheight) {
@@ -59,14 +77,27 @@ public class OembedServiceImpl implements OembedService {
     return oembed;
   }
 
-  private void setThumbnailFields(Metadata data, OembedResponseDto oembed, Integer maxwidth, Integer maxheight) {
-    if (data.getImage() != null && data.getImageWidth() != null && data.getImageHeight() != null) {
-      boolean widthMatches = maxwidth == null || data.getImageWidth() <= maxwidth;
-      boolean heightMatches = maxheight == null || data.getImageHeight() <= maxheight;
-      if (widthMatches && heightMatches) {
-        oembed.setThumbnailUrl(data.getImage());
-        oembed.setThumbnailWidth(data.getImageWidth());
-        oembed.setThumbnailHeight(data.getImageHeight());
+  private void setThumbnailFields(Metadata data, OembedResponseDto oembed, Integer maxWidth, Integer maxHeight) {
+    if (data.getImage() != null) {
+      try {
+        log.debug("Get dimensions of image {}", data.getImage());
+        BufferedImage image = imageLoader.getImage(data.getImage());
+        if (image == null) {
+          log.info("Could not read image {}", data.getImage());
+        } else {
+          int imageWidth = image.getWidth();
+          int imageHeight = image.getHeight();
+          boolean widthMatches = maxWidth == null || imageWidth <= maxWidth;
+          boolean heightMatches = maxHeight == null || imageHeight <= maxHeight;
+          if (widthMatches && heightMatches) {
+            oembed.setThumbnailUrl(data.getImage());
+            oembed.setThumbnailWidth(imageWidth);
+            oembed.setThumbnailHeight(imageHeight);
+          }
+        }
+      } catch (IOException e) {
+        log.debug("error while reading image", e);
+        log.info("Could not read image {}", data.getImage());
       }
     }
   }

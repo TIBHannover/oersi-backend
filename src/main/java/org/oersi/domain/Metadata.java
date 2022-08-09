@@ -95,8 +95,6 @@ public class Metadata {
 
   @URL
   private String image;
-  private Integer imageWidth;
-  private Integer imageHeight;
 
   private String dateCreated;
   private String datePublished;
