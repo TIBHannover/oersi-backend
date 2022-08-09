@@ -4,6 +4,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.oersi.domain.*;
+import org.oersi.repository.LabelDefinitionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -12,7 +13,7 @@ import java.util.*;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class LabelUpdater {
 
-  private final @NonNull LabelDefinitionService labelDefinitionService;
+  private final @NonNull LabelDefinitionRepository labelDefinitionRepository;
 
   public void addMissingLabels(Metadata metadata) {
     if (metadata.getAbout() != null) {
@@ -37,9 +38,9 @@ public class LabelUpdater {
   }
 
   public LocalizedString addMissingLabels(String identifier, LocalizedString existingLabels) {
-    Map<String, String> localizedLabels = labelDefinitionService.getLocalizedLabelsByIdentifier(identifier);
+    LabelDefinition labelDefinition = getLabelDefinition(identifier);
     LocalizedString result = existingLabels;
-    if (localizedLabels != null) {
+    if (labelDefinition != null && labelDefinition.getLabel() != null && labelDefinition.getLabel().getLocalizedStrings() != null) {
       if (result == null) {
         result = new LocalizedString();
         result.setLocalizedStrings(new HashMap<>());
@@ -48,7 +49,7 @@ public class LabelUpdater {
       }
       Map<String, String> localizedStrings = result.getLocalizedStrings();
 
-      for (Map.Entry<String, String> definitionEntry : localizedLabels.entrySet()) {
+      for (Map.Entry<String, String> definitionEntry : labelDefinition.getLabel().getLocalizedStrings().entrySet()) {
         if (localizedStrings.containsKey(definitionEntry.getKey())) {
           continue;
         }
@@ -57,4 +58,10 @@ public class LabelUpdater {
     }
     return result;
   }
+
+  private LabelDefinition getLabelDefinition(String identifier) {
+    Optional<LabelDefinition> labelDefinitionSearch = labelDefinitionRepository.findByIdentifier(identifier);
+    return labelDefinitionSearch.orElse(null);
+  }
+
 }

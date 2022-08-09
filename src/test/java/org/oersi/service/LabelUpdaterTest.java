@@ -3,6 +3,7 @@ package org.oersi.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.oersi.domain.*;
+import org.oersi.repository.LabelDefinitionRepository;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -18,14 +19,14 @@ class LabelUpdaterTest {
   private static final String TEST_IDENTIFIER = "test";
 
   @MockBean
-  private LabelDefinitionService service;
+  private LabelDefinitionRepository repository;
   private LabelUpdater labelUpdater;
   @MockBean
   private JavaMailSender mailSender;
 
   @BeforeEach
   void cleanup() {
-    labelUpdater = new LabelUpdater(service);
+    labelUpdater = new LabelUpdater(repository);
   }
 
   private LocalizedString testData() {
@@ -37,12 +38,17 @@ class LabelUpdaterTest {
     return result;
   }
 
-  private Map<String, String> testDefinition() {
+  private LabelDefinition testDefinition() {
+    LabelDefinition definition = new LabelDefinition();
+    definition.setIdentifier(TEST_IDENTIFIER);
+    LocalizedString localizedString = new LocalizedString();
     Map<String, String> map = new HashMap<>();
     map.put("de", "test1");
     map.put("en", "test2");
     map.put("fi", "test3");
-    return map;
+    localizedString.setLocalizedStrings(map);
+    definition.setLabel(localizedString);
+    return definition;
   }
 
   private Metadata newMetadata() {
@@ -69,19 +75,30 @@ class LabelUpdaterTest {
   void testUnsetLabelDefinition() {
     LocalizedString testData = testData();
 
-    when(service.getLocalizedLabelsByIdentifier(TEST_IDENTIFIER)).thenReturn(null);
+    when(repository.findByIdentifier(TEST_IDENTIFIER)).thenReturn(Optional.empty());
     LocalizedString result = labelUpdater.addMissingLabels(TEST_IDENTIFIER, testData);
+    assertThat(result).isSameAs(testData);
+
+    LabelDefinition labelDefinition = new LabelDefinition();
+    when(repository.findByIdentifier(TEST_IDENTIFIER)).thenReturn(Optional.of(labelDefinition));
+    result = labelUpdater.addMissingLabels(TEST_IDENTIFIER, testData);
+    assertThat(result).isSameAs(testData);
+
+    labelDefinition = new LabelDefinition();
+    labelDefinition.setLabel(new LocalizedString());
+    when(repository.findByIdentifier(TEST_IDENTIFIER)).thenReturn(Optional.of(labelDefinition));
+    result = labelUpdater.addMissingLabels(TEST_IDENTIFIER, testData);
     assertThat(result).isSameAs(testData);
   }
 
   @Test
   void testWithNonExistingData() {
-    when(service.getLocalizedLabelsByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
+    when(repository.findByIdentifier(TEST_IDENTIFIER)).thenReturn(Optional.of(testDefinition()));
     LocalizedString result = labelUpdater.addMissingLabels(TEST_IDENTIFIER, null);
     assertThat(result).isNotNull();
     assertThat(result.getLocalizedStrings()).hasSize(3);
 
-    when(service.getLocalizedLabelsByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
+    when(repository.findByIdentifier(TEST_IDENTIFIER)).thenReturn(Optional.of(testDefinition()));
     result = labelUpdater.addMissingLabels(TEST_IDENTIFIER, new LocalizedString());
     assertThat(result).isNotNull();
     assertThat(result.getLocalizedStrings()).hasSize(3);
@@ -89,7 +106,7 @@ class LabelUpdaterTest {
 
   @Test
   void testWithExistingData() {
-    when(service.getLocalizedLabelsByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
+    when(repository.findByIdentifier(TEST_IDENTIFIER)).thenReturn(Optional.of(testDefinition()));
     LocalizedString result = labelUpdater.addMissingLabels(TEST_IDENTIFIER, testData());
     assertThat(result).isNotNull();
     assertThat(result.getLocalizedStrings()).hasSize(3);
@@ -100,7 +117,7 @@ class LabelUpdaterTest {
 
   @Test
   void testUpdateMetadata() {
-    when(service.getLocalizedLabelsByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
+    when(repository.findByIdentifier(TEST_IDENTIFIER)).thenReturn(Optional.of(testDefinition()));
     Metadata metadata = newMetadata();
     labelUpdater.addMissingLabels(metadata);
     assertThat(metadata.getAbout().get(0).getPrefLabel()).isNotNull();
@@ -115,7 +132,7 @@ class LabelUpdaterTest {
 
   @Test
   void testUpdateMetadataWithoutLabelFields() {
-    when(service.getLocalizedLabelsByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
+    when(repository.findByIdentifier(TEST_IDENTIFIER)).thenReturn(Optional.of(testDefinition()));
     Metadata metadata = new Metadata();
     labelUpdater.addMissingLabels(metadata);
     assertThat(metadata.getAbout()).isNull();
