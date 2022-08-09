@@ -23,14 +23,14 @@ public class LabelServiceImpl implements LabelService {
 
   @Override
   public Label createOrUpdate(String languageCode, String labelKey, String labelValue, String groupId) {
+    String currentValue = findByLanguageAndGroup(languageCode, groupId).get(labelKey);
+    if (StringUtils.equals(currentValue, labelValue)) {
+      return null;
+    }
     Optional<Label> existing = labelRepository.findByLanguageCodeAndLabelKey(languageCode, labelKey);
     Label label;
     if (existing.isPresent()) {
       label = existing.get();
-      if (StringUtils.equals(label.getLabelValue(), labelValue) && StringUtils.equals(label.getGroupId(), groupId)) {
-        log.debug("Skip label update, because there is no change {}", label);
-        return label;
-      }
     } else {
       label = new Label();
       label.setLanguageCode(languageCode);
