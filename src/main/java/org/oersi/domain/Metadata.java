@@ -1,7 +1,11 @@
 package org.oersi.domain;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.hibernate.validator.constraints.URL;
+
 import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
@@ -15,18 +19,21 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-
-import lombok.Data;
-import org.hibernate.validator.constraints.URL;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Contains the metadata for an oer document
  */
-@Data
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
 @Entity
 @Table(indexes = @Index(name = "identifier", columnList = "identifier"))
 public class Metadata {
-  
+
   public static final int NAME_LENGTH = 500;
   public static final int DESCRIPTION_LENGTH = 10000;
 
@@ -43,6 +50,7 @@ public class Metadata {
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "metadata_id", nullable = true)
+  @ToString.Exclude
   private List<Caption> caption;
 
   @URL
@@ -52,10 +60,12 @@ public class Metadata {
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "metadata_id", nullable = true)
+  @ToString.Exclude
   private List<Creator> creator;
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "metadata_id", nullable = true)
+  @ToString.Exclude
   private List<Contributor> contributor;
 
   @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
@@ -70,10 +80,12 @@ public class Metadata {
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "metadata_id", nullable = true)
+  @ToString.Exclude
   private List<About> about;
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "metadata_id", nullable = true)
+  @ToString.Exclude
   private List<Media> encoding;
   @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
   private Provider provider;
@@ -95,22 +107,27 @@ public class Metadata {
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "metadata_id", nullable = true)
+  @ToString.Exclude
   private List<LearningResourceType> learningResourceType;
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "metadata_id", nullable = true)
+  @ToString.Exclude
   private List<Audience> audience;
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "metadata_id", nullable = true)
+  @ToString.Exclude
   private List<MainEntityOfPage> mainEntityOfPage;
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "metadata_id", nullable = true)
+  @ToString.Exclude
   private List<Publisher> publisher;
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "metadata_id", nullable = true)
+  @ToString.Exclude
   private List<SourceOrganization> sourceOrganization;
 
   @ElementCollection
@@ -124,4 +141,16 @@ public class Metadata {
   @Column(nullable = false)
   private LocalDateTime dateModifiedInternal;
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Metadata metadata = (Metadata) o;
+    return id != null && Objects.equals(id, metadata.id);
+  }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
 }

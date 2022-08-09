@@ -3,6 +3,7 @@ package org.oersi.service;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.oersi.domain.Label;
 import org.oersi.repository.LabelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,8 +51,14 @@ class LabelServiceTest {
   void testCreateOrUpdateWithoutExistingData() {
     Label label = newLabel();
     when(repository.findAll()).thenReturn(List.of());
+    when(repository.findByLanguageCodeAndLabelKey(label.getLanguageCode(), label.getLabelKey())).thenReturn(Optional.empty());
     service.createOrUpdate(label.getLanguageCode(), label.getLabelKey(), label.getLabelValue(), label.getGroupId());
-    verify(repository, times(1)).save(label);
+    ArgumentCaptor<Label> newLabel = ArgumentCaptor.forClass(Label.class);
+    verify(repository, times(1)).save(newLabel.capture());
+    assertThat(newLabel.getValue().getLabelKey()).isEqualTo(label.getLabelKey());
+    assertThat(newLabel.getValue().getLanguageCode()).isEqualTo(label.getLanguageCode());
+    assertThat(newLabel.getValue().getLabelValue()).isEqualTo(label.getLabelValue());
+    assertThat(newLabel.getValue().getGroupId()).isEqualTo(label.getGroupId());
   }
 
 
