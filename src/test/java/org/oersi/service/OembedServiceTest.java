@@ -40,6 +40,9 @@ class OembedServiceTest {
         if ("null".equals(source)) {
           return null;
         }
+        if ("ioexception".equals(source)) {
+          throw new IOException();
+        }
         try (InputStream is = getClass().getClassLoader().getResourceAsStream(source)) {
           return ImageIO.read(is);
         }
@@ -111,6 +114,12 @@ class OembedServiceTest {
     oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
     assertThat(oembed.getWidth()).isNull();
     assertThat(oembed.getHeight()).isNull();
+
+    dummyData.setImage("ioexception");
+    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    assertThat(oembed.getThumbnailUrl()).isNull();
+    assertThat(oembed.getThumbnailWidth()).isNull();
+    assertThat(oembed.getThumbnailHeight()).isNull();
   }
 
   @Test
@@ -119,6 +128,50 @@ class OembedServiceTest {
     when(repository.findByIdentifier("https://www.test.de")).thenReturn(List.of(dummyData));
     OembedResponseDto oembed = service.getOembedResponse("https://oersi.de/resources/aHR0cHM6Ly93d3cudGVzdC5kZQ==", null, null);
     assertThat(oembed).isNotNull();
+  }
+
+  @Test
+  void testLicense() {
+    Metadata dummyData = newMetadata();
+    when(repository.findByIdentifier("https://www.test.de")).thenReturn(List.of(dummyData));
+    OembedResponseDto oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    assertThat(oembed.getLicenseUrl()).isEqualTo(dummyData.getLicense().getIdentifier());
+
+    dummyData.setLicense(null);
+    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    assertThat(oembed.getLicenseUrl()).isNull();
+  }
+
+  @Test
+  void testAuthor() {
+    Metadata dummyData = newMetadata();
+    List<Creator> creators = new ArrayList<>();
+    Creator author = new Creator();
+    author.setType("Person");
+    author.setName("test1 test");
+    author.setIdentifier("https://orcid.org/1234-5678-0987-6543");
+    Creator author2 = new Creator();
+    author2.setType("Person");
+    author2.setName("test2 test");
+    author2.setIdentifier("https://orcid.org/5678-0987-6543-1234");
+    creators.add(author);
+    creators.add(author2);
+    dummyData.setCreator(creators);
+
+    when(repository.findByIdentifier("https://www.test.de")).thenReturn(List.of(dummyData));
+    OembedResponseDto oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    assertThat(oembed.getAuthors()).hasSize(2);
+    assertThat(oembed.getAuthorName()).isEqualTo("test1 test, test2 test");
+    assertThat(oembed.getAuthorUrl()).isEqualTo("https://orcid.org/1234-5678-0987-6543,https://orcid.org/5678-0987-6543-1234");
+
+    creators = new ArrayList<>();
+    author = new Creator();
+    author.setType("Person");
+    author.setIdentifier("https://orcid.org/1234-5678-0987-6543");
+    creators.add(author);
+    dummyData.setCreator(creators);
+    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    assertThat(oembed.getAuthorName()).isNull();
   }
 
   @Test
