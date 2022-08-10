@@ -1,19 +1,24 @@
 package org.oersi.domain;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
-@Data
+@Getter
+@Setter
+@ToString(callSuper = true)
+@NoArgsConstructor
 @Entity
 @Table(
   uniqueConstraints = @UniqueConstraint(columnNames = {"language_code", "label_key"})
 )
-public class Label {
-
-  @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  private Long id;
+public class Label extends BaseEntity {
 
   private String groupId;
   @Column(name = "language_code", nullable = false, length = 3)

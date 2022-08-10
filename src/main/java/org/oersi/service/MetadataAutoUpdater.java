@@ -17,10 +17,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,25 +43,12 @@ public class MetadataAutoUpdater {
 
   private final @NonNull ResourceLoader resourceLoader;
 
-  public interface ImageLoader {
-    BufferedImage getImage(String source) throws IOException;
-  }
-
-  public static class UrlImageLoader implements ImageLoader {
-    @Override
-    public BufferedImage getImage(String source) throws IOException {
-      return ImageIO.read(new URL(source));
-    }
-  }
-
   private final @NonNull AutoUpdateProperties autoUpdateProperties;
-  private ImageLoader imageLoader = new UrlImageLoader();
 
   public void addMissingInfos(Metadata data) {
     if (featureAddMissingParentItems) {
       addMissingParentItemsForHierarchicalVocab(data);
     }
-    setImageDimensions(data);
 
     boolean shouldUpdateByDefinitions = !hasEmbedUrl(data) || !hasProviderName(data) || !hasProviderUrl(data);
     if (shouldUpdateByDefinitions) {
@@ -163,30 +147,6 @@ public class MetadataAutoUpdater {
     Media videoEncoding = new Media();
     videoEncoding.setEmbedUrl(embedUrl);
     encoding.add(videoEncoding);
-  }
-
-  private void setImageDimensions(Metadata data) {
-    if (data.getImage() != null && (data.getImageWidth() == null || data.getImageHeight() == null)) {
-      log.debug("Set dimensions of image {}", data.getImage());
-      try {
-        BufferedImage image = imageLoader.getImage(data.getImage());
-        if (image == null) {
-          log.info("Could not read image {}", data.getImage());
-        } else {
-          if (data.getImageWidth() == null) {
-            data.setImageWidth(image.getWidth());
-            log.debug("image width {}", data.getImageWidth());
-          }
-          if (data.getImageHeight() == null) {
-            data.setImageHeight(image.getHeight());
-            log.debug("image height {}", data.getImageHeight());
-          }
-        }
-      } catch (IOException e) {
-        log.debug("error while reading image", e);
-        log.info("Could not read image {}", data.getImage());
-      }
-    }
   }
 
   private boolean hasProviderName(Metadata data) {

@@ -1,5 +1,6 @@
 package org.oersi.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.oersi.domain.Creator;
@@ -13,6 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +31,24 @@ class OembedServiceTest {
   private OembedService service;
   @MockBean
   private MetadataRepository repository;
+
+  @BeforeEach
+  void init() {
+    ((OembedServiceImpl)service).setImageLoader(new OembedServiceImpl.ImageLoader() {
+      @Override
+      public BufferedImage getImage(String source) throws IOException {
+        if ("null".equals(source)) {
+          return null;
+        }
+        if ("ioexception".equals(source)) {
+          throw new IOException();
+        }
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream(source)) {
+          return ImageIO.read(is);
+        }
+      }
+    });
+  }
 
   private Metadata newMetadata() {
     Metadata metadata = new Metadata();
@@ -83,11 +106,72 @@ class OembedServiceTest {
   }
 
   @Test
+  void testImageNotLoadable() {
+    Metadata dummyData = newMetadata();
+    dummyData.setImage("null");
+    when(repository.findByIdentifier(dummyData.getIdentifier())).thenReturn(List.of(dummyData));
+    OembedResponseDto oembed;
+    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    assertThat(oembed.getWidth()).isNull();
+    assertThat(oembed.getHeight()).isNull();
+
+    dummyData.setImage("ioexception");
+    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    assertThat(oembed.getThumbnailUrl()).isNull();
+    assertThat(oembed.getThumbnailWidth()).isNull();
+    assertThat(oembed.getThumbnailHeight()).isNull();
+  }
+
+  @Test
   void testFindByBase64EncodedUrl() {
     Metadata dummyData = newMetadata();
     when(repository.findByIdentifier("https://www.test.de")).thenReturn(List.of(dummyData));
     OembedResponseDto oembed = service.getOembedResponse("https://oersi.de/resources/aHR0cHM6Ly93d3cudGVzdC5kZQ==", null, null);
     assertThat(oembed).isNotNull();
+  }
+
+  @Test
+  void testLicense() {
+    Metadata dummyData = newMetadata();
+    when(repository.findByIdentifier("https://www.test.de")).thenReturn(List.of(dummyData));
+    OembedResponseDto oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    assertThat(oembed.getLicenseUrl()).isEqualTo(dummyData.getLicense().getIdentifier());
+
+    dummyData.setLicense(null);
+    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    assertThat(oembed.getLicenseUrl()).isNull();
+  }
+
+  @Test
+  void testAuthor() {
+    Metadata dummyData = newMetadata();
+    List<Creator> creators = new ArrayList<>();
+    Creator author = new Creator();
+    author.setType("Person");
+    author.setName("test1 test");
+    author.setIdentifier("https://orcid.org/1234-5678-0987-6543");
+    Creator author2 = new Creator();
+    author2.setType("Person");
+    author2.setName("test2 test");
+    author2.setIdentifier("https://orcid.org/5678-0987-6543-1234");
+    creators.add(author);
+    creators.add(author2);
+    dummyData.setCreator(creators);
+
+    when(repository.findByIdentifier("https://www.test.de")).thenReturn(List.of(dummyData));
+    OembedResponseDto oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    assertThat(oembed.getAuthors()).hasSize(2);
+    assertThat(oembed.getAuthorName()).isEqualTo("test1 test, test2 test");
+    assertThat(oembed.getAuthorUrl()).isEqualTo("https://orcid.org/1234-5678-0987-6543,https://orcid.org/5678-0987-6543-1234");
+
+    creators = new ArrayList<>();
+    author = new Creator();
+    author.setType("Person");
+    author.setIdentifier("https://orcid.org/1234-5678-0987-6543");
+    creators.add(author);
+    dummyData.setCreator(creators);
+    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    assertThat(oembed.getAuthorName()).isNull();
   }
 
   @Test
@@ -110,74 +194,35 @@ class OembedServiceTest {
   }
 
   @Test
-  void testNullThumbnail() {
-    Metadata dummyData = newMetadata();
-    when(repository.findByIdentifier(dummyData.getIdentifier())).thenReturn(List.of(dummyData));
-
-    OembedResponseDto oembed;
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
-    assertThat(oembed.getThumbnailUrl()).isNull();
-    assertThat(oembed.getThumbnailWidth()).isNull();
-    assertThat(oembed.getThumbnailHeight()).isNull();
-
-    dummyData.setImage("https://awesome.image");
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
-    assertThat(oembed.getThumbnailUrl()).isNull();
-    assertThat(oembed.getThumbnailWidth()).isNull();
-    assertThat(oembed.getThumbnailHeight()).isNull();
-
-    dummyData.setImageWidth(400);
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
-    assertThat(oembed.getThumbnailUrl()).isNull();
-    assertThat(oembed.getThumbnailWidth()).isNull();
-    assertThat(oembed.getThumbnailHeight()).isNull();
-
-    dummyData.setImageWidth(null);
-    dummyData.setImageHeight(250);
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
-    assertThat(oembed.getThumbnailUrl()).isNull();
-    assertThat(oembed.getThumbnailWidth()).isNull();
-    assertThat(oembed.getThumbnailHeight()).isNull();
-  }
-
-  @Test
   void testThumbnail() {
     Metadata dummyData = newMetadata();
-    dummyData.setImage("https://awesome.image");
-    dummyData.setImageWidth(400);
-    dummyData.setImageHeight(250);
     when(repository.findByIdentifier(dummyData.getIdentifier())).thenReturn(List.of(dummyData));
-
     OembedResponseDto oembed;
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), 300, 300);
-    assertThat(oembed.getThumbnailUrl()).isNull();
-    assertThat(oembed.getThumbnailWidth()).isNull();
-    assertThat(oembed.getThumbnailHeight()).isNull();
-
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), 300, null);
-    assertThat(oembed.getThumbnailUrl()).isNull();
-    assertThat(oembed.getThumbnailWidth()).isNull();
-    assertThat(oembed.getThumbnailHeight()).isNull();
-
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), 600, 200);
-    assertThat(oembed.getThumbnailUrl()).isNull();
-    assertThat(oembed.getThumbnailWidth()).isNull();
-    assertThat(oembed.getThumbnailHeight()).isNull();
-
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, 200);
-    assertThat(oembed.getThumbnailUrl()).isNull();
-    assertThat(oembed.getThumbnailWidth()).isNull();
-    assertThat(oembed.getThumbnailHeight()).isNull();
-
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), 520, 315);
-    assertThat(oembed.getThumbnailUrl()).isEqualTo(dummyData.getImage());
-    assertThat(oembed.getThumbnailWidth()).isEqualTo(400);
-    assertThat(oembed.getThumbnailHeight()).isEqualTo(250);
-
     oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
-    assertThat(oembed.getThumbnailUrl()).isEqualTo(dummyData.getImage());
-    assertThat(oembed.getThumbnailWidth()).isEqualTo(400);
-    assertThat(oembed.getThumbnailHeight()).isEqualTo(250);
+    assertThat(oembed.getThumbnailUrl()).isNull();
+    assertThat(oembed.getThumbnailWidth()).isNull();
+    assertThat(oembed.getThumbnailHeight()).isNull();
+
+    dummyData.setImage("media/image001.png");
+    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    assertThat(oembed.getThumbnailUrl()).isNotNull();
+    assertThat(oembed.getThumbnailWidth()).isEqualTo(900);
+    assertThat(oembed.getThumbnailHeight()).isEqualTo(772);
+
+    oembed = service.getOembedResponse(dummyData.getIdentifier(), 1000, 1000);
+    assertThat(oembed.getThumbnailUrl()).isNotNull();
+    assertThat(oembed.getThumbnailWidth()).isEqualTo(900);
+    assertThat(oembed.getThumbnailHeight()).isEqualTo(772);
+
+    oembed = service.getOembedResponse(dummyData.getIdentifier(), 800, null);
+    assertThat(oembed.getThumbnailUrl()).isNull();
+    assertThat(oembed.getThumbnailWidth()).isNull();
+    assertThat(oembed.getThumbnailHeight()).isNull();
+
+    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, 750);
+    assertThat(oembed.getThumbnailUrl()).isNull();
+    assertThat(oembed.getThumbnailWidth()).isNull();
+    assertThat(oembed.getThumbnailHeight()).isNull();
   }
 
 }

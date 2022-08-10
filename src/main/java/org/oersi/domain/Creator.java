@@ -1,21 +1,20 @@
 package org.oersi.domain;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.OneToOne;
 
-import lombok.Data;
-
-@Data
+@Getter
+@Setter
+@ToString(callSuper = true)
+@NoArgsConstructor
 @Entity
-public class Creator {
-
-  @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  private Long id;
+public class Creator extends BaseEntity {
 
   private String type;
   private String identifier;
@@ -23,4 +22,5 @@ public class Creator {
   private String honorificPrefix;
   @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
   private Affiliation affiliation;
+
 }

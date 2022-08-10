@@ -1195,3 +1195,35 @@ databaseChangeLog:
           referencedColumnNames: id
           referencedTableName: metadata
           validate: true
+- changeSet:
+    id: 1659443477042-2
+    author: mhoffmann
+    changes:
+      - sql:
+          dbms: mariadb, mysql
+          comment: set row_format of metadata to dynamic
+          sql: ALTER TABLE metadata ROW_FORMAT=DYNAMIC
+- changeSet:
+    id: 1659443477042-3
+    author: hoffmann (generated)
+    changes:
+      - createIndex:
+          columns:
+            - column:
+                name: identifier
+          indexName: identifier
+          tableName: metadata
+- changeSet:
+    id: 1660040509852-1
+    author: hoffmann (generated)
+    changes:
+      - dropColumn:
+          columnName: image_height
+          tableName: metadata
+- changeSet:
+    id: 1660040509852-2
+    author: hoffmann (generated)
+    changes:
+      - dropColumn:
+          columnName: image_width
+          tableName: metadata
