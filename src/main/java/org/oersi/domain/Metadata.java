@@ -1,8 +1,8 @@
 package org.oersi.domain;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.validator.constraints.URL;
 
@@ -11,9 +11,6 @@ import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
@@ -21,25 +18,20 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Contains the metadata for an oer document
  */
 @Getter
 @Setter
-@ToString
+@ToString(callSuper = true)
 @NoArgsConstructor
 @Entity
 @Table(indexes = @Index(name = "identifier", columnList = "identifier"))
-public class Metadata {
+public class Metadata extends BaseEntity {
 
   public static final int NAME_LENGTH = 500;
   public static final int DESCRIPTION_LENGTH = 10000;
-
-  @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  private Long id;
 
   @URL
   @Column(nullable = false)
@@ -139,16 +131,4 @@ public class Metadata {
   @Column(nullable = false)
   private LocalDateTime dateModifiedInternal;
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    Metadata metadata = (Metadata) o;
-    return id != null && Objects.equals(id, metadata.id);
-  }
-
-  @Override
-  public int hashCode() {
-    return getClass().hashCode();
-  }
 }

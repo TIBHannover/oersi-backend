@@ -7,22 +7,14 @@ import lombok.ToString;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.OneToOne;
-import java.util.Objects;
 
 @Getter
 @Setter
-@ToString
+@ToString(callSuper = true)
 @NoArgsConstructor
 @Entity
-public class MainEntityOfPage {
-
-  @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  private Long id;
+public class MainEntityOfPage extends BaseEntity {
 
   private String identifier;
   private String type;
@@ -30,17 +22,4 @@ public class MainEntityOfPage {
   private String dateModified;
   @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
   private Provider provider;
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    MainEntityOfPage that = (MainEntityOfPage) o;
-    return id != null && Objects.equals(id, that.id);
-  }
-
-  @Override
-  public int hashCode() {
-    return getClass().hashCode();
-  }
 }
