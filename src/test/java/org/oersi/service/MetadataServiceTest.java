@@ -1,7 +1,15 @@
 package org.oersi.service;
 
 import org.junit.jupiter.api.Test;
-import org.oersi.domain.*;
+import org.oersi.domain.About;
+import org.oersi.domain.Audience;
+import org.oersi.domain.Creator;
+import org.oersi.domain.LearningResourceType;
+import org.oersi.domain.License;
+import org.oersi.domain.LocalizedString;
+import org.oersi.domain.MainEntityOfPage;
+import org.oersi.domain.Metadata;
+import org.oersi.domain.Provider;
 import org.oersi.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,9 +22,12 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 class MetadataServiceTest {
@@ -74,7 +85,7 @@ class MetadataServiceTest {
     license.setIdentifier("https://creativecommons.org/publicdomain/zero/1.0/");
     metadata.setLicense(license);
     metadata.setName("Test Title");
-    metadata.setIdentifier("http://www.test.de");
+    metadata.setIdentifier("https://www.test.de");
     return metadata;
   }
 
@@ -82,16 +93,16 @@ class MetadataServiceTest {
   void testCreateOrUpdateWithoutExistingData() {
     Metadata metadata = newMetadata();
     service.createOrUpdate(metadata);
-    verify(repository, times(1)).save(metadata);
+    verify(repository, times(1)).saveAll(anyList());
   }
 
   @Test
   void testCreateOrUpdateWithMinimalData() {
     Metadata metadata = new Metadata();
     metadata.setName("Test Title");
-    metadata.setIdentifier("http://www.test.de");
+    metadata.setIdentifier("https://www.test.de");
     service.createOrUpdate(metadata);
-    verify(repository, times(1)).save(metadata);
+    verify(repository, times(1)).saveAll(anyList());
   }
 
   @Test
@@ -100,21 +111,15 @@ class MetadataServiceTest {
     LocalizedString lrtPrefLabel = new LocalizedString();
     lrtPrefLabel.setLocalizedStrings(Map.of("invalid", "test"));
     metadata.getLearningResourceType().get(0).setPrefLabel(lrtPrefLabel);
-    try {
-      service.createOrUpdate(metadata);
-      fail("Expect an exception as the prefLabel language code is invalid");
-    } catch (IllegalArgumentException e) {
-    }
+    MetadataService.MetadataUpdateResult result = service.createOrUpdate(metadata);
+    assertThat(result.getSuccess()).isFalse();
 
     lrtPrefLabel = new LocalizedString();
     lrtPrefLabel.setLocalizedStrings(Map.of("zz", "test"));
     metadata.getLearningResourceType().get(0).setPrefLabel(lrtPrefLabel);
-    try {
-      service.createOrUpdate(metadata);
-      fail("Expect an exception as the prefLabel language code is invalid");
-    } catch (IllegalArgumentException e) {
-    }
-    verify(repository, times(0)).save(metadata);
+    result = service.createOrUpdate(metadata);
+    assertThat(result.getSuccess()).isFalse();
+    verify(repository, times(0)).saveAll(anyList());
   }
 
   @Test
@@ -122,12 +127,9 @@ class MetadataServiceTest {
     Metadata metadata = newMetadata();
     metadata.setIdentifier("");
     metadata.setName("");
-    try {
-      service.createOrUpdate(metadata);
-      fail("Expect an exception as there are empty mandatory fields");
-    } catch (IllegalArgumentException e) {
-    }
-    verify(repository, times(0)).save(metadata);
+    MetadataService.MetadataUpdateResult result = service.createOrUpdate(metadata);
+    assertThat(result.getSuccess()).isFalse();
+    verify(repository, times(0)).saveAll(anyList());
   }
 
   @Test
@@ -145,7 +147,7 @@ class MetadataServiceTest {
     Metadata metadata = newMetadata();
     metadata.setMainEntityOfPage(null);
     service.createOrUpdate(metadata);
-    verify(repository, times(1)).save(metadata);
+    verify(repository, times(1)).saveAll(anyList());
   }
 
   @Test
@@ -155,14 +157,14 @@ class MetadataServiceTest {
     service.createOrUpdate(metadata);
     metadata.getMainEntityOfPage().get(0).setIdentifier("!!$%");
     service.createOrUpdate(metadata);
-    verify(repository, times(2)).save(metadata);
+    verify(repository, times(2)).saveAll(anyList());
   }
 
   @Test
   void testCreateOrUpdateWithMainEntityOfPageSource() {
     Metadata metadata = newMetadata();
     service.createOrUpdate(metadata);
-    verify(repository, times(1)).save(metadata);
+    verify(repository, times(1)).saveAll(anyList());
     assertThat(metadata.getMainEntityOfPage().get(0).getProvider()).isNotNull();
     assertThat(metadata.getMainEntityOfPage().get(0).getProvider().getName())
         .isEqualTo("example.url");
@@ -221,7 +223,7 @@ class MetadataServiceTest {
     provider.setName("testname");
     metadata.getMainEntityOfPage().get(0).setProvider(provider);
     service.createOrUpdate(metadata);
-    verify(repository, times(1)).save(metadata);
+    verify(repository, times(1)).saveAll(anyList());
     assertThat(metadata.getMainEntityOfPage().get(0).getProvider()).isNotNull();
     assertThat(metadata.getMainEntityOfPage().get(0).getProvider().getName()).isEqualTo("testname");
   }
@@ -231,7 +233,7 @@ class MetadataServiceTest {
     Metadata metadata = newMetadata();
     metadata.getMainEntityOfPage().get(0).setIdentifier(null);
     service.createOrUpdate(metadata);
-    verify(repository, times(1)).save(metadata);
+    verify(repository, times(1)).saveAll(anyList());
   }
 
   @Test
@@ -240,7 +242,7 @@ class MetadataServiceTest {
     metadata.setId(1L);
     when(repository.findById(1L)).thenReturn(Optional.of(metadata));
     service.createOrUpdate(metadata);
-    verify(repository, times(1)).save(metadata);
+    verify(repository, times(1)).saveAll(anyList());
   }
 
   @Test
@@ -248,7 +250,7 @@ class MetadataServiceTest {
     Metadata metadata = newMetadata();
     when(repository.findByIdentifier(metadata.getIdentifier())).thenReturn(List.of(metadata));
     service.createOrUpdate(metadata);
-    verify(repository, times(1)).save(metadata);
+    verify(repository, times(1)).saveAll(anyList());
   }
 
   @Test

@@ -8,6 +8,8 @@ import org.modelmapper.ModelMapper;
 import org.oersi.api.MetadataControllerApi;
 import org.oersi.domain.Metadata;
 import org.oersi.dto.MetadataBulkDeleteDto;
+import org.oersi.dto.MetadataBulkUpdateResponseDto;
+import org.oersi.dto.MetadataBulkUpdateResponseMessagesDto;
 import org.oersi.dto.MetadataDto;
 import org.oersi.service.MetadataService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.ValidationException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Controller that handles crud requests to the OER index.
@@ -31,6 +37,9 @@ public class MetadataController implements MetadataControllerApi {
 
   private Metadata convertToEntity(final MetadataDto dto) {
     return modelMapper.map(dto, Metadata.class);
+  }
+  private List<Metadata> convertToEntity(final List<MetadataDto> dtos) {
+    return dtos.stream().map(this::convertToEntity).collect(Collectors.toList());
   }
 
   private MetadataDto convertToDto(final Metadata entity) {
@@ -61,6 +70,14 @@ public class MetadataController implements MetadataControllerApi {
   public ResponseEntity<String> handleMappingException(final MappingException e) {
     return ControllerUtil.handleMappingException(e);
   }
+  @ExceptionHandler(ValidationException.class)
+  public ResponseEntity<String> handleMappingException(final ValidationException e) {
+    return ResponseEntity.badRequest().body(e.getMessage());
+  }
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<String> handleMappingException(final IllegalArgumentException e) {
+    return ResponseEntity.badRequest().body(e.getMessage());
+  }
 
   /**
    * Create or update an {@link Metadata}
@@ -70,9 +87,35 @@ public class MetadataController implements MetadataControllerApi {
    */
   @Override
   public ResponseEntity<MetadataDto> createOrUpdate(@RequestBody final MetadataDto metadataDto) {
-    Metadata metadata = metadataService.createOrUpdate(convertToEntity(metadataDto));
-    log.debug("Created/Updated Metadata: {}", metadata);
-    return ResponseEntity.ok(convertToDto(metadata));
+    MetadataService.MetadataUpdateResult result = metadataService.createOrUpdate(convertToEntity(metadataDto));
+    if (Boolean.FALSE.equals(result.getSuccess())) {
+      throw new IllegalArgumentException(String.join(", ", result.getMessages()));
+    }
+    log.debug("Created/Updated Metadata: {}", result.getMetadata());
+    return ResponseEntity.ok(convertToDto(result.getMetadata()));
+  }
+
+  /**
+   * Create or update many {@link Metadata}
+   *
+   * @param records data to create or update
+   * @return response
+   */
+  @Override
+  public ResponseEntity<MetadataBulkUpdateResponseDto> createOrUpdateMany(@RequestBody final List<MetadataDto> records) {
+    List<MetadataService.MetadataUpdateResult> results = metadataService.createOrUpdate(convertToEntity(records));
+    List<MetadataService.MetadataUpdateResult> failures = results.stream().filter(r -> !r.getSuccess()).collect(Collectors.toList());
+    MetadataBulkUpdateResponseDto response = new MetadataBulkUpdateResponseDto();
+    response.setSuccess(results.size() - failures.size());
+    response.setFailed(failures.size());
+    response.setMessages(failures.stream().map(r -> {
+      MetadataBulkUpdateResponseMessagesDto responseMessagesDto = new MetadataBulkUpdateResponseMessagesDto();
+      responseMessagesDto.setRecordId(r.getMetadata().getIdentifier());
+      responseMessagesDto.setMessages(r.getMessages());
+      return responseMessagesDto;
+    }).collect(Collectors.toList()));
+    log.info("Created/Updated {} records. Success: {}, failures: {}", results.size(), response.getSuccess(), response.getFailed());
+    return ResponseEntity.ok(response);
   }
 
   /**
@@ -89,9 +132,12 @@ public class MetadataController implements MetadataControllerApi {
     if (metadata == null) {
       return getResponseForNonExistingData(id);
     }
-    metadata = metadataService.createOrUpdate(convertToEntity(metadataDto));
-    log.debug("Updated Metadata: {}", metadata);
-    return ResponseEntity.ok(convertToDto(metadata));
+    MetadataService.MetadataUpdateResult result = metadataService.createOrUpdate(convertToEntity(metadataDto));
+    if (Boolean.FALSE.equals(result.getSuccess())) {
+      throw new IllegalArgumentException(String.join(", ", result.getMessages()));
+    }
+    log.debug("Updated Metadata: {}", result.getMetadata());
+    return ResponseEntity.ok(convertToDto(result.getMetadata()));
   }
 
   /**

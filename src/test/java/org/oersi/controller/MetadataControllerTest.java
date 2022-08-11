@@ -1,13 +1,5 @@
 package org.oersi.controller;
 
-import static org.junit.Assert.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -15,15 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -58,6 +41,22 @@ import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Test of {@link MetadataController}.
@@ -150,7 +149,7 @@ class MetadataControllerTest {
     metadata.setAudience(new ArrayList<>(List.of(audience)));
 
     MainEntityOfPage mainEntityOfPage = new MainEntityOfPage();
-    mainEntityOfPage.setIdentifier("http://example.url/desc/123");
+    mainEntityOfPage.setIdentifier("https://example.org/desc/123");
     Provider provider = new Provider();
     provider.setName("testname");
     mainEntityOfPage.setProvider(provider);
@@ -162,7 +161,7 @@ class MetadataControllerTest {
 
     Publisher publisher = new Publisher();
     publisher.setName("publisher");
-    publisher.setIdentifier("http://example.url/desc/123");
+    publisher.setIdentifier("https://example.org/desc/123");
     publisher.setType("Organization");
     metadata.setPublisher(new ArrayList<>(List.of(publisher)));
 
@@ -190,7 +189,7 @@ class MetadataControllerTest {
     license.setIdentifier("https://creativecommons.org/licenses/by/4.0/");
     metadata.setLicense(license);
     metadata.setName("name");
-    metadata.setIdentifier("http://example.url");
+    metadata.setIdentifier("https://example.org");
 
     metadata.setDateCreated("2020-04-08");
 
@@ -260,7 +259,30 @@ class MetadataControllerTest {
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
             "{\"@context\": [\"https://w3id.org/kim/lrmi-profile/draft/context.jsonld\",{\"@language\": \"de\"}],\n" +
-                    "\"id\":\"http://example.url\",\"name\":\"name\",\"caption\": [{\"type\": \"MediaObject\",\"id\": \"https://example.org/subs-en.vtt\",\"encodingFormat\": \"text/vtt\",\"inLanguage\": \"en\"}],\"conditionsOfAccess\":{\"id\":\"https://w3id.org/kim/conditionsOfAccess/no_login\"},\"contributor\":[{\"name\":\"Jane Doe\",\"type\":\"Person\",\"affiliation\": {\"name\":\"name\"}}],\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\",\"affiliation\": {\"name\":\"name\"}},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"duration\":\"PT47M58S\",\"isAccessibleForFree\":true,\"about\":[{\"id\":\"subject\",\"prefLabel\":{\"de\":\"Mathematik\",\"en\":\"mathematics\"}}],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"Kurs\",\"en\":\"course\"}}],\"audience\":[{\"id\":\"audience\",\"prefLabel\":{\"de\":\"Lernender\",\"en\":\"student\"}}],\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}], \"publisher\":[{\"name\":\"publisher\"}], \"sourceOrganization\":[{\"name\":\"sourceOrganization\"}], \"keywords\":[\"Gitlab\", \"Multimedia\"], \"type\":[\"Course\", \"LearningResource\"]}"));
+                    "\"id\":\"https://example.org\",\"name\":\"name\",\"caption\": [{\"type\": \"MediaObject\",\"id\": \"https://example.org/subs-en.vtt\",\"encodingFormat\": \"text/vtt\",\"inLanguage\": \"en\"}],\"conditionsOfAccess\":{\"id\":\"https://w3id.org/kim/conditionsOfAccess/no_login\"},\"contributor\":[{\"name\":\"Jane Doe\",\"type\":\"Person\",\"affiliation\": {\"name\":\"name\"}}],\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\",\"affiliation\": {\"name\":\"name\"}},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"duration\":\"PT47M58S\",\"isAccessibleForFree\":true,\"about\":[{\"id\":\"subject\",\"prefLabel\":{\"de\":\"Mathematik\",\"en\":\"mathematics\"}}],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"Kurs\",\"en\":\"course\"}}],\"audience\":[{\"id\":\"audience\",\"prefLabel\":{\"de\":\"Lernender\",\"en\":\"student\"}}],\"mainEntityOfPage\":[{\"id\":\"https://example.org/desc/123\"}], \"publisher\":[{\"name\":\"publisher\"}], \"sourceOrganization\":[{\"name\":\"sourceOrganization\"}], \"keywords\":[\"Gitlab\", \"Multimedia\"], \"type\":[\"Course\", \"LearningResource\"]}"));
+  }
+
+  @Test
+  void testBulkUpdate() throws Exception {
+    MetadataDto metadata1 = getTestMetadataDto();
+    MetadataDto metadata2 = getTestMetadataDto();
+    metadata2.setId("https://example.org/record2");
+
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH + "/bulk").contentType(MediaType.APPLICATION_JSON)
+        .content(asJson(List.of(metadata1, metadata2)))).andExpect(status().isOk())
+      .andExpect(content().json("{\"success\":2,\"failed\":0,\"messages\":[]}"));
+  }
+
+  @Test
+  void testBulkUpdateWithFailure() throws Exception {
+    MetadataDto metadata1 = getTestMetadataDto();
+    MetadataDto metadata2 = getTestMetadataDto();
+    metadata2.setId("https://example.org/record2");
+    metadata2.setImage("invalid url");
+
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH + "/bulk").contentType(MediaType.APPLICATION_JSON)
+        .content(asJson(List.of(metadata1, metadata2)))).andExpect(status().isOk())
+      .andExpect(content().json("{\"success\":1,\"failed\":1}"));
   }
 
   @Test
@@ -362,7 +384,7 @@ class MetadataControllerTest {
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
-            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[],\"description\":\"description\",\"about\":[],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[],\"audience\":[],\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}], \"type\":[\"LearningResource\"]}"));
+            "{\"id\":\"https://example.org\",\"name\":\"name\",\"creator\":[],\"description\":\"description\",\"about\":[],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[],\"audience\":[],\"mainEntityOfPage\":[{\"id\":\"https://example.org/desc/123\"}], \"type\":[\"LearningResource\"]}"));
   }
 
   @Test
@@ -378,6 +400,26 @@ class MetadataControllerTest {
   }
 
   @Test
+  void testPostRequestWithInvalidId() throws Exception {
+    MetadataDto metadata = getTestMetadataDto();
+    metadata.setId("this is no uri");
+
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+      .content(asJson(metadata)))
+      .andExpect(result -> Assertions.assertTrue(result.getResolvedException() instanceof IllegalArgumentException));
+  }
+
+  @Test
+  void testPostRequestWithInvalidPrefLabel() throws Exception {
+    MetadataDto metadata = getTestMetadataDto();
+    metadata.getAudience().get(0).getPrefLabel().put("invalid code", "value");
+
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+      .content(asJson(metadata)))
+      .andExpect(result -> Assertions.assertTrue(result.getResolvedException() instanceof IllegalArgumentException));
+  }
+
+  @Test
   void testPostRequestWithMissingRequiredParameter() throws Exception {
     MetadataDto metadata = getTestMetadataDto();
     metadata.setId(null);
@@ -390,14 +432,14 @@ class MetadataControllerTest {
   void testPutRequest() throws Exception {
     Metadata existingMetadata = createTestMetadata();
     MetadataDto metadata = getTestMetadataDto();
-    metadata.getMainEntityOfPage().get(0).setId("http://example2.url/desc/123");
+    metadata.getMainEntityOfPage().get(0).setId("https://example2.org/desc/123");
 
     mvc.perform(put(METADATA_CONTROLLER_BASE_PATH + "/" + existingMetadata.getId())
         .contentType(MediaType.APPLICATION_JSON).content(asJson(metadata)))
         .andExpect(status().isOk()).andExpect(content().json(
-            "{\"id\":\"http://example.url\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\"}],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[{\"id\":\"learningResourceType\"}],\"audience\":[{\"id\":\"audience\"}],\"mainEntityOfPage\":[{\"id\":\"http://example.url/desc/123\"}, {\"id\":\"http://example2.url/desc/123\"}]}"));
+            "{\"id\":\"https://example.org\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\"}],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[{\"id\":\"learningResourceType\"}],\"audience\":[{\"id\":\"audience\"}],\"mainEntityOfPage\":[{\"id\":\"https://example.org/desc/123\"}, {\"id\":\"https://example2.org/desc/123\"}]}"));
 
-    Assert.assertEquals(1, repository.count());
+    Assertions.assertEquals(1, repository.count());
   }
 
   @Test
@@ -415,7 +457,7 @@ class MetadataControllerTest {
   @Test
   void testPutRequestWithNonExistingData() throws Exception {
     MetadataDto metadata = getTestMetadataDto();
-    metadata.getMainEntityOfPage().get(0).setId("http://example2.url/desc/123");
+    metadata.getMainEntityOfPage().get(0).setId("https://example2.org/desc/123");
 
     mvc.perform(put(METADATA_CONTROLLER_BASE_PATH + "/1").contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isBadRequest());
@@ -428,7 +470,7 @@ class MetadataControllerTest {
     mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/" + existingMetadata.getId())
         .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
 
-    Assert.assertEquals(0, repository.count());
+    Assertions.assertEquals(0, repository.count());
   }
 
   @Test
@@ -438,7 +480,7 @@ class MetadataControllerTest {
     mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH)
         .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
 
-    Assert.assertEquals(0, repository.count());
+    Assertions.assertEquals(0, repository.count());
   }
 
   @Test
@@ -449,7 +491,7 @@ class MetadataControllerTest {
       .contentType(MediaType.APPLICATION_JSON).content("{\"providerName\": \"testname\"}"))
       .andExpect(status().isOk());
 
-    Assert.assertEquals(0, repository.count());
+    Assertions.assertEquals(0, repository.count());
   }
 
   @Test
@@ -458,7 +500,7 @@ class MetadataControllerTest {
         delete(METADATA_CONTROLLER_BASE_PATH + "/1").contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isBadRequest());
 
-    Assert.assertEquals(0, repository.count());
+    Assertions.assertEquals(0, repository.count());
   }
 
   @Test
