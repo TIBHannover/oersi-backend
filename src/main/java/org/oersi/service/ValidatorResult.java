@@ -8,7 +8,7 @@ import java.util.List;
  */
 public class ValidatorResult {
 
-  private List<String> violationMessages = new ArrayList<>();
+  private final List<String> violationMessages = new ArrayList<>();
 
   /**
    * Add a violation to this result.

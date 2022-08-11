@@ -1,11 +1,31 @@
 package org.oersi.service;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.oersi.domain.Metadata;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Manage {@link Metadata}s.
  */
 public interface MetadataService {
+
+  @Getter
+  @Setter
+  @ToString
+  @RequiredArgsConstructor
+  class MetadataUpdateResult {
+    private final Metadata metadata;
+    private Boolean success = true;
+    private List<String> messages = new ArrayList<>();
+    public void addMessages(List<String> messages) {
+      this.messages.addAll(messages);
+    }
+  }
 
   /**
    * Create or update the given {@link Metadata}.
@@ -13,7 +33,15 @@ public interface MetadataService {
    * @param metadata metadata
    * @return updated metadata
    */
-  Metadata createOrUpdate(Metadata metadata);
+  MetadataUpdateResult createOrUpdate(Metadata metadata);
+
+  /**
+   * Create or update the given {@link Metadata}s.
+   *
+   * @param records list of metadata
+   * @return updated metadata
+   */
+  List<MetadataUpdateResult> createOrUpdate(List<Metadata> records);
 
   /**
    * Delete the given {@link Metadata}.

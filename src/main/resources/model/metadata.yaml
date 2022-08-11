@@ -48,6 +48,34 @@
         description: Forbidden
         content: {}
 /api/metadata/bulk:
+  post:
+    tags:
+      - metadata-controller
+    summary: Bulk create or update metadata
+    description: Create or update the given metadata
+    operationId: createOrUpdateMany
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MetadataBulkUpdate"
+      required: true
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetadataBulkUpdateResponse'
+      "400":
+        description: Bad Request
+        content: {}
+      "401":
+        description: Unauthorized
+        content: {}
+      "403":
+        description: Forbidden
+        content: {}
   delete:
     tags:
       - metadata-controller
@@ -530,7 +558,7 @@ components:
           type: string
           format: uri
           description: "The download URL of the media object"
-          example: "https://some.content/download"
+          example: "https://some.content.org/download"
         contentSize:
           type: string
           description: "The size of the media object in (kilo/mega/giga) bytes."
@@ -539,7 +567,7 @@ components:
           type: string
           format: uri
           description: "A URL pointing to a player for a video. In general, this is the information in the src element of an embed tag."
-          example: "https://some.content/embed"
+          example: "https://some.content.org/embed"
         encodingFormat:
           type: string
           description: "The media type of the media object, conforming to https://www.iana.org/assignments/media-types/media-types.xml"
@@ -640,3 +668,39 @@ components:
           type: string
           description: name of the provider whose metadata should be deleted
           example: twillo
+    MetadataBulkUpdate:
+      type: array
+      description: Create or update many Metadata.
+      items:
+        $ref: '#/components/schemas/Metadata'
+    MetadataBulkUpdateResponse:
+      required:
+        - success
+        - failed
+      type: object
+      description: Result of a bulk update.
+      properties:
+        success:
+          type: integer
+          description: number of successfully imported records
+          example: 500
+        failed:
+          type: integer
+          description: number of import failures
+          example: 1
+        messages:
+          type: array
+          description: description of failures
+          items:
+            type: object
+            properties:
+              recordId:
+                type: string
+                description: The URI of the record the message is about
+                format: uri
+                example: https://axel-klinger.gitlab.io/gitlab-for-documents/index.html
+              messages:
+                type: array
+                description: description of the failures
+                items:
+                  type: string

@@ -49,46 +49,64 @@ public class MetadataServiceImpl implements MetadataService {
 
   @Transactional
   @Override
-  public Metadata createOrUpdate(final Metadata metadata) {
+  public MetadataUpdateResult createOrUpdate(final Metadata metadata) {
+    return createOrUpdate(List.of(metadata)).get(0);
+  }
+
+  @Transactional
+  @Override
+  public List<MetadataUpdateResult> createOrUpdate(final List<Metadata> records) {
     LabelUpdater labelUpdater = new LabelUpdater(labelDefinitionRepository);
-    addDefaultValues(metadata);
-    ValidatorResult validatorResult = new MetadataValidator(metadata).validate();
-    if (!validatorResult.isValid()) {
-      log.debug("invalid data: {}, violations: {}", metadata, validatorResult.getViolations());
-      throw new IllegalArgumentException(String.join(", ", validatorResult.getViolations()));
-    }
-    Metadata existingMetadata = findMatchingMetadata(metadata);
-    if (existingMetadata != null) {
-      log.debug("existing data: {}", existingMetadata);
-      metadata.setId(existingMetadata.getId());
-      // we need to update the existing list here, otherwise the existing list-entity remains in the
-      // session without association to a parent entity and an error occurs
-      // see https://gitlab.com/oersi/oersi-backend/-/issues/9
-      metadata.setAbout(updateExistingList(existingMetadata.getAbout(), metadata.getAbout()));
-      metadata.setAudience(updateExistingList(existingMetadata.getAudience(), metadata.getAudience()));
-      metadata.setCaption(updateExistingList(existingMetadata.getCaption(), metadata.getCaption()));
-      metadata.setCreator(updateExistingList(existingMetadata.getCreator(), metadata.getCreator()));
-      metadata.setContributor(updateExistingList(existingMetadata.getContributor(), metadata.getContributor()));
-      metadata.setLearningResourceType(updateExistingList(existingMetadata.getLearningResourceType(), metadata.getLearningResourceType()));
-      metadata.setMainEntityOfPage(mergeMainEntityOfPageList(existingMetadata.getMainEntityOfPage(),
+    List<MetadataUpdateResult> results = new ArrayList<>();
+    for (Metadata metadata: records) {
+      MetadataUpdateResult result = new MetadataUpdateResult(metadata);
+      addDefaultValues(metadata);
+      ValidatorResult validatorResult = new MetadataValidator(metadata).validate();
+      if (!validatorResult.isValid()) {
+        log.debug("invalid data: {}, violations: {}", metadata, validatorResult.getViolations());
+        result.setSuccess(false);
+        result.addMessages(validatorResult.getViolations());
+        results.add(result);
+        continue;
+      }
+      Metadata existingMetadata = findMatchingMetadata(metadata);
+      if (existingMetadata != null) {
+        log.debug("existing data: {}", existingMetadata);
+        metadata.setId(existingMetadata.getId());
+        // we need to update the existing list here, otherwise the existing list-entity remains in the
+        // session without association to a parent entity and an error occurs
+        // see https://gitlab.com/oersi/oersi-backend/-/issues/9
+        metadata.setAbout(updateExistingList(existingMetadata.getAbout(), metadata.getAbout()));
+        metadata.setAudience(updateExistingList(existingMetadata.getAudience(), metadata.getAudience()));
+        metadata.setCaption(updateExistingList(existingMetadata.getCaption(), metadata.getCaption()));
+        metadata.setCreator(updateExistingList(existingMetadata.getCreator(), metadata.getCreator()));
+        metadata.setContributor(updateExistingList(existingMetadata.getContributor(), metadata.getContributor()));
+        metadata.setLearningResourceType(updateExistingList(existingMetadata.getLearningResourceType(), metadata.getLearningResourceType()));
+        metadata.setMainEntityOfPage(mergeMainEntityOfPageList(existingMetadata.getMainEntityOfPage(),
           metadata.getMainEntityOfPage()));
-      metadata.setPublisher(updateExistingList(existingMetadata.getPublisher(), metadata.getPublisher()));
-      metadata.setSourceOrganization(updateExistingList(existingMetadata.getSourceOrganization(),
+        metadata.setPublisher(updateExistingList(existingMetadata.getPublisher(), metadata.getPublisher()));
+        metadata.setSourceOrganization(updateExistingList(existingMetadata.getSourceOrganization(),
           metadata.getSourceOrganization()));
-      metadata.setEncoding(updateExistingList(existingMetadata.getEncoding(), metadata.getEncoding()));
+        metadata.setEncoding(updateExistingList(existingMetadata.getEncoding(), metadata.getEncoding()));
+      }
+      metadata.setDateModifiedInternal(LocalDateTime.now());
+      metadata.setName(cutString(metadata.getName(), Metadata.NAME_LENGTH));
+      metadata.setDescription(cutString(metadata.getDescription(), Metadata.DESCRIPTION_LENGTH));
+      determineProviderNames(metadata);
+      if (featureAddMissingMetadataInfos) {
+        metadataAutoUpdater.addMissingInfos(metadata);
+      }
+      if (featureAddMissingLabels) {
+        labelUpdater.addMissingLabels(metadata);
+      }
+      storeLabels(metadata);
+      results.add(result);
     }
-    metadata.setDateModifiedInternal(LocalDateTime.now());
-    metadata.setName(cutString(metadata.getName(), Metadata.NAME_LENGTH));
-    metadata.setDescription(cutString(metadata.getDescription(), Metadata.DESCRIPTION_LENGTH));
-    determineProviderNames(metadata);
-    if (featureAddMissingMetadataInfos) {
-      metadataAutoUpdater.addMissingInfos(metadata);
+    List<Metadata> dataToUpdate = results.stream().filter(MetadataUpdateResult::getSuccess).map(MetadataUpdateResult::getMetadata).collect(Collectors.toList());
+    if (!dataToUpdate.isEmpty()) {
+      oerMetadataRepository.saveAll(dataToUpdate);
     }
-    if (featureAddMissingLabels) {
-      labelUpdater.addMissingLabels(metadata);
-    }
-    storeLabels(metadata);
-    return oerMetadataRepository.save(metadata);
+    return results;
   }
 
   private void addDefaultValues(final Metadata metadata) {

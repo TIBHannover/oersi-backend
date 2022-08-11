@@ -5,6 +5,7 @@ import java.util.Set;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.oersi.domain.*;
 
 /**
@@ -27,6 +28,7 @@ public class MetadataValidator {
   public ValidatorResult validate() {
     result = new ValidatorResult();
     validateMandatoryFields();
+    validateUrls();
     if (metadata.getAbout() != null) {
       for (About about : metadata.getAbout()) {
         validatePrefLabel(about.getPrefLabel());
@@ -37,12 +39,34 @@ public class MetadataValidator {
         validatePrefLabel(audience.getPrefLabel());
       }
     }
+    if (metadata.getConditionsOfAccess() != null) {
+      validatePrefLabel(metadata.getConditionsOfAccess().getPrefLabel());
+    }
     if (metadata.getLearningResourceType() != null) {
       for (LearningResourceType lrt : metadata.getLearningResourceType()) {
         validatePrefLabel(lrt.getPrefLabel());
       }
     }
     return result;
+  }
+
+  private void validateUrls() {
+    UrlValidator urlValidator = new UrlValidator();
+    validateUrl(urlValidator, metadata.getIdentifier());
+    validateUrl(urlValidator, metadata.getImage());
+    validateUrl(urlValidator, metadata.getContextUri());
+    if (metadata.getLicense() != null) {
+      validateUrl(urlValidator, metadata.getLicense().getIdentifier());
+    }
+    if (metadata.getEncoding() != null) {
+      metadata.getEncoding().forEach(e -> validateUrl(urlValidator, e.getEmbedUrl()));
+      metadata.getEncoding().forEach(e -> validateUrl(urlValidator, e.getContentUrl()));
+    }
+  }
+  private void validateUrl(UrlValidator urlValidator, String value) {
+    if (value != null && !urlValidator.isValid(value)) {
+      result.addViolation("Invalid URL '" + value + "'");
+    }
   }
 
   private void validateMandatoryFields() {
