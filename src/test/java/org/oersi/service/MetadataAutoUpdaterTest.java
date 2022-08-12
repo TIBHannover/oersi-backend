@@ -2,26 +2,55 @@ package org.oersi.service;
 
 import org.junit.jupiter.api.Test;
 import org.oersi.domain.About;
+import org.oersi.domain.Audience;
+import org.oersi.domain.ConditionsOfAccess;
+import org.oersi.domain.LearningResourceType;
+import org.oersi.domain.LocalizedString;
 import org.oersi.domain.Media;
 import org.oersi.domain.Metadata;
 import org.oersi.domain.Provider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 class MetadataAutoUpdaterTest {
 
+  private static final String TEST_IDENTIFIER = "test";
+
   @Autowired
   private MetadataAutoUpdater metadataAutoUpdater;
+  @MockBean
+  private LabelDefinitionService repository;
 
   private Metadata newMetadata() {
     Metadata metadata = new Metadata();
     metadata.setIdentifier("https://www.test.de");
+
+    Audience audience = new Audience();
+    audience.setIdentifier(TEST_IDENTIFIER);
+    metadata.setAudience(new ArrayList<>(List.of(audience)));
+
+    LearningResourceType learningResourceType = new LearningResourceType();
+    learningResourceType.setIdentifier(TEST_IDENTIFIER);
+    metadata.setLearningResourceType(new ArrayList<>(List.of(learningResourceType)));
+
+    About about = new About();
+    about.setIdentifier(TEST_IDENTIFIER);
+    metadata.setAbout(new ArrayList<>(List.of(about)));
+
+    ConditionsOfAccess coa = new ConditionsOfAccess();
+    coa.setIdentifier(TEST_IDENTIFIER);
+    metadata.setConditionsOfAccess(coa);
+
     return metadata;
   }
 
@@ -93,5 +122,79 @@ class MetadataAutoUpdaterTest {
     metadataAutoUpdater.addMissingInfos(data);
 
     assertThat(data.getAbout()).hasSize(3);
+  }
+
+  private LocalizedString testData() {
+    LocalizedString result = new LocalizedString();
+    Map<String, String> localizedStrings = new HashMap<>();
+    localizedStrings.put("de", "test4");
+    localizedStrings.put("en", "test5");
+    result.setLocalizedStrings(localizedStrings);
+    return result;
+  }
+  private Map<String, String> testDefinition() {
+    Map<String, String> map = new HashMap<>();
+    map.put("de", "test1");
+    map.put("en", "test2");
+    map.put("fi", "test3");
+    return map;
+  }
+
+  @Test
+  void testUnsetLabelDefinition() {
+    LocalizedString testData = testData();
+    when(repository.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(null);
+    LocalizedString result = metadataAutoUpdater.addMissingLabels(TEST_IDENTIFIER, testData);
+    assertThat(result).isSameAs(testData);
+  }
+
+  @Test
+  void testWithNonExistingData() {
+    when(repository.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
+    LocalizedString result = metadataAutoUpdater.addMissingLabels(TEST_IDENTIFIER, null);
+    assertThat(result).isNotNull();
+    assertThat(result.getLocalizedStrings()).hasSize(3);
+
+    when(repository.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
+    result = metadataAutoUpdater.addMissingLabels(TEST_IDENTIFIER, new LocalizedString());
+    assertThat(result).isNotNull();
+    assertThat(result.getLocalizedStrings()).hasSize(3);
+  }
+
+  @Test
+  void testWithExistingData() {
+    when(repository.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
+    LocalizedString result = metadataAutoUpdater.addMissingLabels(TEST_IDENTIFIER, testData());
+    assertThat(result).isNotNull();
+    assertThat(result.getLocalizedStrings()).hasSize(3);
+    assertThat(result.getLocalizedStrings()).containsEntry("de", "test4");
+    assertThat(result.getLocalizedStrings()).containsEntry("en", "test5");
+    assertThat(result.getLocalizedStrings()).containsEntry("fi", "test3");
+  }
+
+  @Test
+  void testUpdateMetadata() {
+    when(repository.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
+    Metadata metadata = newMetadata();
+    metadataAutoUpdater.addMissingLabels(metadata);
+    assertThat(metadata.getAbout().get(0).getPrefLabel()).isNotNull();
+    assertThat(metadata.getAbout().get(0).getPrefLabel().getLocalizedStrings()).hasSize(3);
+    assertThat(metadata.getAudience().get(0).getPrefLabel()).isNotNull();
+    assertThat(metadata.getAudience().get(0).getPrefLabel().getLocalizedStrings()).hasSize(3);
+    assertThat(metadata.getConditionsOfAccess().getPrefLabel()).isNotNull();
+    assertThat(metadata.getConditionsOfAccess().getPrefLabel().getLocalizedStrings()).hasSize(3);
+    assertThat(metadata.getLearningResourceType().get(0).getPrefLabel()).isNotNull();
+    assertThat(metadata.getLearningResourceType().get(0).getPrefLabel().getLocalizedStrings()).hasSize(3);
+  }
+
+  @Test
+  void testUpdateMetadataWithoutLabelFields() {
+    when(repository.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
+    Metadata metadata = new Metadata();
+    metadataAutoUpdater.addMissingLabels(metadata);
+    assertThat(metadata.getAbout()).isNull();
+    assertThat(metadata.getAudience()).isNull();
+    assertThat(metadata.getConditionsOfAccess()).isNull();
+    assertThat(metadata.getLearningResourceType()).isNull();
   }
 }

@@ -8,6 +8,10 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.oersi.AutoUpdateProperties;
 import org.oersi.domain.About;
+import org.oersi.domain.Audience;
+import org.oersi.domain.ConditionsOfAccess;
+import org.oersi.domain.LearningResourceType;
+import org.oersi.domain.LocalizedString;
 import org.oersi.domain.Media;
 import org.oersi.domain.Metadata;
 import org.oersi.domain.Provider;
@@ -37,6 +41,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @Setter
 public class MetadataAutoUpdater {
+
+  private final @NonNull LabelDefinitionService labelDefinitionService;
 
   @Value("${feature.add_missing_parent_items_of_hierarchical_vocabs}")
   private boolean featureAddMissingParentItems;
@@ -157,6 +163,57 @@ public class MetadataAutoUpdater {
   }
   private boolean hasEmbedUrl(Metadata data) {
     return data.getEncoding() != null && data.getEncoding().stream().anyMatch(e -> e.getEmbedUrl() != null);
+  }
+
+  /**
+   * Add default localized labels that are not defined at the given metadata.
+   * @param metadata set label at this data
+   */
+  public void addMissingLabels(Metadata metadata) {
+    if (metadata.getAbout() != null) {
+      for (About about : metadata.getAbout()) {
+        about.setPrefLabel(addMissingLabels(about.getIdentifier(), about.getPrefLabel()));
+      }
+    }
+    if (metadata.getAudience() != null) {
+      for (Audience audience : metadata.getAudience()) {
+        audience.setPrefLabel(addMissingLabels(audience.getIdentifier(), audience.getPrefLabel()));
+      }
+    }
+    if (metadata.getConditionsOfAccess() != null) {
+      ConditionsOfAccess coa = metadata.getConditionsOfAccess();
+      coa.setPrefLabel(addMissingLabels(coa.getIdentifier(), coa.getPrefLabel()));
+    }
+    if (metadata.getLearningResourceType() != null) {
+      for (LearningResourceType lrt : metadata.getLearningResourceType()) {
+        lrt.setPrefLabel(addMissingLabels(lrt.getIdentifier(), lrt.getPrefLabel()));
+      }
+    }
+  }
+
+  public LocalizedString addMissingLabels(String identifier, LocalizedString existingLabels) {
+    Map<String, String> defaultLocalizedLabel = getDefaultLocalizedLabel(identifier);
+    LocalizedString result = existingLabels;
+    if (defaultLocalizedLabel != null ) {
+      if (result == null) {
+        result = new LocalizedString();
+        result.setLocalizedStrings(new HashMap<>());
+      } else if (result.getLocalizedStrings() == null) {
+        result.setLocalizedStrings(new HashMap<>());
+      }
+      Map<String, String> localizedStrings = result.getLocalizedStrings();
+      for (Map.Entry<String, String> defaultLabelEntry : defaultLocalizedLabel.entrySet()) {
+        if (localizedStrings.containsKey(defaultLabelEntry.getKey())) {
+          continue;
+        }
+        localizedStrings.put(defaultLabelEntry.getKey(), defaultLabelEntry.getValue());
+      }
+    }
+    return result;
+  }
+
+  private Map<String, String> getDefaultLocalizedLabel(String identifier) {
+    return labelDefinitionService.findLocalizedLabelByIdentifier(identifier);
   }
 
 }
