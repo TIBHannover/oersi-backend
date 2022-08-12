@@ -94,8 +94,8 @@ public class MetadataServiceImpl implements MetadataService {
         metadata.setEncoding(updateExistingList(existingMetadata.getEncoding(), metadata.getEncoding()));
       }
       metadata.setDateModifiedInternal(LocalDateTime.now());
-      metadata.setName(cutString(metadata.getName(), Metadata.NAME_LENGTH));
-      metadata.setDescription(cutString(metadata.getDescription(), Metadata.DESCRIPTION_LENGTH));
+      metadata.setName(cutStringAndRemove4ByteChars(metadata.getName(), Metadata.NAME_LENGTH));
+      metadata.setDescription(cutStringAndRemove4ByteChars(metadata.getDescription(), Metadata.DESCRIPTION_LENGTH));
       determineProviderNames(metadata);
       if (featureAddMissingMetadataInfos) {
         metadataAutoUpdater.addMissingInfos(metadata);
@@ -156,11 +156,12 @@ public class MetadataServiceImpl implements MetadataService {
     }
   }
 
-  private String cutString(final String input, final int maxLength) {
+  private String cutStringAndRemove4ByteChars(final String input, final int maxLength) {
     if (input == null) {
       return null;
     }
-    return input.substring(0, Math.min(input.length(), maxLength));
+    String removedCharsInput = input.replaceAll("[^\\u0000-\\uFFFF]", "\uFFFD");
+    return removedCharsInput.substring(0, Math.min(removedCharsInput.length(), maxLength));
   }
 
   /**

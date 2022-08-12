@@ -537,4 +537,15 @@ class MetadataControllerTest {
     Assertions.assertTrue(result.getEncoding().size() > 0);
     Assertions.assertEquals(MediaObjectDto.TypeEnum.MEDIAOBJECT, result.getEncoding().get(0).getType());
   }
+
+  @Test
+  void testFieldWithSpecialCharacters() throws Exception {
+    MetadataDto metadata = getTestMetadataDto();
+    metadata.setDescription("test \uD83E\uDD14");
+
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+        .content(asJson(metadata))).andExpect(status().isOk())
+      .andExpect(content().json("{\"description\": \"test �\"}"));
+
+  }
 }
