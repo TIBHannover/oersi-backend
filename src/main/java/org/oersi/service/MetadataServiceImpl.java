@@ -1,5 +1,23 @@
 package org.oersi.service;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.oersi.domain.About;
+import org.oersi.domain.Audience;
+import org.oersi.domain.LearningResourceType;
+import org.oersi.domain.LocalizedString;
+import org.oersi.domain.MainEntityOfPage;
+import org.oersi.domain.Metadata;
+import org.oersi.domain.Provider;
+import org.oersi.repository.MetadataRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
@@ -9,18 +27,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.oersi.domain.*;
-import org.oersi.repository.LabelDefinitionRepository;
-import org.oersi.repository.MetadataRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 /**
  * Implementation of {@link MetadataService}.
@@ -37,7 +43,6 @@ public class MetadataServiceImpl implements MetadataService {
   private static final String LABEL_GROUP_ID_SUBJECT = "subject";
 
   private final @NonNull MetadataRepository oerMetadataRepository;
-  private final @NonNull LabelDefinitionRepository labelDefinitionRepository;
   private final @NonNull LabelService labelService;
   private final @NonNull MetadataAutoUpdater metadataAutoUpdater;
 
@@ -56,7 +61,6 @@ public class MetadataServiceImpl implements MetadataService {
   @Transactional
   @Override
   public List<MetadataUpdateResult> createOrUpdate(final List<Metadata> records) {
-    LabelUpdater labelUpdater = new LabelUpdater(labelDefinitionRepository);
     List<MetadataUpdateResult> results = new ArrayList<>();
     for (Metadata metadata: records) {
       MetadataUpdateResult result = new MetadataUpdateResult(metadata);
@@ -97,7 +101,7 @@ public class MetadataServiceImpl implements MetadataService {
         metadataAutoUpdater.addMissingInfos(metadata);
       }
       if (featureAddMissingLabels) {
-        labelUpdater.addMissingLabels(metadata);
+        metadataAutoUpdater.addMissingLabels(metadata);
       }
       storeLabels(metadata);
       results.add(result);

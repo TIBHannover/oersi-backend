@@ -7,9 +7,15 @@ import org.oersi.domain.LabelDefinition;
 import org.oersi.repository.LabelDefinitionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -17,6 +23,8 @@ import java.util.*;
 public class LabelDefinitionServiceImpl implements LabelDefinitionService {
 
   private final @NonNull LabelDefinitionRepository labelDefinitionRepository;
+
+  private Map<String, Map<String, String>> localizedLabelByIdentifier;
 
   @Transactional
   @Override
@@ -37,13 +45,19 @@ public class LabelDefinitionServiceImpl implements LabelDefinitionService {
         labelsToUpdate.add(labelDefinition);
       }
     }
-    return labelDefinitionRepository.saveAll(labelsToUpdate);
+    synchronized (labelDefinitionRepository) {
+      clearCache();
+      return labelDefinitionRepository.saveAll(labelsToUpdate);
+    }
   }
 
   @Transactional
   @Override
   public void delete(LabelDefinition labelDefinition) {
-    labelDefinitionRepository.delete(labelDefinition);
+    synchronized (labelDefinitionRepository) {
+      labelDefinitionRepository.delete(labelDefinition);
+      clearCache();
+    }
   }
 
   @Transactional(readOnly = true)
@@ -54,5 +68,41 @@ public class LabelDefinitionServiceImpl implements LabelDefinitionService {
     }
     Optional<LabelDefinition> optional = labelDefinitionRepository.findById(id);
     return optional.orElse(null);
+  }
+
+  @Transactional(readOnly = true, isolation = Isolation.SERIALIZABLE)
+  public List<LabelDefinition> findAll() {
+    return labelDefinitionRepository.findAll();
+  }
+
+  @Override
+  public Map<String, String> findLocalizedLabelByIdentifier(String identifier) {
+    return getLocalizedLabelByIdentifierCache().get(identifier);
+  }
+  private Map<String, Map<String, String>> getLocalizedLabelByIdentifierCache() {
+    Map<String, Map<String, String>> result = localizedLabelByIdentifier;
+    if (result == null) {
+      log.debug("Init localized label cache (byIdentifier)");
+      synchronized (labelDefinitionRepository) {
+        List<LabelDefinition> labelDefinitions = findAll();
+        result = initLocalizedLabelByIdentifierCache(labelDefinitions);
+      }
+    }
+    return result;
+  }
+  private Map<String, Map<String, String>> initLocalizedLabelByIdentifierCache(List<LabelDefinition> labelDefinitions) {
+    Map<String, Map<String, String>> result = Collections.synchronizedMap(new HashMap<>());
+    for (LabelDefinition labelDefinition : labelDefinitions) {
+      Map<String, String> languageLabels = result.computeIfAbsent(labelDefinition.getIdentifier(), k -> Collections.synchronizedMap(new HashMap<>()));
+      if (labelDefinition.getLabel() != null && labelDefinition.getLabel().getLocalizedStrings() != null) {
+        languageLabels.putAll(labelDefinition.getLabel().getLocalizedStrings());
+      }
+    }
+    localizedLabelByIdentifier = result;
+    return result;
+  }
+
+  public void clearCache() {
+    localizedLabelByIdentifier = null;
   }
 }

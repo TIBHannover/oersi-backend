@@ -3,6 +3,7 @@ package org.oersi.service;
 import org.oersi.domain.LabelDefinition;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Manage {@link LabelDefinition}s.
@@ -31,5 +32,11 @@ public interface LabelDefinitionService {
    * @return data
    */
   LabelDefinition findById(Long id);
-  
+
+  /**
+   * Retrieve the localized labels for the given identifier.
+   * @param identifier identifier to retrieve labels for
+   * @return labels
+   */
+  Map<String, String> findLocalizedLabelByIdentifier(String identifier);
 }
