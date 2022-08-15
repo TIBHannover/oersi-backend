@@ -1227,3 +1227,16 @@ databaseChangeLog:
       - dropColumn:
           columnName: image_width
           tableName: metadata
+
+- changeSet:
+    id: 202208151010-1
+    author: mhoffmann
+    changes:
+      - sql:
+          dbms: mariadb, mysql
+          comment: set character set of metadata to utf8mb4
+          sql: ALTER TABLE metadata CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+      - sql:
+          dbms: mariadb, mysql
+          comment: set character set of keywords to utf8mb4
+          sql: ALTER TABLE keywords CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
