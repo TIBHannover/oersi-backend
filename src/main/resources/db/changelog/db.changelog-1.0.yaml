@@ -1240,3 +1240,28 @@ databaseChangeLog:
           dbms: mariadb, mysql
           comment: set character set of keywords to utf8mb4
           sql: ALTER TABLE keywords CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+
+- changeSet:
+    id: 1663071692143-1
+    author: hoffmann (generated)
+    changes:
+      - createTable:
+          columns:
+            - column:
+                autoIncrement: true
+                constraints:
+                  nullable: false
+                  primaryKey: true
+                  primaryKeyName: vocab_itemPK
+                name: id
+                type: BIGINT
+            - column:
+                name: key
+                type: VARCHAR(255)
+            - column:
+                name: parent_key
+                type: VARCHAR(255)
+            - column:
+                name: vocab_identifier
+                type: VARCHAR(255)
+          tableName: vocab_item

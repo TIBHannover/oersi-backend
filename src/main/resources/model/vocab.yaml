@@ -1,0 +1,46 @@
+/api/vocab/bulk:
+  post:
+    tags:
+      - vocab-controller
+    summary: create or update multiple vocab items in a bulk
+    description: create or update multiple items of shared vocabularies.
+    operationId: createOrUpdateMany
+    requestBody:
+      description: items that should be created or updated
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              vocabIdentifier:
+                type: string
+                example: "hochschulfaechersystematik"
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VocabItem'
+      required: true
+    responses:
+      "200":
+        description: OK
+        content: {}
+      "400":
+        description: Bad Request
+        content: {}
+      "401":
+        description: Unauthorized
+        content: {}
+      "403":
+        description: Forbidden
+        content: {}
+components:
+  schemas:
+    VocabItem:
+      type: object
+      properties:
+        key:
+          type: string
+          example: "https://w3id.org/kim/hochschulfaechersystematik/n105"
+        parentKey:
+          type: string
+          example: "https://w3id.org/kim/hochschulfaechersystematik/n37"

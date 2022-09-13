@@ -34,7 +34,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .and().httpBasic()
         .and().authorizeRequests()
         .antMatchers("/api/metadata/**").hasRole(ROLE_MANAGE_OERMETADATA)
-        .antMatchers("/api/labeldefinition/**").hasRole(ROLE_MANAGE_OERMETADATA);
+        .antMatchers("/api/labeldefinition/**").hasRole(ROLE_MANAGE_OERMETADATA)
+        .antMatchers("/api/vocab/**").hasRole(ROLE_MANAGE_OERMETADATA);
   }
 
   @Bean

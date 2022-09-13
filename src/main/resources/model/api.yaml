@@ -22,6 +22,8 @@ tags:
     description: oEmbed provider endpoint
   - name: search-Controller
     description: Every EndPoint for Search Controller
+  - name: vocab-Controller
+    description: vocab endpoint
 paths:
   /api/label/{language}:
     $ref: "label.yaml#/~1api~1label~1{language}"
@@ -50,6 +52,9 @@ paths:
 
   /api/search/**:
     $ref: "search.yaml#/~1api~1search~1**"
+
+  /api/vocab/bulk:
+    $ref: "vocab.yaml#/~1api~1vocab~1bulk"
 
 components:
   schemas:
