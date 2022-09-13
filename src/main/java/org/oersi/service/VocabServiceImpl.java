@@ -10,7 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -26,5 +28,16 @@ public class VocabServiceImpl implements VocabService {
     List<VocabItem> existing = vocabItemRepository.findByVocabIdentifier(vocabIdentifier);
     vocabItemRepository.deleteAll(existing);
     return vocabItemRepository.saveAll(items);
+  }
+
+  @Transactional
+  @Override
+  public Map<String, String> getParentMap(String vocabIdentifier) {
+    List<VocabItem> items = vocabItemRepository.findByVocabIdentifier(vocabIdentifier);
+    Map<String, String> result = new HashMap<>();
+    for (VocabItem item: items) {
+      result.put(item.getKey(), item.getParentKey());
+    }
+    return result;
   }
 }

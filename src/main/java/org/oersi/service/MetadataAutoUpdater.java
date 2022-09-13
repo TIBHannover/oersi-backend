@@ -1,7 +1,5 @@
 package org.oersi.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -18,10 +16,8 @@ import org.oersi.domain.Provider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,11 +39,10 @@ import java.util.stream.Collectors;
 public class MetadataAutoUpdater {
 
   private final @NonNull LabelDefinitionService labelDefinitionService;
+  private final @NonNull VocabService vocabService;
 
   @Value("${feature.add_missing_parent_items_of_hierarchical_vocabs}")
   private boolean featureAddMissingParentItems;
-
-  private final @NonNull ResourceLoader resourceLoader;
 
   private final @NonNull AutoUpdateProperties autoUpdateProperties;
 
@@ -72,18 +67,11 @@ public class MetadataAutoUpdater {
   private Map<String, String> aboutParentMap = null;
   private Map<String, String> getAboutParentMap() {
     if (aboutParentMap == null) {
-      try (var is = resourceLoader.getResource("classpath:hochschulfaechersystematik-parentMap.json").getInputStream()) {
-        ObjectMapper mapper = new ObjectMapper();
-        aboutParentMap = mapper.readValue(is, new TypeReference<>() {});
-      } catch (IOException e) {
-        log.error("Cannot open resource", e);
-        aboutParentMap = new HashMap<>();
-      }
+      aboutParentMap = vocabService.getParentMap("hochschulfaechersystematik");
     }
     return aboutParentMap;
   }
   private void addMissingParentItemsForHierarchicalVocab(Metadata data) {
-    // TODO experimental, simplified solution just to test the feature for the about field with hardcoded vocab-structure
     if (data.getAbout() != null) {
       Set<String> ids = data.getAbout().stream().map(About::getIdentifier).collect(Collectors.toSet());
       Set<String> idsToAdd = getParentIdsToAdd(ids, getAboutParentMap());

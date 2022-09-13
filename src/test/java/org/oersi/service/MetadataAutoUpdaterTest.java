@@ -9,6 +9,8 @@ import org.oersi.domain.LocalizedString;
 import org.oersi.domain.Media;
 import org.oersi.domain.Metadata;
 import org.oersi.domain.Provider;
+import org.oersi.domain.VocabItem;
+import org.oersi.repository.VocabItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -30,6 +32,10 @@ class MetadataAutoUpdaterTest {
   private MetadataAutoUpdater metadataAutoUpdater;
   @MockBean
   private LabelDefinitionService repository;
+  @Autowired
+  private VocabService vocabService;
+  @MockBean
+  private VocabItemRepository vocabItemRepository;
 
   private Metadata newMetadata() {
     Metadata metadata = new Metadata();
@@ -118,6 +124,19 @@ class MetadataAutoUpdaterTest {
     About about = new About();
     about.setIdentifier("https://w3id.org/kim/hochschulfaechersystematik/n009");
     data.setAbout(new ArrayList<>(List.of(about)));
+    List<VocabItem> vocabItems = new ArrayList<>();
+    VocabItem item1 = new VocabItem();
+    item1.setParentKey("hochschulfaechersystematik");
+    item1.setKey("https://w3id.org/kim/hochschulfaechersystematik/n009");
+    item1.setParentKey("https://w3id.org/kim/hochschulfaechersystematik/n42");
+    vocabItems.add(item1);
+    VocabItem item2 = new VocabItem();
+    item2.setParentKey("hochschulfaechersystematik");
+    item2.setKey("https://w3id.org/kim/hochschulfaechersystematik/n42");
+    item2.setParentKey("https://w3id.org/kim/hochschulfaechersystematik/n4");
+    vocabItems.add(item2);
+    when(vocabItemRepository.findByVocabIdentifier("hochschulfaechersystematik")).thenReturn(vocabItems);
+
     metadataAutoUpdater.setFeatureAddMissingParentItems(true);
     metadataAutoUpdater.addMissingInfos(data);
 
