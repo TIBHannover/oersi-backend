@@ -28,7 +28,7 @@ public class VocabController implements VocabControllerApi {
     for (VocabItemDto itemDto: body.getItems()) {
       VocabItem item = new VocabItem();
       item.setVocabIdentifier(body.getVocabIdentifier());
-      item.setKey(itemDto.getKey());
+      item.setItemKey(itemDto.getKey());
       item.setParentKey(itemDto.getParentKey());
       items.add(item);
     }

@@ -36,7 +36,7 @@ public class VocabServiceImpl implements VocabService {
     List<VocabItem> items = vocabItemRepository.findByVocabIdentifier(vocabIdentifier);
     Map<String, String> result = new HashMap<>();
     for (VocabItem item: items) {
-      result.put(item.getKey(), item.getParentKey());
+      result.put(item.getItemKey(), item.getParentKey());
     }
     return result;
   }

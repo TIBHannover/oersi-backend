@@ -127,12 +127,12 @@ class MetadataAutoUpdaterTest {
     List<VocabItem> vocabItems = new ArrayList<>();
     VocabItem item1 = new VocabItem();
     item1.setParentKey("hochschulfaechersystematik");
-    item1.setKey("https://w3id.org/kim/hochschulfaechersystematik/n009");
+    item1.setItemKey("https://w3id.org/kim/hochschulfaechersystematik/n009");
     item1.setParentKey("https://w3id.org/kim/hochschulfaechersystematik/n42");
     vocabItems.add(item1);
     VocabItem item2 = new VocabItem();
     item2.setParentKey("hochschulfaechersystematik");
-    item2.setKey("https://w3id.org/kim/hochschulfaechersystematik/n42");
+    item2.setItemKey("https://w3id.org/kim/hochschulfaechersystematik/n42");
     item2.setParentKey("https://w3id.org/kim/hochschulfaechersystematik/n4");
     vocabItems.add(item2);
     when(vocabItemRepository.findByVocabIdentifier("hochschulfaechersystematik")).thenReturn(vocabItems);

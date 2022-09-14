@@ -15,7 +15,7 @@ import javax.persistence.Entity;
 public class VocabItem extends BaseEntity {
 
   private String vocabIdentifier;
-  private String key;
+  private String itemKey;
   private String parentKey;
 
 }
