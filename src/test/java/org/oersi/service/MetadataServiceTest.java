@@ -106,6 +106,15 @@ class MetadataServiceTest {
   }
 
   @Test
+  void testCreateOrUpdateWithInvalidKeywordLength() {
+    Metadata metadata = newMetadata();
+    metadata.setKeywords(List.of("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
+    MetadataService.MetadataUpdateResult result = service.createOrUpdate(metadata);
+    assertThat(result.getSuccess()).isFalse();
+    verify(repository, times(0)).saveAll(anyList());
+  }
+
+  @Test
   void testCreateOrUpdateWithInvalidLanguageCodeInPrefLabel() {
     Metadata metadata = newMetadata();
     LocalizedString lrtPrefLabel = new LocalizedString();

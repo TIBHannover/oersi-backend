@@ -14,6 +14,7 @@ import org.oersi.domain.*;
 @RequiredArgsConstructor
 public class MetadataValidator {
 
+  private static final int DEFAULT_MAX_STRING_LENGTH = 200;
   private static final Set<String> ISO_LANGUAGES = Set.of(Locale.getISOLanguages());
 
   private final @NonNull Metadata metadata;
@@ -29,6 +30,7 @@ public class MetadataValidator {
     result = new ValidatorResult();
     validateMandatoryFields();
     validateUrls();
+    validateFieldLength();
     if (metadata.getAbout() != null) {
       for (About about : metadata.getAbout()) {
         validatePrefLabel(about.getPrefLabel());
@@ -82,6 +84,17 @@ public class MetadataValidator {
     if (prefLabel != null && prefLabel.getLocalizedStrings() != null) {
       prefLabel.getLocalizedStrings().keySet().stream().filter(s -> !ISO_LANGUAGES.contains(s))
           .forEach(s -> result.addViolation("Illegal language code '" + s + "'"));
+    }
+  }
+
+  private void validateLength(String s, int maxLength) {
+    if (s.length() > maxLength) {
+      result.addViolation("Value max length exceeded: " + s);
+    }
+  }
+  private void validateFieldLength() {
+    if (metadata.getKeywords() != null) {
+      metadata.getKeywords().forEach(k -> validateLength(k, DEFAULT_MAX_STRING_LENGTH));
     }
   }
 
