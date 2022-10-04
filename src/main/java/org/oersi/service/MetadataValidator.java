@@ -64,6 +64,10 @@ public class MetadataValidator {
       metadata.getEncoding().forEach(e -> validateUrl(urlValidator, e.getEmbedUrl()));
       metadata.getEncoding().forEach(e -> validateUrl(urlValidator, e.getContentUrl()));
     }
+    if (metadata.getTrailer() != null) {
+      metadata.getTrailer().forEach(e -> validateUrl(urlValidator, e.getEmbedUrl()));
+      metadata.getTrailer().forEach(e -> validateUrl(urlValidator, e.getContentUrl()));
+    }
   }
   private void validateUrl(UrlValidator urlValidator, String value) {
     if (value != null && !urlValidator.isValid(value)) {

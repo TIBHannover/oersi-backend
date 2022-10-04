@@ -1265,3 +1265,56 @@ databaseChangeLog:
                 name: vocab_identifier
                 type: VARCHAR(255)
           tableName: vocab_item
+
+- changeSet:
+    id: 1664881137274-1
+    author: hoffmann (generated)
+    changes:
+      - createTable:
+          columns:
+            - column:
+                autoIncrement: true
+                constraints:
+                  nullable: false
+                  primaryKey: true
+                  primaryKeyName: trailerPK
+                name: id
+                type: BIGINT
+            - column:
+                name: bitrate
+                type: VARCHAR(255)
+            - column:
+                name: content_size
+                type: VARCHAR(255)
+            - column:
+                name: content_url
+                type: VARCHAR(255)
+            - column:
+                name: embed_url
+                type: VARCHAR(255)
+            - column:
+                name: encoding_format
+                type: VARCHAR(255)
+            - column:
+                name: sha256
+                type: VARCHAR(255)
+            - column:
+                name: type
+                type: VARCHAR(255)
+            - column:
+                name: metadata_id
+                type: BIGINT
+          tableName: trailer
+- changeSet:
+    id: 1664881137274-2
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: metadata_id
+          baseTableName: trailer
+          constraintName: FKhic2lijlkk4q5cyu3bqvolvfn
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: metadata
+          validate: true
