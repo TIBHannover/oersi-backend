@@ -450,6 +450,12 @@ components:
           description: "A media object that encodes this learning resource"
           items:
             $ref: '#/components/schemas/MediaObject'
+        trailer:
+          title: Trailer
+          type: array
+          description: "A trailer/video-teaser of this learning resource"
+          items:
+            $ref: '#/components/schemas/Trailer'
     MetadataCreator:
       required:
         - name
@@ -580,6 +586,39 @@ components:
           type: string
           enum:
             - MediaObject
+    Trailer:
+      type: object
+      properties:
+        bitrate:
+          type: string
+          description: "The bitrate of an audio or video object."
+          example: "831 kb/s"
+        contentUrl:
+          type: string
+          format: uri
+          description: "The download URL of the media object"
+          example: "https://some.content.org/download"
+        contentSize:
+          type: string
+          description: "The size of the media object in (kilo/mega/giga) bytes."
+          example: "286MB"
+        embedUrl:
+          type: string
+          format: uri
+          description: "A URL pointing to a player for a video. In general, this is the information in the src element of an embed tag."
+          example: "https://some.content.org/embed"
+        encodingFormat:
+          type: string
+          description: "The media type of the media object, conforming to https://www.iana.org/assignments/media-types/media-types.xml"
+          example: "video/mp4"
+        sha256:
+          type: string
+          description: "The SHA-2 SHA256 hash of the content of the media object."
+          example: "af96aba0790476495cfb5fa6d5612b91d8e404bb0d53aaf4b19bb8bd49843959"
+        type:
+          type: string
+          enum:
+            - VideoObject
     Provider:
       title: Provider
       type: object
