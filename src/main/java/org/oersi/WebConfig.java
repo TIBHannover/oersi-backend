@@ -152,6 +152,12 @@ public class WebConfig {
       String.class, CaptionDto.TypeEnum.class);
     modelMapper.addConverter(ctx -> ctx.getSource() == null ? null : ctx.getSource().toString(),
       CaptionDto.TypeEnum.class, String.class);
+    modelMapper.addConverter(
+      ctx -> ctx.getSource() == null ? null
+        : TrailerDto.TypeEnum.fromValue(ctx.getSource()),
+      String.class, TrailerDto.TypeEnum.class);
+    modelMapper.addConverter(ctx -> ctx.getSource() == null ? null : ctx.getSource().toString(),
+      TrailerDto.TypeEnum.class, String.class);
   }
 
   private void addIdMapping(final ModelMapper modelMapper) {

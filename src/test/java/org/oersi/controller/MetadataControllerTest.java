@@ -26,6 +26,7 @@ import org.oersi.domain.Metadata;
 import org.oersi.domain.Provider;
 import org.oersi.domain.Publisher;
 import org.oersi.domain.SourceOrganization;
+import org.oersi.domain.Trailer;
 import org.oersi.dto.LanguageDto;
 import org.oersi.dto.LocalizedStringDto;
 import org.oersi.dto.MediaObjectDto;
@@ -178,6 +179,11 @@ class MetadataControllerTest {
     aboutPrefLabel.setLocalizedStrings(Map.of("de", "Mathematik", "en", "mathematics"));
     about.setPrefLabel(aboutPrefLabel);
     metadata.setAbout(List.of(about));
+
+    Trailer trailer = new Trailer();
+    trailer.setType("VideoObject");
+    trailer.setEmbedUrl("https://example.org/trailer");
+    metadata.setTrailer(new ArrayList<>(List.of(trailer)));
 
     metadata.setType(new ArrayList<>(List.of("Course", "LearningResource")));
     metadata.setKeywords(new ArrayList<>(List.of("Gitlab", "Multimedia")));
@@ -380,6 +386,7 @@ class MetadataControllerTest {
     metadata.setKeywords(null);
     metadata.setType(null);
     metadata.setLearningResourceType(null);
+    metadata.setTrailer(null);
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isOk())
