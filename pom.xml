@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.7.1</version>
+		<version>2.7.4</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>org.oersi</groupId>
@@ -73,17 +73,17 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.dataformat</groupId>
 			<artifactId>jackson-dataformat-xml</artifactId>
-			<version>2.13.3</version>
+			<version>2.13.4</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-batik</artifactId>
-			<version>3.8.2</version>
+			<version>3.8.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-transcoder</artifactId>
-			<version>1.14</version>
+			<version>1.15</version>
 		</dependency>
 
 		<dependency>
@@ -121,7 +121,7 @@
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-ui</artifactId>
-			<version>1.6.9</version>
+			<version>1.6.11</version>
 		</dependency>
 
 		<dependency>
@@ -139,7 +139,7 @@
 			<plugin>
 				<groupId>org.liquibase</groupId>
 				<artifactId>liquibase-maven-plugin</artifactId>
-				<version>4.9.1</version>
+				<version>4.16.1</version>
 				<configuration>
 					<!-- NOTE: h2 does not work here! -->
 					<!-- you can setup local mariadb via docker: docker run -e MYSQL_DATABASE=test -e MYSQL_USER=test -e MYSQL_PASSWORD=test -e MYSQL_ROOT_PASSWORD=xxx -p 3306:3306 -d mariadb:10.1 -->
@@ -156,13 +156,13 @@
 					<dependency>
 						<groupId>org.liquibase.ext</groupId>
 						<artifactId>liquibase-hibernate5</artifactId>
-						<version>4.7.1</version>
+						<version>4.16.1</version>
 					</dependency>
 
 					<dependency>
 						<groupId>org.javassist</groupId>
 						<artifactId>javassist</artifactId>
-						<version>3.28.0-GA</version>
+						<version>3.29.2-GA</version>
 					</dependency>
 					<dependency>
 						<groupId>org.springframework.boot</groupId>
@@ -201,7 +201,7 @@
 			<plugin>
 				<groupId>io.swagger.codegen.v3</groupId>
 				<artifactId>swagger-codegen-maven-plugin</artifactId>
-				<version>3.0.34</version>
+				<version>3.0.35</version>
 				<executions>
 					<execution>
 						<id>generate-Api-V3</id>
