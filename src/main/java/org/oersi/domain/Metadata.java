@@ -79,10 +79,8 @@ public class Metadata extends BaseEntity {
   @JoinColumn(name = "metadata_id", nullable = true)
   @ToString.Exclude
   private List<Media> encoding;
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-  @JoinColumn(name = "metadata_id", nullable = true)
-  @ToString.Exclude
-  private List<Trailer> trailer;
+  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+  private Trailer trailer;
 
   @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
   private Provider provider;
