@@ -92,7 +92,6 @@ public class MetadataServiceImpl implements MetadataService {
         metadata.setSourceOrganization(updateExistingList(existingMetadata.getSourceOrganization(),
           metadata.getSourceOrganization()));
         metadata.setEncoding(updateExistingList(existingMetadata.getEncoding(), metadata.getEncoding()));
-        metadata.setTrailer(updateExistingList(existingMetadata.getTrailer(), metadata.getTrailer()));
       }
       metadata.setDateModifiedInternal(LocalDateTime.now());
       metadata.setName(cutString(metadata.getName(), Metadata.NAME_LENGTH));

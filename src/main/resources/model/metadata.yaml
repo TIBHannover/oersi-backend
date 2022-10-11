@@ -451,11 +451,8 @@ components:
           items:
             $ref: '#/components/schemas/MediaObject'
         trailer:
-          title: Trailer
-          type: array
           description: "A trailer/video-teaser of this learning resource"
-          items:
-            $ref: '#/components/schemas/Trailer'
+          $ref: '#/components/schemas/Trailer'
     MetadataCreator:
       required:
         - name

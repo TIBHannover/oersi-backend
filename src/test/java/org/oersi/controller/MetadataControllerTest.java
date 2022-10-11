@@ -183,7 +183,7 @@ class MetadataControllerTest {
     Trailer trailer = new Trailer();
     trailer.setType("VideoObject");
     trailer.setEmbedUrl("https://example.org/trailer");
-    metadata.setTrailer(new ArrayList<>(List.of(trailer)));
+    metadata.setTrailer(trailer);
 
     metadata.setType(new ArrayList<>(List.of("Course", "LearningResource")));
     metadata.setKeywords(new ArrayList<>(List.of("Gitlab", "Multimedia")));
@@ -386,7 +386,6 @@ class MetadataControllerTest {
     metadata.setKeywords(null);
     metadata.setType(null);
     metadata.setLearningResourceType(null);
-    metadata.setTrailer(null);
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isOk())
