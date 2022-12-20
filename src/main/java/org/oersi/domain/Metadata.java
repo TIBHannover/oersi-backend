@@ -134,4 +134,13 @@ public class Metadata extends BaseEntity {
   @Column(nullable = false)
   private LocalDateTime dateModifiedInternal;
 
+  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+  private LabelledConcept assesses;
+  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+  private LabelledConcept competencyRequired;
+  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+  private LabelledConcept teaches;
+  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+  private LabelledConcept educationalLevel;
+
 }
