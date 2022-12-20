@@ -31,24 +31,7 @@ public class MetadataValidator {
     validateMandatoryFields();
     validateUrls();
     validateFieldLength();
-    if (metadata.getAbout() != null) {
-      for (About about : metadata.getAbout()) {
-        validatePrefLabel(about.getPrefLabel());
-      }
-    }
-    if (metadata.getAudience() != null) {
-      for (Audience audience : metadata.getAudience()) {
-        validatePrefLabel(audience.getPrefLabel());
-      }
-    }
-    if (metadata.getConditionsOfAccess() != null) {
-      validatePrefLabel(metadata.getConditionsOfAccess().getPrefLabel());
-    }
-    if (metadata.getLearningResourceType() != null) {
-      for (LearningResourceType lrt : metadata.getLearningResourceType()) {
-        validatePrefLabel(lrt.getPrefLabel());
-      }
-    }
+    validatePrefLabels();
     return result;
   }
 
@@ -88,6 +71,39 @@ public class MetadataValidator {
     if (prefLabel != null && prefLabel.getLocalizedStrings() != null) {
       prefLabel.getLocalizedStrings().keySet().stream().filter(s -> !ISO_LANGUAGES.contains(s))
           .forEach(s -> result.addViolation("Illegal language code '" + s + "'"));
+    }
+  }
+
+  private void validatePrefLabels() {
+    if (metadata.getAbout() != null) {
+      for (About about : metadata.getAbout()) {
+        validatePrefLabel(about.getPrefLabel());
+      }
+    }
+    if (metadata.getAudience() != null) {
+      for (Audience audience : metadata.getAudience()) {
+        validatePrefLabel(audience.getPrefLabel());
+      }
+    }
+    if (metadata.getConditionsOfAccess() != null) {
+      validatePrefLabel(metadata.getConditionsOfAccess().getPrefLabel());
+    }
+    if (metadata.getCompetencyRequired() != null) {
+      validatePrefLabel(metadata.getCompetencyRequired().getPrefLabel());
+    }
+    if (metadata.getAssesses() != null) {
+      validatePrefLabel(metadata.getAssesses().getPrefLabel());
+    }
+    if (metadata.getEducationalLevel() != null) {
+      validatePrefLabel(metadata.getEducationalLevel().getPrefLabel());
+    }
+    if (metadata.getTeaches() != null) {
+      validatePrefLabel(metadata.getTeaches().getPrefLabel());
+    }
+    if (metadata.getLearningResourceType() != null) {
+      for (LearningResourceType lrt : metadata.getLearningResourceType()) {
+        validatePrefLabel(lrt.getPrefLabel());
+      }
     }
   }
 

@@ -119,7 +119,7 @@ databaseChangeLog:
         - column:
             name: source
         tableName: main_entity_of_page
-     
+
 - changeSet:
     id: 1599196308613-5
     author: hoffmann (generated)
@@ -1356,3 +1356,131 @@ databaseChangeLog:
       - dropColumn:
           columnName: metadata_id
           tableName: trailer
+
+- changeSet:
+    id: 1671517827325-1
+    author: hoffmann (generated)
+    changes:
+      - createTable:
+          columns:
+            - column:
+                autoIncrement: true
+                constraints:
+                  nullable: false
+                  primaryKey: true
+                  primaryKeyName: labelled_conceptPK
+                name: id
+                type: BIGINT
+            - column:
+                name: identifier
+                type: VARCHAR(255)
+            - column:
+                name: pref_label_id
+                type: BIGINT
+          tableName: labelled_concept
+- changeSet:
+    id: 1671517827325-2
+    author: hoffmann (generated)
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: assesses_id
+                type: bigint
+          tableName: metadata
+- changeSet:
+    id: 1671517827325-4
+    author: hoffmann (generated)
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: educational_level_id
+                type: bigint
+          tableName: metadata
+- changeSet:
+    id: 1671517827325-5
+    author: hoffmann (generated)
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: teaches_id
+                type: bigint
+          tableName: metadata
+- changeSet:
+    id: 1671517827325-6
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: assesses_id
+          baseTableName: metadata
+          constraintName: FK4mfmv1kuq05pat5ouxqgis8ik
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: labelled_concept
+          validate: true
+- changeSet:
+    id: 1671517827325-8
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: teaches_id
+          baseTableName: metadata
+          constraintName: FKmy346rfukqntboawggag2gvjv
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: labelled_concept
+          validate: true
+- changeSet:
+    id: 1671517827325-9
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: pref_label_id
+          baseTableName: labelled_concept
+          constraintName: FKrywinu118vxwgwb3fk0blc0b1
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: pref_label
+          validate: true
+- changeSet:
+    id: 1671517827325-10
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: educational_level_id
+          baseTableName: metadata
+          constraintName: FKs13gijfntr1r6swcmxx1om72g
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: labelled_concept
+          validate: true
+- changeSet:
+    id: 1671518410919-1
+    author: hoffmann (generated)
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: competency_required_id
+                type: bigint
+          tableName: metadata
+- changeSet:
+    id: 1671518410919-2
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: competency_required_id
+          baseTableName: metadata
+          constraintName: FKh75a7hclb8f56y06dxcsme8v9
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: labelled_concept
+          validate: true
+

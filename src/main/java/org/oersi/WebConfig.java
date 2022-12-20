@@ -121,6 +121,8 @@ public class WebConfig {
         .using(labelConverter).map(MetadataAudienceDto::getPrefLabel, Audience::setPrefLabel));
     modelMapper.typeMap(ConditionsOfAccessDto.class, ConditionsOfAccess.class).addMappings(mapper -> mapper
       .using(labelConverter).map(ConditionsOfAccessDto::getPrefLabel, ConditionsOfAccess::setPrefLabel));
+    modelMapper.typeMap(LabelledConceptDto.class, LabelledConcept.class).addMappings(mapper -> mapper
+      .using(labelConverter).map(LabelledConceptDto::getPrefLabel, LabelledConcept::setPrefLabel));
     modelMapper.typeMap(MetadataLearningResourceTypeDto.class, LearningResourceType.class)
         .addMappings(mapper -> mapper.using(labelConverter)
             .map(MetadataLearningResourceTypeDto::getPrefLabel, LearningResourceType::setPrefLabel));
@@ -205,6 +207,12 @@ public class WebConfig {
     modelMapper.typeMap(MetadataCreatorDto.class, Creator.class).addMappings(mapper -> {
       mapper.map(MetadataCreatorDto::getId, Creator::setIdentifier);
       mapper.skip(Creator::setId);
+    });
+    modelMapper.typeMap(LabelledConcept.class, LabelledConceptDto.class)
+      .addMappings(mapper -> mapper.map(LabelledConcept::getIdentifier, LabelledConceptDto::setId));
+    modelMapper.typeMap(LabelledConceptDto.class, LabelledConcept.class).addMappings(mapper -> {
+      mapper.map(LabelledConceptDto::getId, LabelledConcept::setIdentifier);
+      mapper.skip(LabelledConcept::setId);
     });
     modelMapper.typeMap(LearningResourceType.class, MetadataLearningResourceTypeDto.class).addMappings(
         mapper -> mapper.map(LearningResourceType::getIdentifier, MetadataLearningResourceTypeDto::setId));

@@ -208,6 +208,18 @@
         content: {}
 components:
   schemas:
+    LabelledConcept:
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          type: string
+          description: The identifier
+          format: uri
+          example: https://www.wikidata.org/entity/Q54166
+        prefLabel:
+          $ref: 'api.yaml#/components/schemas/LocalizedString'
     Affiliation:
       required:
         - name
@@ -453,6 +465,14 @@ components:
         trailer:
           description: "A trailer/video-teaser of this learning resource"
           $ref: '#/components/schemas/Trailer'
+        assesses:
+          $ref: '#/components/schemas/LabelledConcept'
+        educationalLevel:
+          $ref: '#/components/schemas/LabelledConcept'
+        competencyRequired:
+          $ref: '#/components/schemas/LabelledConcept'
+        teaches:
+          $ref: '#/components/schemas/LabelledConcept'
     MetadataCreator:
       required:
         - name
