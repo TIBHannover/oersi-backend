@@ -13,11 +13,14 @@ import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.oersi.domain.About;
 import org.oersi.domain.Affiliation;
+import org.oersi.domain.Assesses;
 import org.oersi.domain.Audience;
 import org.oersi.domain.Caption;
+import org.oersi.domain.CompetencyRequired;
 import org.oersi.domain.ConditionsOfAccess;
 import org.oersi.domain.Contributor;
 import org.oersi.domain.Creator;
+import org.oersi.domain.EducationalLevel;
 import org.oersi.domain.LabelledConcept;
 import org.oersi.domain.LearningResourceType;
 import org.oersi.domain.License;
@@ -27,13 +30,13 @@ import org.oersi.domain.Metadata;
 import org.oersi.domain.Provider;
 import org.oersi.domain.Publisher;
 import org.oersi.domain.SourceOrganization;
+import org.oersi.domain.Teaches;
 import org.oersi.domain.Trailer;
+import org.oersi.dto.LabelledConceptDto;
 import org.oersi.dto.LanguageDto;
 import org.oersi.dto.LocalizedStringDto;
 import org.oersi.dto.MediaObjectDto;
-import org.oersi.dto.MetadataAudienceDto;
 import org.oersi.dto.MetadataDto;
-import org.oersi.dto.MetadataLearningResourceTypeDto;
 import org.oersi.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -143,13 +146,6 @@ class MetadataControllerTest {
     conditionsOfAccess.setIdentifier("https://w3id.org/kim/conditionsOfAccess/no_login");
     metadata.setConditionsOfAccess(conditionsOfAccess);
 
-    Audience audience = new Audience();
-    audience.setIdentifier("audience");
-    LocalizedString audiencePrefLabel = new LocalizedString();
-    audiencePrefLabel.setLocalizedStrings(Map.of("de", "Lernender", "en", "student"));
-    audience.setPrefLabel(audiencePrefLabel);
-    metadata.setAudience(new ArrayList<>(List.of(audience)));
-
     MainEntityOfPage mainEntityOfPage = new MainEntityOfPage();
     mainEntityOfPage.setIdentifier("https://example.org/desc/123");
     Provider provider = new Provider();
@@ -167,29 +163,19 @@ class MetadataControllerTest {
     publisher.setType("Organization");
     metadata.setPublisher(new ArrayList<>(List.of(publisher)));
 
-    LearningResourceType learningResourceType = new LearningResourceType();
-    learningResourceType.setIdentifier("learningResourceType");
-    LocalizedString lrtPrefLabel = new LocalizedString();
-    lrtPrefLabel.setLocalizedStrings(Map.of("de", "Kurs", "en", "course"));
-    learningResourceType.setPrefLabel(lrtPrefLabel);
-    metadata.setLearningResourceType(new ArrayList<>(List.of(learningResourceType)));
-
-    About about = new About();
-    about.setIdentifier("subject");
-    LocalizedString aboutPrefLabel = new LocalizedString();
-    aboutPrefLabel.setLocalizedStrings(Map.of("de", "Mathematik", "en", "mathematics"));
-    about.setPrefLabel(aboutPrefLabel);
-    metadata.setAbout(List.of(about));
+    metadata.setAudience(List.of(setDefaultLabelledConceptValues(new Audience(), "audience", Map.of("de", "Lernender", "en", "student"))));
+    metadata.setLearningResourceType(List.of(setDefaultLabelledConceptValues(new LearningResourceType(), "learningResourceType", Map.of("de", "Kurs", "en", "course"))));
+    metadata.setAbout(List.of(setDefaultLabelledConceptValues(new About(), "subject", Map.of("de", "Mathematik", "en", "mathematics"))));
 
     Trailer trailer = new Trailer();
     trailer.setType("VideoObject");
     trailer.setEmbedUrl("https://example.org/trailer");
     metadata.setTrailer(trailer);
 
-    metadata.setAssesses(getDefaultLabelledConcept());
-    metadata.setCompetencyRequired(getDefaultLabelledConcept());
-    metadata.setEducationalLevel(getDefaultLabelledConcept());
-    metadata.setTeaches(getDefaultLabelledConcept());
+    metadata.setAssesses(List.of(setDefaultLabelledConceptValues(new Assesses(), "https://example.org/assesses/1", Map.of("de", "Deutsch", "en", "English"))));
+    metadata.setCompetencyRequired(List.of(setDefaultLabelledConceptValues(new CompetencyRequired(), "https://example.org/competencies/2", Map.of("de", "Deutsch", "en", "English"))));
+    metadata.setEducationalLevel(List.of(setDefaultLabelledConceptValues(new EducationalLevel(), "https://w3id.org/kim/educationalLevel/level_A", Map.of("de", "Deutsch", "en", "English"))));
+    metadata.setTeaches(List.of(setDefaultLabelledConceptValues(new Teaches(), "https://example.org/teaches/1", Map.of("de", "Deutsch", "en", "English"))));
 
     metadata.setType(new ArrayList<>(List.of("Course", "LearningResource")));
     metadata.setKeywords(new ArrayList<>(List.of("Gitlab", "Multimedia")));
@@ -212,11 +198,10 @@ class MetadataControllerTest {
     return metadata;
   }
 
-  private LabelledConcept getDefaultLabelledConcept() {
-    LabelledConcept concept = new LabelledConcept();
-    concept.setIdentifier("https://example.org/an-identifier");
+  private <T extends LabelledConcept> T setDefaultLabelledConceptValues(T concept, String identifier, Map<String, String> localizedStrings) {
+    concept.setIdentifier(identifier);
     LocalizedString prefLabel = new LocalizedString();
-    prefLabel.setLocalizedStrings(Map.of("de", "Deutsch", "en", "English"));
+    prefLabel.setLocalizedStrings(localizedStrings);
     concept.setPrefLabel(prefLabel);
     return concept;
   }
@@ -280,7 +265,7 @@ class MetadataControllerTest {
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
             "{\"@context\": [\"https://w3id.org/kim/lrmi-profile/draft/context.jsonld\",{\"@language\": \"de\"}],\n" +
-                    "\"id\":\"https://example.org\",\"name\":\"name\",\"caption\": [{\"type\": \"MediaObject\",\"id\": \"https://example.org/subs-en.vtt\",\"encodingFormat\": \"text/vtt\",\"inLanguage\": \"en\"}],\"conditionsOfAccess\":{\"id\":\"https://w3id.org/kim/conditionsOfAccess/no_login\"},\"contributor\":[{\"name\":\"Jane Doe\",\"type\":\"Person\",\"affiliation\": {\"name\":\"name\"}}],\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\",\"affiliation\": {\"name\":\"name\"}},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"duration\":\"PT47M58S\",\"isAccessibleForFree\":true,\"about\":[{\"id\":\"subject\",\"prefLabel\":{\"de\":\"Mathematik\",\"en\":\"mathematics\"}}],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"Kurs\",\"en\":\"course\"}}],\"audience\":[{\"id\":\"audience\",\"prefLabel\":{\"de\":\"Lernender\",\"en\":\"student\"}}],\"mainEntityOfPage\":[{\"id\":\"https://example.org/desc/123\"}], \"publisher\":[{\"name\":\"publisher\"}], \"sourceOrganization\":[{\"name\":\"sourceOrganization\"}], \"keywords\":[\"Gitlab\", \"Multimedia\"], \"type\":[\"Course\", \"LearningResource\"], \"assesses\": {\"prefLabel\":{\"de\":\"Deutsch\",\"en\":\"English\"}}}"));
+                    "\"id\":\"https://example.org\",\"name\":\"name\",\"caption\": [{\"type\": \"MediaObject\",\"id\": \"https://example.org/subs-en.vtt\",\"encodingFormat\": \"text/vtt\",\"inLanguage\": \"en\"}],\"conditionsOfAccess\":{\"id\":\"https://w3id.org/kim/conditionsOfAccess/no_login\"},\"contributor\":[{\"name\":\"Jane Doe\",\"type\":\"Person\",\"affiliation\": {\"name\":\"name\"}}],\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\",\"affiliation\": {\"name\":\"name\"}},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"duration\":\"PT47M58S\",\"isAccessibleForFree\":true,\"about\":[{\"id\":\"subject\",\"prefLabel\":{\"de\":\"Mathematik\",\"en\":\"mathematics\"}}],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"Kurs\",\"en\":\"course\"}}],\"audience\":[{\"id\":\"audience\",\"prefLabel\":{\"de\":\"Lernender\",\"en\":\"student\"}}],\"mainEntityOfPage\":[{\"id\":\"https://example.org/desc/123\"}], \"publisher\":[{\"name\":\"publisher\"}], \"sourceOrganization\":[{\"name\":\"sourceOrganization\"}], \"keywords\":[\"Gitlab\", \"Multimedia\"], \"type\":[\"Course\", \"LearningResource\"], \"assesses\": [{\"prefLabel\":{\"de\":\"Deutsch\",\"en\":\"English\"}}]}"));
   }
 
   @Test
@@ -354,7 +339,7 @@ class MetadataControllerTest {
   @Test
   void testPostRequestCreateMultipleLearningResourceTypes() throws Exception {
     MetadataDto metadata = getTestMetadataDto();
-    MetadataLearningResourceTypeDto learningResourceType = new MetadataLearningResourceTypeDto();
+    LabelledConceptDto learningResourceType = new LabelledConceptDto();
     learningResourceType.setId("learningResourceType2");
     metadata.getLearningResourceType().add(learningResourceType);
 
@@ -367,7 +352,7 @@ class MetadataControllerTest {
   @Test
   void testPostRequestCreateMultipleAudiences() throws Exception {
     MetadataDto metadata = getTestMetadataDto();
-    MetadataAudienceDto audience = new MetadataAudienceDto();
+    LabelledConceptDto audience = new LabelledConceptDto();
     audience.setId("audience2");
     metadata.getAudience().add(audience);
 
@@ -393,12 +378,16 @@ class MetadataControllerTest {
     createTestMetadata();
     MetadataDto metadata = getTestMetadataDto();
     metadata.setAbout(null);
+    metadata.setAssesses(null);
     metadata.setCaption(null);
+    metadata.setCompetencyRequired(null);
     metadata.setCreator(null);
     metadata.setContributor(null);
     metadata.setAudience(null);
+    metadata.setEducationalLevel(null);
     metadata.setMainEntityOfPage(null);
     metadata.setKeywords(null);
+    metadata.setTeaches(null);
     metadata.setType(null);
     metadata.setLearningResourceType(null);
 
