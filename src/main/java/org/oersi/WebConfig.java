@@ -166,7 +166,7 @@ public class WebConfig {
       mapper.skip(LabelledConcept::setId);
     });
     List.of(About.class, Assesses.class, Audience.class, CompetencyRequired.class, EducationalLevel.class, LearningResourceType.class, Teaches.class)
-      .forEach((labelledConceptClazz) -> {
+      .forEach(labelledConceptClazz -> {
         modelMapper.typeMap(labelledConceptClazz, LabelledConceptDto.class).includeBase(LabelledConcept.class, LabelledConceptDto.class);
         modelMapper.typeMap(LabelledConceptDto.class, labelledConceptClazz).includeBase(LabelledConceptDto.class, LabelledConcept.class);
       });
