@@ -82,9 +82,12 @@ public class MetadataServiceImpl implements MetadataService {
         // see https://gitlab.com/oersi/oersi-backend/-/issues/9
         metadata.setAbout(updateExistingList(existingMetadata.getAbout(), metadata.getAbout()));
         metadata.setAudience(updateExistingList(existingMetadata.getAudience(), metadata.getAudience()));
+        metadata.setAssesses(updateExistingList(existingMetadata.getAssesses(), metadata.getAssesses()));
         metadata.setCaption(updateExistingList(existingMetadata.getCaption(), metadata.getCaption()));
+        metadata.setCompetencyRequired(updateExistingList(existingMetadata.getCompetencyRequired(), metadata.getCompetencyRequired()));
         metadata.setCreator(updateExistingList(existingMetadata.getCreator(), metadata.getCreator()));
         metadata.setContributor(updateExistingList(existingMetadata.getContributor(), metadata.getContributor()));
+        metadata.setEducationalLevel(updateExistingList(existingMetadata.getEducationalLevel(), metadata.getEducationalLevel()));
         metadata.setLearningResourceType(updateExistingList(existingMetadata.getLearningResourceType(), metadata.getLearningResourceType()));
         metadata.setMainEntityOfPage(mergeMainEntityOfPageList(existingMetadata.getMainEntityOfPage(),
           metadata.getMainEntityOfPage()));
@@ -92,6 +95,7 @@ public class MetadataServiceImpl implements MetadataService {
         metadata.setSourceOrganization(updateExistingList(existingMetadata.getSourceOrganization(),
           metadata.getSourceOrganization()));
         metadata.setEncoding(updateExistingList(existingMetadata.getEncoding(), metadata.getEncoding()));
+        metadata.setTeaches(updateExistingList(existingMetadata.getTeaches(), metadata.getTeaches()));
       }
       metadata.setDateModifiedInternal(LocalDateTime.now());
       metadata.setName(cutString(metadata.getName(), Metadata.NAME_LENGTH));
@@ -166,7 +170,7 @@ public class MetadataServiceImpl implements MetadataService {
   /**
    * Merge existing list and new list. Entries in new list will override existing ones (based on
    * identifier).
-   * 
+   *
    * @param existingList existing list
    * @param newValues new list
    * @return merged list

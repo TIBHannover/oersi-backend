@@ -1484,3 +1484,243 @@ databaseChangeLog:
           referencedTableName: labelled_concept
           validate: true
 
+- changeSet:
+    id: 202212201426-1
+    author: hoffmann
+    changes:
+      - dropForeignKeyConstraint:
+          baseTableName: metadata
+          constraintName: FKh75a7hclb8f56y06dxcsme8v9
+      - dropForeignKeyConstraint:
+          baseTableName: metadata
+          constraintName: FKs13gijfntr1r6swcmxx1om72g
+      - dropForeignKeyConstraint:
+          baseTableName: labelled_concept
+          constraintName: FKrywinu118vxwgwb3fk0blc0b1
+      - dropForeignKeyConstraint:
+          baseTableName: metadata
+          constraintName: FKmy346rfukqntboawggag2gvjv
+      - dropForeignKeyConstraint:
+          baseTableName: metadata
+          constraintName: FK4mfmv1kuq05pat5ouxqgis8ik
+- changeSet:
+    id: 202212201426-2
+    author: hoffmann
+    changes:
+      - dropColumn:
+          columns:
+            - column:
+                name: competency_required_id
+            - column:
+                name: teaches_id
+            - column:
+                name: educational_level_id
+            - column:
+                name: assesses_id
+          tableName: metadata
+- changeSet:
+    id: 202212201426-3
+    author: hoffmann
+    changes:
+      - dropTable:
+          tableName: labelled_concept
+- changeSet:
+    id: 1671543601521-1
+    author: hoffmann (generated)
+    changes:
+      - createTable:
+          columns:
+            - column:
+                autoIncrement: true
+                constraints:
+                  nullable: false
+                  primaryKey: true
+                  primaryKeyName: assessesPK
+                name: id
+                type: BIGINT
+            - column:
+                name: identifier
+                type: VARCHAR(255)
+            - column:
+                name: pref_label_id
+                type: BIGINT
+            - column:
+                name: metadata_id
+                type: BIGINT
+          tableName: assesses
+- changeSet:
+    id: 1671543601521-2
+    author: hoffmann (generated)
+    changes:
+      - createTable:
+          columns:
+            - column:
+                autoIncrement: true
+                constraints:
+                  nullable: false
+                  primaryKey: true
+                  primaryKeyName: competency_requiredPK
+                name: id
+                type: BIGINT
+            - column:
+                name: identifier
+                type: VARCHAR(255)
+            - column:
+                name: pref_label_id
+                type: BIGINT
+            - column:
+                name: metadata_id
+                type: BIGINT
+          tableName: competency_required
+- changeSet:
+    id: 1671543601521-3
+    author: hoffmann (generated)
+    changes:
+      - createTable:
+          columns:
+            - column:
+                autoIncrement: true
+                constraints:
+                  nullable: false
+                  primaryKey: true
+                  primaryKeyName: educational_levelPK
+                name: id
+                type: BIGINT
+            - column:
+                name: identifier
+                type: VARCHAR(255)
+            - column:
+                name: pref_label_id
+                type: BIGINT
+            - column:
+                name: metadata_id
+                type: BIGINT
+          tableName: educational_level
+- changeSet:
+    id: 1671543601521-4
+    author: hoffmann (generated)
+    changes:
+      - createTable:
+          columns:
+            - column:
+                autoIncrement: true
+                constraints:
+                  nullable: false
+                  primaryKey: true
+                  primaryKeyName: teachesPK
+                name: id
+                type: BIGINT
+            - column:
+                name: identifier
+                type: VARCHAR(255)
+            - column:
+                name: pref_label_id
+                type: BIGINT
+            - column:
+                name: metadata_id
+                type: BIGINT
+          tableName: teaches
+- changeSet:
+    id: 1671543601521-5
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: metadata_id
+          baseTableName: competency_required
+          constraintName: FK31jjqr84nnea359t2nf2jtugq
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: metadata
+          validate: true
+- changeSet:
+    id: 1671543601521-6
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: metadata_id
+          baseTableName: educational_level
+          constraintName: FKbcbbxenocudd8yc9567h9ogar
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: metadata
+          validate: true
+- changeSet:
+    id: 1671543601521-7
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: pref_label_id
+          baseTableName: educational_level
+          constraintName: FKbqyp5o9qag2o0vldoqeb8q3s7
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: pref_label
+          validate: true
+- changeSet:
+    id: 1671543601521-8
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: pref_label_id
+          baseTableName: teaches
+          constraintName: FKc7ykh7s82asl9sfnxw4i1botw
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: pref_label
+          validate: true
+- changeSet:
+    id: 1671543601521-9
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: pref_label_id
+          baseTableName: competency_required
+          constraintName: FKd302m7chwbqcodcm1uhswlqak
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: pref_label
+          validate: true
+- changeSet:
+    id: 1671543601521-10
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: metadata_id
+          baseTableName: assesses
+          constraintName: FKhujmrukx09alqoiq680cxdga0
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: metadata
+          validate: true
+- changeSet:
+    id: 1671543601521-11
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: pref_label_id
+          baseTableName: assesses
+          constraintName: FKnmtn5f3aa6frv562ei8gartm1
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: pref_label
+          validate: true
+- changeSet:
+    id: 1671543601521-12
+    author: hoffmann (generated)
+    changes:
+      - addForeignKeyConstraint:
+          baseColumnNames: metadata_id
+          baseTableName: teaches
+          constraintName: FKtga3fr6dqadilbi7xcinnkaqf
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: metadata
+          validate: true

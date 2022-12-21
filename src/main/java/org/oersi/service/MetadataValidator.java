@@ -1,5 +1,6 @@
 package org.oersi.service;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import lombok.NonNull;
@@ -74,37 +75,27 @@ public class MetadataValidator {
     }
   }
 
+  private <T extends LabelledConcept> void validatePrefLabels(final List<T> labelledConcepts) {
+    if (labelledConcepts != null) {
+      labelledConcepts.forEach(s -> validatePrefLabel(s.getPrefLabel()));
+    }
+  }
+
+  private <T extends LabelledConcept> void validatePrefLabel(final T labelledConcept) {
+    if (labelledConcept != null) {
+      validatePrefLabel(labelledConcept.getPrefLabel());
+    }
+  }
+
   private void validatePrefLabels() {
-    if (metadata.getAbout() != null) {
-      for (About about : metadata.getAbout()) {
-        validatePrefLabel(about.getPrefLabel());
-      }
-    }
-    if (metadata.getAudience() != null) {
-      for (Audience audience : metadata.getAudience()) {
-        validatePrefLabel(audience.getPrefLabel());
-      }
-    }
-    if (metadata.getConditionsOfAccess() != null) {
-      validatePrefLabel(metadata.getConditionsOfAccess().getPrefLabel());
-    }
-    if (metadata.getCompetencyRequired() != null) {
-      validatePrefLabel(metadata.getCompetencyRequired().getPrefLabel());
-    }
-    if (metadata.getAssesses() != null) {
-      validatePrefLabel(metadata.getAssesses().getPrefLabel());
-    }
-    if (metadata.getEducationalLevel() != null) {
-      validatePrefLabel(metadata.getEducationalLevel().getPrefLabel());
-    }
-    if (metadata.getTeaches() != null) {
-      validatePrefLabel(metadata.getTeaches().getPrefLabel());
-    }
-    if (metadata.getLearningResourceType() != null) {
-      for (LearningResourceType lrt : metadata.getLearningResourceType()) {
-        validatePrefLabel(lrt.getPrefLabel());
-      }
-    }
+    validatePrefLabels(metadata.getAbout());
+    validatePrefLabels(metadata.getAudience());
+    validatePrefLabel(metadata.getConditionsOfAccess());
+    validatePrefLabels(metadata.getCompetencyRequired());
+    validatePrefLabels(metadata.getAssesses());
+    validatePrefLabels(metadata.getEducationalLevel());
+    validatePrefLabels(metadata.getTeaches());
+    validatePrefLabels(metadata.getLearningResourceType());
   }
 
   private void validateLength(String s, int maxLength) {

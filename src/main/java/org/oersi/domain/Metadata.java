@@ -134,13 +134,21 @@ public class Metadata extends BaseEntity {
   @Column(nullable = false)
   private LocalDateTime dateModifiedInternal;
 
-  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-  private LabelledConcept assesses;
-  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-  private LabelledConcept competencyRequired;
-  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-  private LabelledConcept teaches;
-  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-  private LabelledConcept educationalLevel;
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "metadata_id", nullable = true)
+  @ToString.Exclude
+  private List<Assesses> assesses;
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "metadata_id", nullable = true)
+  @ToString.Exclude
+  private List<CompetencyRequired> competencyRequired;
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "metadata_id", nullable = true)
+  @ToString.Exclude
+  private List<Teaches> teaches;
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "metadata_id", nullable = true)
+  @ToString.Exclude
+  private List<EducationalLevel> educationalLevel;
 
 }

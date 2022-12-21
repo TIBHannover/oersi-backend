@@ -1,19 +1,17 @@
 package org.oersi.domain;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.CascadeType;
-import javax.persistence.Entity;
+import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToOne;
 
 @Getter
 @Setter
 @ToString(callSuper = true)
-@NoArgsConstructor
-@Entity
+@MappedSuperclass
 public class LabelledConcept extends BaseEntity {
 
   private String identifier;

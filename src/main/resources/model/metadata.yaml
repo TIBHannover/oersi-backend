@@ -215,9 +215,6 @@ components:
       properties:
         id:
           type: string
-          description: The identifier
-          format: uri
-          example: https://www.wikidata.org/entity/Q54166
         prefLabel:
           $ref: 'api.yaml#/components/schemas/LocalizedString'
     Affiliation:
@@ -366,7 +363,7 @@ components:
                 'de': 'Mathematik'
                 'en': 'Mathematics'
           items:
-            $ref: '#/components/schemas/MetadataAbout'
+            $ref: '#/components/schemas/LabelledConcept'
         license:
           $ref: '#/components/schemas/License'
         image:
@@ -406,7 +403,7 @@ components:
                 'de': 'Kurs'
                 'en': 'Course'
           items:
-            $ref: '#/components/schemas/MetadataLearningResourceType'
+            $ref: '#/components/schemas/LabelledConcept'
         audience:
           title: Audience
           type: array
@@ -417,7 +414,7 @@ components:
                 'de': 'Lernende'
                 'en': 'student'
           items:
-            $ref: '#/components/schemas/MetadataAudience'
+            $ref: '#/components/schemas/LabelledConcept'
         mainEntityOfPage:
           title: metadata description
           type: array
@@ -466,13 +463,40 @@ components:
           description: "A trailer/video-teaser of this learning resource"
           $ref: '#/components/schemas/Trailer'
         assesses:
-          $ref: '#/components/schemas/LabelledConcept'
-        educationalLevel:
-          $ref: '#/components/schemas/LabelledConcept'
+          type: array
+          example:
+            - id: "https://example.org/competencies/1"
+              prefLabel:
+                'en': 'Awesomeness'
+          items:
+            $ref: '#/components/schemas/LabelledConcept'
         competencyRequired:
-          $ref: '#/components/schemas/LabelledConcept'
+          type: array
+          example:
+            - id: "https://example.org/competencies/2"
+              prefLabel:
+                'en': 'Humor'
+          items:
+            $ref: '#/components/schemas/LabelledConcept'
+        educationalLevel:
+          type: array
+          titel: "Educational context"
+          description: "The level in terms of progression through an educational context for which the learning resource is designated."
+          example:
+            - id: "https://w3id.org/kim/educationalLevel/level_A"
+              prefLabel:
+                'de': "Hochschule"
+                'en': "University"
+          items:
+            $ref: '#/components/schemas/LabelledConcept'
         teaches:
-          $ref: '#/components/schemas/LabelledConcept'
+          type: array
+          example:
+            - id: "https://example.org/competencies/3"
+              prefLabel:
+                'en': "Resilience"
+          items:
+            $ref: '#/components/schemas/LabelledConcept'
     MetadataCreator:
       required:
         - name
@@ -528,48 +552,6 @@ components:
           example: Dr.
         affiliation:
           $ref: '#/components/schemas/Affiliation'
-    MetadataAbout:
-      required:
-        - id
-      type: object
-      example:
-        id: "https://w3id.org/kim/hochschulfaechersystematik/n105"
-        prefLabel:
-          'de': 'Mathematik'
-          'en': 'Mathematics'
-      properties:
-        id:
-          type: string
-        prefLabel:
-          $ref: 'api.yaml#/components/schemas/LocalizedString'
-    MetadataLearningResourceType:
-      required:
-        - id
-      type: object
-      example:
-        id: "https://w3id.org/kim/hcrt/course"
-        prefLabel:
-          'de': 'Kurs'
-          'en': 'Course'
-      properties:
-        id:
-          type: string
-        prefLabel:
-          $ref: 'api.yaml#/components/schemas/LocalizedString'
-    MetadataAudience:
-      required:
-        - id
-      type: object
-      example:
-        id: "http://purl.org/dcx/lrmi-vocabs/educationalAudienceRole/student"
-        prefLabel:
-          'de': 'Lernende'
-          'en': 'student'
-      properties:
-        id:
-          type: string
-        prefLabel:
-          $ref: 'api.yaml#/components/schemas/LocalizedString'
     MediaObject:
       type: object
       properties:

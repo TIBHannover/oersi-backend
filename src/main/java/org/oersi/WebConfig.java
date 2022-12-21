@@ -115,17 +115,10 @@ public class WebConfig {
     // (I guess, because of the HashMap inheritance)
     modelMapper.typeMap(LabelDefinitionDto.class, LabelDefinition.class).addMappings(mapper -> mapper
       .using(labelConverter).map(LabelDefinitionDto::getLabel, LabelDefinition::setLabel));
-    modelMapper.typeMap(MetadataAboutDto.class, About.class).addMappings(mapper -> mapper
-        .using(labelConverter).map(MetadataAboutDto::getPrefLabel, About::setPrefLabel));
-    modelMapper.typeMap(MetadataAudienceDto.class, Audience.class).addMappings(mapper -> mapper
-        .using(labelConverter).map(MetadataAudienceDto::getPrefLabel, Audience::setPrefLabel));
     modelMapper.typeMap(ConditionsOfAccessDto.class, ConditionsOfAccess.class).addMappings(mapper -> mapper
       .using(labelConverter).map(ConditionsOfAccessDto::getPrefLabel, ConditionsOfAccess::setPrefLabel));
     modelMapper.typeMap(LabelledConceptDto.class, LabelledConcept.class).addMappings(mapper -> mapper
       .using(labelConverter).map(LabelledConceptDto::getPrefLabel, LabelledConcept::setPrefLabel));
-    modelMapper.typeMap(MetadataLearningResourceTypeDto.class, LearningResourceType.class)
-        .addMappings(mapper -> mapper.using(labelConverter)
-            .map(MetadataLearningResourceTypeDto::getPrefLabel, LearningResourceType::setPrefLabel));
   }
 
   private void addEnumMapping(final ModelMapper modelMapper) {
@@ -166,23 +159,23 @@ public class WebConfig {
     // map DTO id field <-> Domain identifier field
     // ATTENTION: consider order of definitions (a mapping m that is used in another mapping n has
     // to be defined before n)
+    modelMapper.typeMap(LabelledConcept.class, LabelledConceptDto.class)
+      .addMappings(mapper -> mapper.map(LabelledConcept::getIdentifier, LabelledConceptDto::setId));
+    modelMapper.typeMap(LabelledConceptDto.class, LabelledConcept.class).addMappings(mapper -> {
+      mapper.map(LabelledConceptDto::getId, LabelledConcept::setIdentifier);
+      mapper.skip(LabelledConcept::setId);
+    });
+    List.of(About.class, Assesses.class, Audience.class, CompetencyRequired.class, EducationalLevel.class, LearningResourceType.class, Teaches.class)
+      .forEach((labelledConceptClazz) -> {
+        modelMapper.typeMap(labelledConceptClazz, LabelledConceptDto.class).includeBase(LabelledConcept.class, LabelledConceptDto.class);
+        modelMapper.typeMap(LabelledConceptDto.class, labelledConceptClazz).includeBase(LabelledConceptDto.class, LabelledConcept.class);
+      });
+
     modelMapper.typeMap(Affiliation.class, AffiliationDto.class)
         .addMappings(mapper -> mapper.map(Affiliation::getIdentifier, AffiliationDto::setId));
     modelMapper.typeMap(AffiliationDto.class, Affiliation.class).addMappings(mapper -> {
       mapper.map(AffiliationDto::getId, Affiliation::setIdentifier);
       mapper.skip(Affiliation::setId);
-    });
-    modelMapper.typeMap(About.class, MetadataAboutDto.class)
-      .addMappings(mapper -> mapper.map(About::getIdentifier, MetadataAboutDto::setId));
-    modelMapper.typeMap(MetadataAboutDto.class, About.class).addMappings(mapper -> {
-      mapper.map(MetadataAboutDto::getId, About::setIdentifier);
-      mapper.skip(About::setId);
-    });
-    modelMapper.typeMap(Audience.class, MetadataAudienceDto.class)
-        .addMappings(mapper -> mapper.map(Audience::getIdentifier, MetadataAudienceDto::setId));
-    modelMapper.typeMap(MetadataAudienceDto.class, Audience.class).addMappings(mapper -> {
-      mapper.map(MetadataAudienceDto::getId, Audience::setIdentifier);
-      mapper.skip(Audience::setId);
     });
     modelMapper.typeMap(Caption.class, CaptionDto.class)
       .addMappings(mapper -> mapper.map(Caption::getIdentifier, CaptionDto::setId));
@@ -208,19 +201,6 @@ public class WebConfig {
       mapper.map(MetadataCreatorDto::getId, Creator::setIdentifier);
       mapper.skip(Creator::setId);
     });
-    modelMapper.typeMap(LabelledConcept.class, LabelledConceptDto.class)
-      .addMappings(mapper -> mapper.map(LabelledConcept::getIdentifier, LabelledConceptDto::setId));
-    modelMapper.typeMap(LabelledConceptDto.class, LabelledConcept.class).addMappings(mapper -> {
-      mapper.map(LabelledConceptDto::getId, LabelledConcept::setIdentifier);
-      mapper.skip(LabelledConcept::setId);
-    });
-    modelMapper.typeMap(LearningResourceType.class, MetadataLearningResourceTypeDto.class).addMappings(
-        mapper -> mapper.map(LearningResourceType::getIdentifier, MetadataLearningResourceTypeDto::setId));
-    modelMapper.typeMap(MetadataLearningResourceTypeDto.class, LearningResourceType.class)
-        .addMappings(mapper -> {
-          mapper.map(MetadataLearningResourceTypeDto::getId, LearningResourceType::setIdentifier);
-          mapper.skip(LearningResourceType::setId);
-        });
     modelMapper.typeMap(License.class, LicenseDto.class).addMappings(
       mapper -> mapper.map(License::getIdentifier, LicenseDto::setId));
     modelMapper.typeMap(LicenseDto.class, License.class)

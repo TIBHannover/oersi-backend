@@ -12,7 +12,4 @@ import javax.persistence.Entity;
 @ToString(callSuper = true)
 @NoArgsConstructor
 @Entity
-public class ConditionsOfAccess extends LabelledConcept {
-
-  private String type;
-}
+public class Assesses extends LabelledConcept {}
