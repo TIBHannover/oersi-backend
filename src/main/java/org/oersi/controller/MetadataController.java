@@ -3,6 +3,7 @@ package org.oersi.controller;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.modelmapper.MappingException;
 import org.modelmapper.ModelMapper;
 import org.oersi.api.MetadataControllerApi;
@@ -20,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.ValidationException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -63,7 +66,7 @@ public class MetadataController implements MetadataControllerApi {
 
   private ResponseEntity<MetadataDto> getResponseForNonExistingData(final Long id) {
     log.debug("Metadata with id {} does not exist!", id);
-    return ResponseEntity.badRequest().build();
+    return ResponseEntity.notFound().build();
   }
 
   @ExceptionHandler(MappingException.class)
@@ -155,7 +158,7 @@ public class MetadataController implements MetadataControllerApi {
     metadataService.delete(metadata);
     return ResponseEntity.ok().build();
   }
-  
+
   @Override
   public ResponseEntity<Void> deleteAll() {
     metadataService.deleteAll();
@@ -169,6 +172,18 @@ public class MetadataController implements MetadataControllerApi {
       return ResponseEntity.ok().build();
     }
     return ResponseEntity.badRequest().build();
+  }
+
+  @Override
+  public ResponseEntity<Void> deleteMainEntityOfPage(String id) {
+    String mainEntityOfPageId = new String(Base64.getUrlDecoder().decode(id.getBytes(StandardCharsets.UTF_8)));
+    if (!new UrlValidator().isValid(mainEntityOfPageId)) {
+      return ResponseEntity.badRequest().build();
+    }
+    if (!metadataService.deleteMainEntityOfPageByIdentifier(mainEntityOfPageId)) {
+      return ResponseEntity.notFound().build();
+    }
+    return ResponseEntity.ok().build();
   }
 
 }

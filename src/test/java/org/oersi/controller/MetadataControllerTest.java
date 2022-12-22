@@ -48,10 +48,12 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -222,7 +224,7 @@ class MetadataControllerTest {
 
   @Test
   void testGetRequestWithNonExistingData() throws Exception {
-    mvc.perform(get(METADATA_CONTROLLER_BASE_PATH + "/1000")).andExpect(status().isBadRequest());
+    mvc.perform(get(METADATA_CONTROLLER_BASE_PATH + "/1000")).andExpect(status().isNotFound());
   }
 
   @Test
@@ -470,7 +472,7 @@ class MetadataControllerTest {
     metadata.getMainEntityOfPage().get(0).setId("https://example2.org/desc/123");
 
     mvc.perform(put(METADATA_CONTROLLER_BASE_PATH + "/1").contentType(MediaType.APPLICATION_JSON)
-        .content(asJson(metadata))).andExpect(status().isBadRequest());
+        .content(asJson(metadata))).andExpect(status().isNotFound());
   }
 
   @Test
@@ -508,7 +510,7 @@ class MetadataControllerTest {
   void testDeleteRequestWithNonExistingData() throws Exception {
     mvc.perform(
         delete(METADATA_CONTROLLER_BASE_PATH + "/1").contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isNotFound());
 
     Assertions.assertEquals(0, repository.count());
   }
@@ -546,5 +548,28 @@ class MetadataControllerTest {
     Assertions.assertNotNull(result.getEncoding());
     Assertions.assertTrue(result.getEncoding().size() > 0);
     Assertions.assertEquals(MediaObjectDto.TypeEnum.MEDIAOBJECT, result.getEncoding().get(0).getType());
+  }
+
+  @Test
+  void testDeleteMainEntityOfPageRequest() throws Exception {
+    Metadata metadata = createTestMetadata();
+    String encodedIdentifier = Base64.getUrlEncoder().encodeToString(metadata.getMainEntityOfPage().get(0).getIdentifier().getBytes(StandardCharsets.UTF_8));
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/mainentityofpage/" + encodedIdentifier))
+      .andExpect(status().isOk());
+    Assertions.assertEquals(0, repository.count());
+  }
+
+  @Test
+  void testDeleteMainEntityOfPageForNonExistingDataRequest() throws Exception {
+    String encodedIdentifier = Base64.getUrlEncoder().encodeToString(getTestMetadataDto().getMainEntityOfPage().get(0).getId().getBytes(StandardCharsets.UTF_8));
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/mainentityofpage/" + encodedIdentifier))
+      .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void testDeleteMainEntityOfPageInvalidRequest() throws Exception {
+    String encodedIdentifier = Base64.getUrlEncoder().encodeToString("invalid invalid".getBytes(StandardCharsets.UTF_8));
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/mainentityofpage/" + encodedIdentifier))
+      .andExpect(status().isBadRequest());
   }
 }

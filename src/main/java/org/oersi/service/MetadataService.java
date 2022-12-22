@@ -63,11 +63,19 @@ public interface MetadataService {
   void deleteByProviderName(String providerName);
 
   /**
+   * Delete the {@link org.oersi.domain.MainEntityOfPage} identified by the given id. Also delete the related {@link Metadata} if the mainEntityOfPage-List is empty afterwards.
+   * @param mainEntityOfPageId identifier of the MainEntityOfPage
+   */
+  boolean deleteMainEntityOfPageByIdentifier(String mainEntityOfPageId);
+
+  /**
    * Retrieve {@link Metadata} for the given id.
    *
    * @param id id
    * @return data
    */
   Metadata findById(Long id);
+
+  List<Metadata> findByMainEntityOfPageId(final String mainEntityOfPageIdentifier);
 
 }

@@ -253,6 +253,7 @@ public class MetadataServiceImpl implements MetadataService {
   @Transactional
   @Override
   public void delete(final Metadata metadata) {
+    log.debug("delete metadata with identifier {}", metadata.getIdentifier());
     oerMetadataRepository.delete(metadata);
   }
 
@@ -270,6 +271,19 @@ public class MetadataServiceImpl implements MetadataService {
     oerMetadataRepository.deleteByMainEntityOfPageProviderName(providerName);
   }
 
+  @Transactional
+  @Override
+  public boolean deleteMainEntityOfPageByIdentifier(final String mainEntityOfPageId) {
+    List<Metadata> metadata = findByMainEntityOfPageId(mainEntityOfPageId);
+    if (metadata.isEmpty()) {
+      return false;
+    }
+    metadata.forEach(data -> data.getMainEntityOfPage().removeIf(m -> m.getIdentifier().equals(mainEntityOfPageId)));
+    oerMetadataRepository.saveAll(metadata);
+    metadata.stream().filter(m -> m.getMainEntityOfPage().isEmpty()).forEach(this::delete);
+    return true;
+  }
+
   @Transactional(readOnly = true)
   @Override
   public Metadata findById(final Long id) {
@@ -280,4 +294,9 @@ public class MetadataServiceImpl implements MetadataService {
     return optional.orElse(null);
   }
 
+  @Transactional(readOnly = true)
+  @Override
+  public List<Metadata> findByMainEntityOfPageId(final String mainEntityOfPageIdentifier) {
+    return oerMetadataRepository.findByMainEntityOfPageIdentifier(mainEntityOfPageIdentifier);
+  }
 }

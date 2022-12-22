@@ -17,6 +17,13 @@ public interface MetadataRepository extends JpaRepository<Metadata, Long> {
    */
   List<Metadata> findByIdentifier(String url);
 
+  /**
+   * Find the {@link Metadata} that contain the {@link org.oersi.domain.MainEntityOfPage} matching the given url.
+   * @param mainEntityOfPageIdentifier identifier of the MainEntityOfPage
+   * @return metadata
+   */
+  List<Metadata> findByMainEntityOfPageIdentifier(String mainEntityOfPageIdentifier);
+
   void deleteByMainEntityOfPageProviderName(String providerName);
 
 }
