@@ -2,6 +2,7 @@ package org.oersi.repository;
 
 import java.util.List;
 import org.oersi.domain.Metadata;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
@@ -24,6 +25,6 @@ public interface MetadataRepository extends JpaRepository<Metadata, Long> {
    */
   List<Metadata> findByMainEntityOfPageIdentifier(String mainEntityOfPageIdentifier);
 
-  void deleteByMainEntityOfPageProviderName(String providerName);
+  List<Metadata> findByMainEntityOfPageProviderNameAndIdGreaterThanOrderByIdAsc(String providerName, Long lastId, Pageable pageable);
 
 }

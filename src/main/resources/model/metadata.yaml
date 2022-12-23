@@ -76,17 +76,18 @@
       "403":
         description: Forbidden
         content: {}
+/api/metadata/mainentityofpage:
   delete:
     tags:
       - metadata-controller
-    summary: Bulk delete metadata
-    description: Delete existing metadata
-    operationId: deleteMany
+    summary: Bulk delete mainEntityOfPage in metadata
+    description: Delete the mainEntityOfPage-entry in the metadata identified by the given provider name. If mainEntityOfPage is empty afterwards, also delete the metadata itself.
+    operationId: deleteManyMainEntityOfPage
     requestBody:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/MetadataBulkDelete"
+            $ref: "#/components/schemas/MetadataMainEntityOfPageBulkDelete"
       required: true
     responses:
       "200":
@@ -731,7 +732,7 @@ components:
           type: string
           description: The name of the source organization
           example: Technische Hochschule Köln
-    MetadataBulkDelete:
+    MetadataMainEntityOfPageBulkDelete:
       type: object
       properties:
         providerName:

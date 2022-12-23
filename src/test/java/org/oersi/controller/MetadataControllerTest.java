@@ -114,6 +114,7 @@ class MetadataControllerTest {
 
   private Metadata getTestMetadata() {
     Metadata metadata = new Metadata();
+    metadata.setRecordStatusInternal(Metadata.RecordStatus.ACTIVE);
 
     Creator author = new Creator();
     author.setType("Person");
@@ -499,7 +500,7 @@ class MetadataControllerTest {
   void testDeleteByProviderName() throws Exception {
     createTestMetadata();
 
-    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/bulk")
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/mainentityofpage")
       .contentType(MediaType.APPLICATION_JSON).content("{\"providerName\": \"testname\"}"))
       .andExpect(status().isOk());
 

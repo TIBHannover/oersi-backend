@@ -266,7 +266,7 @@ class MetadataServiceTest {
   void testDelete() {
     Metadata metadata = newMetadata();
     service.delete(metadata);
-    verify(repository, times(1)).delete(metadata);
+    verify(repository, times(1)).deleteAll(anyList());
   }
 
   @Test

@@ -8,10 +8,10 @@ import org.modelmapper.MappingException;
 import org.modelmapper.ModelMapper;
 import org.oersi.api.MetadataControllerApi;
 import org.oersi.domain.Metadata;
-import org.oersi.dto.MetadataBulkDeleteDto;
 import org.oersi.dto.MetadataBulkUpdateResponseDto;
 import org.oersi.dto.MetadataBulkUpdateResponseMessagesDto;
 import org.oersi.dto.MetadataDto;
+import org.oersi.dto.MetadataMainEntityOfPageBulkDeleteDto;
 import org.oersi.service.MetadataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -58,7 +58,7 @@ public class MetadataController implements MetadataControllerApi {
   @Override
   public ResponseEntity<MetadataDto> findById(final Long id) {
     Metadata metadata = metadataService.findById(id);
-    if (metadata == null) {
+    if (metadata == null || metadata.getRecordStatusInternal().equals(Metadata.RecordStatus.DELETED)) {
       return getResponseForNonExistingData(id);
     }
     return ResponseEntity.ok(convertToDto(metadata));
@@ -152,7 +152,7 @@ public class MetadataController implements MetadataControllerApi {
   @Override
   public ResponseEntity<MetadataDto> delete(@PathVariable final Long id) {
     Metadata metadata = metadataService.findById(id);
-    if (metadata == null) {
+    if (metadata == null || metadata.getRecordStatusInternal().equals(Metadata.RecordStatus.DELETED)) {
       return getResponseForNonExistingData(id);
     }
     metadataService.delete(metadata);
@@ -166,9 +166,9 @@ public class MetadataController implements MetadataControllerApi {
   }
 
   @Override
-  public ResponseEntity<Void> deleteMany(MetadataBulkDeleteDto body) {
+  public ResponseEntity<Void> deleteManyMainEntityOfPage(MetadataMainEntityOfPageBulkDeleteDto body) {
     if (body.getProviderName() != null) {
-      metadataService.deleteByProviderName(body.getProviderName());
+      metadataService.deleteMainEntityOfPageByProviderName(body.getProviderName());
       return ResponseEntity.ok().build();
     }
     return ResponseEntity.badRequest().build();

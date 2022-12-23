@@ -1724,3 +1724,21 @@ databaseChangeLog:
           referencedColumnNames: id
           referencedTableName: metadata
           validate: true
+- changeSet:
+    id: 202212230644-1
+    author: mhoffmann
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: record_status_internal
+                type: varchar(8)
+          tableName: metadata
+      - sql:
+          comment: set initial record_status for existing records
+          sql: UPDATE metadata m SET record_status_internal = 'ACTIVE'
+      - addNotNullConstraint:
+          columnDataType: varchar(8)
+          columnName: record_status_internal
+          tableName: metadata
+          validate: true

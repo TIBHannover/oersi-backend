@@ -11,6 +11,8 @@ import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
@@ -29,6 +31,11 @@ import java.util.List;
 @Entity
 @Table(indexes = @Index(name = "identifier", columnList = "identifier"))
 public class Metadata extends BaseEntity {
+
+  public enum RecordStatus {
+    ACTIVE,
+    DELETED
+  }
 
   public static final int NAME_LENGTH = 500;
   public static final int DESCRIPTION_LENGTH = 10000;
@@ -133,6 +140,9 @@ public class Metadata extends BaseEntity {
 
   @Column(nullable = false)
   private LocalDateTime dateModifiedInternal;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 8)
+  private RecordStatus recordStatusInternal;
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "metadata_id", nullable = true)
