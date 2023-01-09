@@ -249,6 +249,7 @@
 						<include>dto/LocalizedStringDto.java</include>
 						<include>dto/OembedResponseDto.java</include>
 						<include>api/SearchControllerApi.java</include>
+						<include>api/MetadataControllerApi.java</include>
 					</includes>
 					<replacements>
 						<replacement>
@@ -271,6 +272,12 @@
 							<token>description = "body of elasticsearch-request", schema=@Schema... @Valid @RequestBody</token>
 							<value>description = "body of elasticsearch-request", schema=@Schema()) @Valid @RequestBody(required = false)</value>
 						</replacement>
+						<replacement>
+							<!-- workaround for request body not marked as optional (https://github.com/swagger-api/swagger-codegen/issues/10463) -->
+							<token>description = "options of the metadata-delete-request", schema=@Schema... @Valid @RequestBody</token>
+							<value>description = "options of the metadata-delete-request", schema=@Schema()) @Valid @RequestBody(required = false)</value>
+						</replacement>
+
 					</replacements>
 				</configuration>
 			</plugin>
@@ -305,7 +312,7 @@
 			</plugins>
 		</pluginManagement>
 	</build>
-	
+
 	<repositories>
 		<repository>
 			<id>gitlab-maven</id>

@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.oersi.domain.Metadata;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,6 +68,12 @@ public interface MetadataService {
    * @param mainEntityOfPageId identifier of the MainEntityOfPage
    */
   boolean deleteMainEntityOfPageByIdentifier(String mainEntityOfPageId);
+
+  /**
+   * Finally delete/remove all {@link Metadata} records with {@link org.oersi.domain.Metadata.RecordStatus} DELETED. The last dateModified of the records has to be before the given value.
+   * @param dateModifiedUpperBound upper bound for date modified - remove only records whose dateModifiedInternal is before this bound.
+   */
+  void removeAllWithStatusDeleted(LocalDateTime dateModifiedUpperBound);
 
   /**
    * Retrieve {@link Metadata} for the given id.

@@ -8,6 +8,7 @@ import org.modelmapper.MappingException;
 import org.modelmapper.ModelMapper;
 import org.oersi.api.MetadataControllerApi;
 import org.oersi.domain.Metadata;
+import org.oersi.dto.MetadataBulkDeleteDto;
 import org.oersi.dto.MetadataBulkUpdateResponseDto;
 import org.oersi.dto.MetadataBulkUpdateResponseMessagesDto;
 import org.oersi.dto.MetadataDto;
@@ -22,6 +23,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.ValidationException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -160,8 +163,14 @@ public class MetadataController implements MetadataControllerApi {
   }
 
   @Override
-  public ResponseEntity<Void> deleteAll() {
-    metadataService.deleteAll();
+  public ResponseEntity<Void> deleteAll(MetadataBulkDeleteDto body) {
+    if (body != null && body.isCleanupDeleted()) {
+      // idea: cleanup old records that were set to record-status "DELETED" some time ago. The time is specified by "cleanupDeletedOffset"
+      LocalDateTime dateModifiedBound = LocalDateTime.now().minus(body.getCleanupDeletedOffset(), ChronoUnit.MILLIS);
+      metadataService.removeAllWithStatusDeleted(dateModifiedBound);
+    } else {
+      metadataService.deleteAll();
+    }
     return ResponseEntity.ok().build();
   }
 

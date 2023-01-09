@@ -53,6 +53,9 @@ public class MetadataServiceImpl implements MetadataService {
   @Value("${feature.add_missing_metadata_infos}")
   private boolean featureAddMissingMetadataInfos;
 
+  @Value("${feature.metadata_deletion_via_status_update}")
+  private boolean featureMetadataDeletionViaStatusUpdate;
+
   @Transactional
   @Override
   public MetadataUpdateResult createOrUpdate(final Metadata metadata) {
@@ -260,14 +263,26 @@ public class MetadataServiceImpl implements MetadataService {
   }
 
   private void delete(final List<Metadata> metadata) {
-    oerMetadataRepository.deleteAll(metadata);
+    if (featureMetadataDeletionViaStatusUpdate) {
+      metadata.forEach(m -> {
+        m.setRecordStatusInternal(Metadata.RecordStatus.DELETED);
+        m.setDateModifiedInternal(LocalDateTime.now());
+      });
+      oerMetadataRepository.saveAll(metadata);
+    } else {
+      oerMetadataRepository.deleteAll(metadata);
+    }
   }
 
   @Transactional
   @Override
   public void deleteAll() {
     log.info("delete all metadata");
-    oerMetadataRepository.deleteAll();
+    if (featureMetadataDeletionViaStatusUpdate) {
+      oerMetadataRepository.updateAllRecordStatusInternalAndDateModifiedInternal(Metadata.RecordStatus.DELETED, LocalDateTime.now());
+    } else {
+      oerMetadataRepository.deleteAll();
+    }
   }
 
   @Transactional
@@ -304,6 +319,20 @@ public class MetadataServiceImpl implements MetadataService {
     oerMetadataRepository.saveAll(metadata);
     metadata.stream().filter(m -> m.getMainEntityOfPage().isEmpty()).forEach(this::delete);
     return true;
+  }
+
+  @Transactional
+  @Override
+  public void removeAllWithStatusDeleted(LocalDateTime dateModifiedUpperBound) {
+    log.debug("remove all records with record-status deleted before {}", dateModifiedUpperBound);
+    final int pageSize = 100;
+    Long lastId = 0L;
+    List<Metadata> metadata = oerMetadataRepository.findByRecordStatusInternalAndDateModifiedInternalBeforeAndIdGreaterThanOrderByIdAsc(Metadata.RecordStatus.DELETED, dateModifiedUpperBound, lastId, PageRequest.ofSize(pageSize));
+    while (!metadata.isEmpty()) {
+      lastId = metadata.get(metadata.size() - 1).getId();
+      oerMetadataRepository.deleteAll(metadata);
+      metadata = oerMetadataRepository.findByRecordStatusInternalAndDateModifiedInternalBeforeAndIdGreaterThanOrderByIdAsc(Metadata.RecordStatus.DELETED, dateModifiedUpperBound, lastId, PageRequest.ofSize(pageSize));
+    }
   }
 
   @Transactional(readOnly = true)

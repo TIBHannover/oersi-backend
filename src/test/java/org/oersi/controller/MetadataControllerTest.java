@@ -573,4 +573,24 @@ class MetadataControllerTest {
     mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/mainentityofpage/" + encodedIdentifier))
       .andExpect(status().isBadRequest());
   }
+
+  @Test
+  void testRemoveRecordsWithStatusDeletedRequest() throws Exception {
+    Metadata metadata = getTestMetadata();
+    metadata.setRecordStatusInternal(Metadata.RecordStatus.DELETED);
+    metadata.setDateModifiedInternal(LocalDateTime.now());
+    repository.saveAndFlush(metadata);
+
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH)
+      .contentType(MediaType.APPLICATION_JSON).content("{\"cleanupDeleted\": true, \"cleanupDeletedOffset\": 86400000 }"))
+      .andExpect(status().isOk());
+
+    Assertions.assertEquals(1, repository.count());
+
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH)
+        .contentType(MediaType.APPLICATION_JSON).content("{\"cleanupDeleted\": true, \"cleanupDeletedOffset\": 0 }"))
+      .andExpect(status().isOk());
+
+    Assertions.assertEquals(0, repository.count());
+  }
 }
