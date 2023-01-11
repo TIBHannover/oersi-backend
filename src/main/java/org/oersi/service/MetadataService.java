@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.oersi.domain.Metadata;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,11 +57,23 @@ public interface MetadataService {
   void deleteAll();
 
   /**
-   * Delete existing {@link Metadata} that match the given provider name.
+   * Delete the {@link org.oersi.domain.MainEntityOfPage} that match the given provider name. Also delete the related {@link Metadata} if the mainEntityOfPage-List is empty afterwards.
    *
    * @param providerName provider name
    */
-  void deleteByProviderName(String providerName);
+  void deleteMainEntityOfPageByProviderName(String providerName);
+
+  /**
+   * Delete the {@link org.oersi.domain.MainEntityOfPage} identified by the given id. Also delete the related {@link Metadata} if the mainEntityOfPage-List is empty afterwards.
+   * @param mainEntityOfPageId identifier of the MainEntityOfPage
+   */
+  boolean deleteMainEntityOfPageByIdentifier(String mainEntityOfPageId);
+
+  /**
+   * Finally delete/remove all {@link Metadata} records with {@link org.oersi.domain.Metadata.RecordStatus} DELETED. The last dateModified of the records has to be before the given value.
+   * @param dateModifiedUpperBound upper bound for date modified - remove only records whose dateModifiedInternal is before this bound.
+   */
+  void removeAllWithStatusDeleted(LocalDateTime dateModifiedUpperBound);
 
   /**
    * Retrieve {@link Metadata} for the given id.
@@ -69,5 +82,7 @@ public interface MetadataService {
    * @return data
    */
   Metadata findById(Long id);
+
+  List<Metadata> findByMainEntityOfPageId(final String mainEntityOfPageIdentifier);
 
 }

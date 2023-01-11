@@ -42,6 +42,10 @@ paths:
     $ref: "metadata.yaml#/~1api~1metadata"
   /api/metadata/bulk:
     $ref: "metadata.yaml#/~1api~1metadata~1bulk"
+  /api/metadata/mainentityofpage:
+    $ref: "metadata.yaml#/~1api~1metadata~1mainentityofpage"
+  /api/metadata/mainentityofpage/{id}:
+    $ref: "metadata.yaml#/~1api~1metadata~1mainentityofpage~1{id}"
   /api/metadata/{id}:
     $ref: "metadata.yaml#/~1api~1metadata~1{id}"
 

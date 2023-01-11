@@ -3,6 +3,7 @@ package org.oersi.controller;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.modelmapper.MappingException;
 import org.modelmapper.ModelMapper;
 import org.oersi.api.MetadataControllerApi;
@@ -11,6 +12,7 @@ import org.oersi.dto.MetadataBulkDeleteDto;
 import org.oersi.dto.MetadataBulkUpdateResponseDto;
 import org.oersi.dto.MetadataBulkUpdateResponseMessagesDto;
 import org.oersi.dto.MetadataDto;
+import org.oersi.dto.MetadataMainEntityOfPageBulkDeleteDto;
 import org.oersi.service.MetadataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.ValidationException;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -55,7 +61,7 @@ public class MetadataController implements MetadataControllerApi {
   @Override
   public ResponseEntity<MetadataDto> findById(final Long id) {
     Metadata metadata = metadataService.findById(id);
-    if (metadata == null) {
+    if (metadata == null || metadata.getRecordStatusInternal().equals(Metadata.RecordStatus.DELETED)) {
       return getResponseForNonExistingData(id);
     }
     return ResponseEntity.ok(convertToDto(metadata));
@@ -63,7 +69,7 @@ public class MetadataController implements MetadataControllerApi {
 
   private ResponseEntity<MetadataDto> getResponseForNonExistingData(final Long id) {
     log.debug("Metadata with id {} does not exist!", id);
-    return ResponseEntity.badRequest().build();
+    return ResponseEntity.notFound().build();
   }
 
   @ExceptionHandler(MappingException.class)
@@ -149,26 +155,44 @@ public class MetadataController implements MetadataControllerApi {
   @Override
   public ResponseEntity<MetadataDto> delete(@PathVariable final Long id) {
     Metadata metadata = metadataService.findById(id);
-    if (metadata == null) {
+    if (metadata == null || metadata.getRecordStatusInternal().equals(Metadata.RecordStatus.DELETED)) {
       return getResponseForNonExistingData(id);
     }
     metadataService.delete(metadata);
     return ResponseEntity.ok().build();
   }
-  
+
   @Override
-  public ResponseEntity<Void> deleteAll() {
-    metadataService.deleteAll();
+  public ResponseEntity<Void> deleteAll(MetadataBulkDeleteDto body) {
+    if (body != null && body.isCleanupDeleted()) {
+      // idea: cleanup old records that were set to record-status "DELETED" some time ago. The time is specified by "cleanupDeletedOffset"
+      LocalDateTime dateModifiedBound = LocalDateTime.now().minus(body.getCleanupDeletedOffset(), ChronoUnit.MILLIS);
+      metadataService.removeAllWithStatusDeleted(dateModifiedBound);
+    } else {
+      metadataService.deleteAll();
+    }
     return ResponseEntity.ok().build();
   }
 
   @Override
-  public ResponseEntity<Void> deleteMany(MetadataBulkDeleteDto body) {
+  public ResponseEntity<Void> deleteManyMainEntityOfPage(MetadataMainEntityOfPageBulkDeleteDto body) {
     if (body.getProviderName() != null) {
-      metadataService.deleteByProviderName(body.getProviderName());
+      metadataService.deleteMainEntityOfPageByProviderName(body.getProviderName());
       return ResponseEntity.ok().build();
     }
     return ResponseEntity.badRequest().build();
+  }
+
+  @Override
+  public ResponseEntity<Void> deleteMainEntityOfPage(String id) {
+    String mainEntityOfPageId = new String(Base64.getUrlDecoder().decode(id.getBytes(StandardCharsets.UTF_8)));
+    if (!new UrlValidator().isValid(mainEntityOfPageId)) {
+      return ResponseEntity.badRequest().build();
+    }
+    if (!metadataService.deleteMainEntityOfPageByIdentifier(mainEntityOfPageId)) {
+      return ResponseEntity.notFound().build();
+    }
+    return ResponseEntity.ok().build();
   }
 
 }

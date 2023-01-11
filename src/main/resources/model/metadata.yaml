@@ -34,6 +34,13 @@
     summary: Delete all metadata
     description: Delete all existing metadata
     operationId: deleteAll
+    requestBody:
+      description: options of the metadata-delete-request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MetadataBulkDelete"
+      required: false
     responses:
       "200":
         description: OK
@@ -76,17 +83,18 @@
       "403":
         description: Forbidden
         content: {}
+/api/metadata/mainentityofpage:
   delete:
     tags:
       - metadata-controller
-    summary: Bulk delete metadata
-    description: Delete existing metadata
-    operationId: deleteMany
+    summary: Bulk delete mainEntityOfPage in metadata
+    description: Delete the mainEntityOfPage-entry in the metadata identified by the given provider name. If mainEntityOfPage is empty afterwards, also delete the metadata itself.
+    operationId: deleteManyMainEntityOfPage
     requestBody:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/MetadataBulkDelete"
+            $ref: "#/components/schemas/MetadataMainEntityOfPageBulkDelete"
       required: true
     responses:
       "200":
@@ -100,6 +108,38 @@
         content: {}
       "403":
         description: Forbidden
+        content: {}
+/api/metadata/mainentityofpage/{id}:
+  delete:
+    tags:
+      - metadata-controller
+    summary: Delete metadata by mainEntityOfPage.id
+    description: Delete the mainEntityOfPage-entry in the metadata identified by the given id. If mainEntityOfPage is empty afterwards, also delete the metadata itself.
+    operationId: deleteMainEntityOfPage
+    parameters:
+      - name: id
+        in: path
+        description: base64 encoded ID of the metadata.mainEntityOfPage that needs to be deleted
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+    responses:
+      "200":
+        description: OK
+        content: {}
+      "400":
+        description: Bad Request
+        content: {}
+      "401":
+        description: Unauthorized
+        content: {}
+      "403":
+        description: Forbidden
+        content: {}
+      "404":
+        description: Not Found
         content: {}
 /api/metadata/{id}:
   get:
@@ -700,6 +740,20 @@ components:
           description: The name of the source organization
           example: Technische Hochschule Köln
     MetadataBulkDelete:
+      type: object
+      properties:
+        cleanupDeleted:
+          type: boolean
+          description: "If true, just finally delete all records with record_status 'DELETED'"
+          example: true
+          default: false
+        cleanupDeletedOffset:
+          type: integer
+          format: int64
+          description: "If cleaning up deleted, just consider the records whose dateModified is older than <cleanupDeletedOffset> ms"
+          example: 86400000
+          default: 0
+    MetadataMainEntityOfPageBulkDelete:
       type: object
       properties:
         providerName:

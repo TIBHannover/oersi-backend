@@ -14,6 +14,7 @@ import org.oersi.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -51,6 +52,9 @@ public class MetadataServiceImpl implements MetadataService {
 
   @Value("${feature.add_missing_metadata_infos}")
   private boolean featureAddMissingMetadataInfos;
+
+  @Value("${feature.metadata_deletion_via_status_update}")
+  private boolean featureMetadataDeletionViaStatusUpdate;
 
   @Transactional
   @Override
@@ -98,6 +102,7 @@ public class MetadataServiceImpl implements MetadataService {
         metadata.setTeaches(updateExistingList(existingMetadata.getTeaches(), metadata.getTeaches()));
       }
       metadata.setDateModifiedInternal(LocalDateTime.now());
+      metadata.setRecordStatusInternal(Metadata.RecordStatus.ACTIVE);
       metadata.setName(cutString(metadata.getName(), Metadata.NAME_LENGTH));
       metadata.setDescription(cutString(metadata.getDescription(), Metadata.DESCRIPTION_LENGTH));
       determineProviderNames(metadata);
@@ -253,21 +258,81 @@ public class MetadataServiceImpl implements MetadataService {
   @Transactional
   @Override
   public void delete(final Metadata metadata) {
-    oerMetadataRepository.delete(metadata);
+    log.debug("delete metadata with identifier {}", metadata.getIdentifier());
+    delete(List.of(metadata));
+  }
+
+  private void delete(final List<Metadata> metadata) {
+    if (featureMetadataDeletionViaStatusUpdate) {
+      metadata.forEach(m -> {
+        m.setRecordStatusInternal(Metadata.RecordStatus.DELETED);
+        m.setDateModifiedInternal(LocalDateTime.now());
+      });
+      oerMetadataRepository.saveAll(metadata);
+    } else {
+      oerMetadataRepository.deleteAll(metadata);
+    }
   }
 
   @Transactional
   @Override
   public void deleteAll() {
     log.info("delete all metadata");
-    oerMetadataRepository.deleteAll();
+    if (featureMetadataDeletionViaStatusUpdate) {
+      oerMetadataRepository.updateAllRecordStatusInternalAndDateModifiedInternal(Metadata.RecordStatus.DELETED, LocalDateTime.now());
+    } else {
+      oerMetadataRepository.deleteAll();
+    }
   }
 
   @Transactional
   @Override
-  public void deleteByProviderName(String providerName) {
-    log.info("delete metadata for provider {}", providerName);
-    oerMetadataRepository.deleteByMainEntityOfPageProviderName(providerName);
+  public void deleteMainEntityOfPageByProviderName(String providerName) {
+    log.info("delete mainEntityOfPage in metadata for provider {}", providerName);
+    final int pageSize = 100;
+    Long lastId = 0L;
+    List<Metadata> metadata = oerMetadataRepository.findByMainEntityOfPageProviderNameAndIdGreaterThanOrderByIdAsc(providerName, lastId, PageRequest.ofSize(pageSize));
+    while (!metadata.isEmpty()) {
+      metadata.forEach(data -> {
+        data.getMainEntityOfPage().removeIf(m -> m.getProvider() != null && providerName.equals(m.getProvider().getName()));
+        data.setDateModifiedInternal(LocalDateTime.now());
+      });
+      oerMetadataRepository.saveAll(metadata);
+      delete(metadata.stream().filter(m -> m.getMainEntityOfPage().isEmpty()).collect(Collectors.toList()));
+
+      lastId = metadata.get(metadata.size() - 1).getId();
+      metadata = oerMetadataRepository.findByMainEntityOfPageProviderNameAndIdGreaterThanOrderByIdAsc(providerName, lastId, PageRequest.ofSize(pageSize));
+    }
+  }
+
+  @Transactional
+  @Override
+  public boolean deleteMainEntityOfPageByIdentifier(final String mainEntityOfPageId) {
+    List<Metadata> metadata = findByMainEntityOfPageId(mainEntityOfPageId);
+    if (metadata.isEmpty()) {
+      return false;
+    }
+    metadata.forEach(data -> {
+      data.getMainEntityOfPage().removeIf(m -> m.getIdentifier().equals(mainEntityOfPageId));
+      data.setDateModifiedInternal(LocalDateTime.now());
+    });
+    oerMetadataRepository.saveAll(metadata);
+    metadata.stream().filter(m -> m.getMainEntityOfPage().isEmpty()).forEach(this::delete);
+    return true;
+  }
+
+  @Transactional
+  @Override
+  public void removeAllWithStatusDeleted(LocalDateTime dateModifiedUpperBound) {
+    log.debug("remove all records with record-status deleted before {}", dateModifiedUpperBound);
+    final int pageSize = 100;
+    Long lastId = 0L;
+    List<Metadata> metadata = oerMetadataRepository.findByRecordStatusInternalAndDateModifiedInternalBeforeAndIdGreaterThanOrderByIdAsc(Metadata.RecordStatus.DELETED, dateModifiedUpperBound, lastId, PageRequest.ofSize(pageSize));
+    while (!metadata.isEmpty()) {
+      lastId = metadata.get(metadata.size() - 1).getId();
+      oerMetadataRepository.deleteAll(metadata);
+      metadata = oerMetadataRepository.findByRecordStatusInternalAndDateModifiedInternalBeforeAndIdGreaterThanOrderByIdAsc(Metadata.RecordStatus.DELETED, dateModifiedUpperBound, lastId, PageRequest.ofSize(pageSize));
+    }
   }
 
   @Transactional(readOnly = true)
@@ -280,4 +345,9 @@ public class MetadataServiceImpl implements MetadataService {
     return optional.orElse(null);
   }
 
+  @Transactional(readOnly = true)
+  @Override
+  public List<Metadata> findByMainEntityOfPageId(final String mainEntityOfPageIdentifier) {
+    return oerMetadataRepository.findByMainEntityOfPageIdentifier(mainEntityOfPageIdentifier);
+  }
 }

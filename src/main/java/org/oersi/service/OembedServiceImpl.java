@@ -176,7 +176,8 @@ public class OembedServiceImpl implements OembedService {
 
   private Metadata findMetadataByIdentifier(String identifier) {
     Metadata existingMetadata = null;
-    List<Metadata> metadataMatchingUrl = metadataRepository.findByIdentifier(identifier);
+    List<Metadata> metadataMatchingUrl = metadataRepository.findByIdentifier(identifier)
+      .stream().filter(m -> m.getRecordStatusInternal().equals(Metadata.RecordStatus.ACTIVE)).collect(Collectors.toList());
     if (!metadataMatchingUrl.isEmpty()) {
       existingMetadata = metadataMatchingUrl.get(0);
     }

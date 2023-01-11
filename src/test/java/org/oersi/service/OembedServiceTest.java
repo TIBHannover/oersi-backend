@@ -52,6 +52,7 @@ class OembedServiceTest {
 
   private Metadata newMetadata() {
     Metadata metadata = new Metadata();
+    metadata.setRecordStatusInternal(Metadata.RecordStatus.ACTIVE);
 
     List<Creator> creators = new ArrayList<>();
     Creator author = new Creator();
