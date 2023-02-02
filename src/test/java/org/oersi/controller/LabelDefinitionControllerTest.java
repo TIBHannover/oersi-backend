@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.oersi.ElasticsearchServicesMock;
 import org.oersi.domain.LabelDefinition;
 import org.oersi.repository.LabelDefinitionRepository;
 import org.oersi.service.LabelDefinitionService;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -34,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @WithMockUser(roles = {"MANAGE_OERMETADATA"})
+@Import(ElasticsearchServicesMock.class)
 class LabelDefinitionControllerTest {
 
   private static final String LABEL_DEFINITION_CONTROLLER_BASE_PATH = "/api/labeldefinition";

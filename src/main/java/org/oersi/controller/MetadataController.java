@@ -5,15 +5,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.modelmapper.MappingException;
-import org.modelmapper.ModelMapper;
 import org.oersi.api.MetadataControllerApi;
-import org.oersi.domain.Metadata;
-import org.oersi.dto.MetadataBulkDeleteDto;
+import org.oersi.domain.BackendMetadata;
 import org.oersi.dto.MetadataBulkUpdateResponseDto;
 import org.oersi.dto.MetadataBulkUpdateResponseMessagesDto;
-import org.oersi.dto.MetadataDto;
 import org.oersi.dto.MetadataMainEntityOfPageBulkDeleteDto;
 import org.oersi.service.MetadataService;
+import org.oersi.service.MetadataHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -23,10 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.ValidationException;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -39,35 +36,22 @@ public class MetadataController implements MetadataControllerApi {
 
   private final @NonNull MetadataService metadataService;
 
-  private final @NonNull ModelMapper modelMapper;
-
-  private Metadata convertToEntity(final MetadataDto dto) {
-    return modelMapper.map(dto, Metadata.class);
-  }
-  private List<Metadata> convertToEntity(final List<MetadataDto> dtos) {
-    return dtos.stream().map(this::convertToEntity).collect(Collectors.toList());
-  }
-
-  private MetadataDto convertToDto(final Metadata entity) {
-    return modelMapper.map(entity, MetadataDto.class);
-  }
-
   /**
-   * Retrieve the {@link Metadata} with the given id.
+   * Retrieve the metadata with the given id.
    *
    * @param id id of the data
    * @return data
    */
   @Override
-  public ResponseEntity<MetadataDto> findById(final Long id) {
-    Metadata metadata = metadataService.findById(id);
-    if (metadata == null || metadata.getRecordStatusInternal().equals(Metadata.RecordStatus.DELETED)) {
+  public ResponseEntity<Map<String, Object>> findById(final String id) {
+    BackendMetadata metadata = metadataService.findById(id);
+    if (metadata == null) {
       return getResponseForNonExistingData(id);
     }
-    return ResponseEntity.ok(convertToDto(metadata));
+    return ResponseEntity.ok(metadata.getData());
   }
 
-  private ResponseEntity<MetadataDto> getResponseForNonExistingData(final Long id) {
+  private ResponseEntity<Map<String, Object>> getResponseForNonExistingData(final String id) {
     log.debug("Metadata with id {} does not exist!", id);
     return ResponseEntity.notFound().build();
   }
@@ -85,38 +69,62 @@ public class MetadataController implements MetadataControllerApi {
     return ResponseEntity.badRequest().body(e.getMessage());
   }
 
-  /**
-   * Create or update an {@link Metadata}
-   *
-   * @param metadataDto data to create or update
-   * @return response
-   */
   @Override
-  public ResponseEntity<MetadataDto> createOrUpdate(@RequestBody final MetadataDto metadataDto) {
-    MetadataService.MetadataUpdateResult result = metadataService.createOrUpdate(convertToEntity(metadataDto));
+  public ResponseEntity<Map<String, Object>> createOrUpdate(Map<String, Object> body) {
+    if (!hasMandatoryMetadataFields(body)) {
+      return ResponseEntity.badRequest().build();
+    }
+    BackendMetadata metadata = MetadataHelper.toMetadata(body);
+    MetadataService.MetadataUpdateResult result = metadataService.createOrUpdate(metadata);
     if (Boolean.FALSE.equals(result.getSuccess())) {
       throw new IllegalArgumentException(String.join(", ", result.getMessages()));
     }
     log.debug("Created/Updated Metadata: {}", result.getMetadata());
-    return ResponseEntity.ok(convertToDto(result.getMetadata()));
+    return ResponseEntity.ok(result.getMetadata().getData());
+  }
+
+  private boolean hasMandatoryMetadataFields(Map<String, Object> body) {
+    if (body.get("id") == null) {
+      return false;
+    }
+    if (!(body.get("mainEntityOfPage") instanceof List<?>)) {
+      return false;
+    }
+    for (var mainEntityOfPage: (List<?>) body.get("mainEntityOfPage")) {
+      if (!(mainEntityOfPage instanceof Map<?, ?>)) {
+        return false;
+      }
+      Map<? ,?> m = (Map<?, ?>) mainEntityOfPage;
+      if (m.get("id") == null) {
+        return false;
+      }
+      if (!(m.get("provider") instanceof Map<? ,?>)) {
+        return false;
+      }
+      if (((Map<? ,?>) m.get("provider")).get("name") == null) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
-   * Create or update many {@link Metadata}
+   * Create or update many {@link BackendMetadata}
    *
    * @param records data to create or update
    * @return response
    */
   @Override
-  public ResponseEntity<MetadataBulkUpdateResponseDto> createOrUpdateMany(@RequestBody final List<MetadataDto> records) {
-    List<MetadataService.MetadataUpdateResult> results = metadataService.createOrUpdate(convertToEntity(records));
+  public ResponseEntity<MetadataBulkUpdateResponseDto> createOrUpdateMany(@RequestBody final List<Map<String, Object>> records) {
+    List<BackendMetadata> backendMetadata = records.stream().map(MetadataHelper::toMetadata).collect(Collectors.toList());
+    List<MetadataService.MetadataUpdateResult> results = metadataService.createOrUpdate(backendMetadata);
     List<MetadataService.MetadataUpdateResult> failures = results.stream().filter(r -> !r.getSuccess()).collect(Collectors.toList());
     MetadataBulkUpdateResponseDto response = new MetadataBulkUpdateResponseDto();
     response.setSuccess(results.size() - failures.size());
     response.setFailed(failures.size());
     response.setMessages(failures.stream().map(r -> {
       MetadataBulkUpdateResponseMessagesDto responseMessagesDto = new MetadataBulkUpdateResponseMessagesDto();
-      responseMessagesDto.setRecordId(r.getMetadata().getIdentifier());
+      responseMessagesDto.setRecordId(r.getMetadata().getId());
       responseMessagesDto.setMessages(r.getMessages());
       return responseMessagesDto;
     }).collect(Collectors.toList()));
@@ -125,71 +133,64 @@ public class MetadataController implements MetadataControllerApi {
   }
 
   /**
-   * Update an {@link Metadata}.
+   * Update existing Metadata.
    *
    * @param id id of the data
    * @param metadataDto data to update
    * @return response
    */
   @Override
-  public ResponseEntity<MetadataDto> update(@PathVariable final Long id,
-      @RequestBody final MetadataDto metadataDto) {
-    Metadata metadata = metadataService.findById(id);
+  public ResponseEntity<Map<String, Object>> update(@PathVariable final String id, @RequestBody final Map<String, Object> metadataDto) {
+    BackendMetadata metadata = metadataService.findById(id);
     if (metadata == null) {
       return getResponseForNonExistingData(id);
     }
-    MetadataService.MetadataUpdateResult result = metadataService.createOrUpdate(convertToEntity(metadataDto));
+    MetadataService.MetadataUpdateResult result = metadataService.createOrUpdate(MetadataHelper.toMetadata(metadataDto));
     if (Boolean.FALSE.equals(result.getSuccess())) {
       throw new IllegalArgumentException(String.join(", ", result.getMessages()));
     }
     log.debug("Updated Metadata: {}", result.getMetadata());
-    return ResponseEntity.ok(convertToDto(result.getMetadata()));
+    return ResponseEntity.ok(result.getMetadata().getData());
   }
 
   /**
-   * Delete an {@link Metadata}.
+   * Delete an {@link BackendMetadata}.
    *
    * @param id id of the data to delete
    * @return response
    */
   @Override
-  public ResponseEntity<MetadataDto> delete(@PathVariable final Long id) {
-    Metadata metadata = metadataService.findById(id);
-    if (metadata == null || metadata.getRecordStatusInternal().equals(Metadata.RecordStatus.DELETED)) {
+  public ResponseEntity<Map<String, Object>> delete(@PathVariable final String id, Boolean updatePublic) {
+    BackendMetadata metadata = metadataService.findById(id);
+    if (metadata == null) {
       return getResponseForNonExistingData(id);
     }
-    metadataService.delete(metadata);
+    metadataService.delete(metadata, updatePublic);
     return ResponseEntity.ok().build();
   }
 
   @Override
-  public ResponseEntity<Void> deleteAll(MetadataBulkDeleteDto body) {
-    if (body != null && body.isCleanupDeleted()) {
-      // idea: cleanup old records that were set to record-status "DELETED" some time ago. The time is specified by "cleanupDeletedOffset"
-      LocalDateTime dateModifiedBound = LocalDateTime.now().minus(body.getCleanupDeletedOffset(), ChronoUnit.MILLIS);
-      metadataService.removeAllWithStatusDeleted(dateModifiedBound);
-    } else {
-      metadataService.deleteAll();
-    }
+  public ResponseEntity<Void> deleteAll(Boolean updatePublic) {
+    metadataService.deleteAll(updatePublic);
     return ResponseEntity.ok().build();
   }
 
   @Override
-  public ResponseEntity<Void> deleteManyMainEntityOfPage(MetadataMainEntityOfPageBulkDeleteDto body) {
+  public ResponseEntity<Void> deleteManyMainEntityOfPage(MetadataMainEntityOfPageBulkDeleteDto body, Boolean updatePublic) {
     if (body.getProviderName() != null) {
-      metadataService.deleteMainEntityOfPageByProviderName(body.getProviderName());
+      metadataService.deleteMainEntityOfPageByProviderName(body.getProviderName(), updatePublic);
       return ResponseEntity.ok().build();
     }
     return ResponseEntity.badRequest().build();
   }
 
   @Override
-  public ResponseEntity<Void> deleteMainEntityOfPage(String id) {
+  public ResponseEntity<Void> deleteMainEntityOfPage(String id, Boolean updatePublic) {
     String mainEntityOfPageId = new String(Base64.getUrlDecoder().decode(id.getBytes(StandardCharsets.UTF_8)));
     if (!new UrlValidator().isValid(mainEntityOfPageId)) {
       return ResponseEntity.badRequest().build();
     }
-    if (!metadataService.deleteMainEntityOfPageByIdentifier(mainEntityOfPageId)) {
+    if (!metadataService.deleteMainEntityOfPageByIdentifier(mainEntityOfPageId, updatePublic)) {
       return ResponseEntity.notFound().build();
     }
     return ResponseEntity.ok().build();

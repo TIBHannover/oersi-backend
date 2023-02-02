@@ -37,6 +37,23 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webflux</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.json</groupId>
+			<artifactId>jakarta.json-api</artifactId>
+			<version>2.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 		<dependency>
@@ -115,6 +132,18 @@
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>elasticsearch</artifactId>
+			<version>1.17.6</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>1.17.6</version>
 			<scope>test</scope>
 		</dependency>
 		<!--Add swagger Dependency -->
@@ -277,7 +306,14 @@
 							<token>description = "options of the metadata-delete-request", schema=@Schema... @Valid @RequestBody</token>
 							<value>description = "options of the metadata-delete-request", schema=@Schema()) @Valid @RequestBody(required = false)</value>
 						</replacement>
-
+						<replacement>
+							<token>ResponseEntity.Map.String, Object.. _createOrUpdate.@Parameter.in = ParameterIn.DEFAULT, description = "Metadata object", required=true, schema=@Schema..</token>
+							<value>ResponseEntity&lt;Map&lt;String, Object&gt;&gt; _createOrUpdate(@Parameter(in = ParameterIn.DEFAULT, description = "Metadata object", required=true, schema=@Schema(example="{ \\"@context\\": [ \\"https://w3id.org/kim/lrmi-profile/draft/context.jsonld\\", { \\"@language\\": \\"de\\" } ], \\"id\\": \\"https://axel-klinger.gitlab.io/gitlab-for-documents/index.html\\", \\"name\\": \\"GitLab für Texte\\", \\"caption\\": [ { \\"type\\": \\"MediaObject\\", \\"id\\": \\"https://example.org/subs-de.vtt\\", \\"encodingFormat\\": \\"text/vtt\\", \\"inLanguage\\": \\"aa\\" } ], \\"creator\\": [ { \\"type\\": \\"Person\\", \\"id\\": \\"string\\", \\"name\\": \\"Max Mustermann\\", \\"honorificPrefix\\": \\"Dr.\\", \\"affiliation\\": { \\"id\\": \\"https://www.wikidata.org/entity/Q54166\\", \\"type\\": \\"Organization\\", \\"name\\": \\"Technische Hochschule Köln\\" } } ], \\"contributor\\": [ { \\"type\\": \\"Person\\", \\"id\\": \\"string\\", \\"name\\": \\"Maxi Mustermensch\\", \\"honorificPrefix\\": \\"Dr.\\", \\"affiliation\\": { \\"id\\": \\"https://www.wikidata.org/entity/Q54166\\", \\"type\\": \\"Organization\\", \\"name\\": \\"Technische Hochschule Köln\\" } } ], \\"conditionsOfAccess\\": { \\"type\\": \\"Concept\\", \\"id\\": \\"https://w3id.org/kim/conditionsOfAccess/no_login\\", \\"prefLabel\\": { \\"de\\": \\"Mathematik\\", \\"en\\": \\"Mathematics\\" } }, \\"description\\": \\"an example description\\", \\"duration\\": \\"PT47M58S\\", \\"isAccessibleForFree\\": true, \\"about\\": [ { \\"id\\": \\"https://w3id.org/kim/hochschulfaechersystematik/n105\\", \\"prefLabel\\": { \\"de\\": \\"Mathematik\\", \\"en\\": \\"Mathematics\\" } } ], \\"license\\": { \\"id\\": \\"https://creativecommons.org/licenses/by/4.0/\\" }, \\"image\\": \\"https://www.oernds.de/edu-sharing/preview?nodeId=84400a83-9d1a-4738-a19f-00fc332df247&amp;storeProtocol=workspace&amp;storeId=SpacesStore&amp;dontcache=1589890988103\\", \\"dateCreated\\": \\"2020-02-22\\", \\"datePublished\\": \\"2020-02-22\\", \\"inLanguage\\": [ \\"de\\", \\"en\\" ], \\"learningResourceType\\": [ { \\"id\\": \\"https://w3id.org/kim/hcrt/course\\", \\"prefLabel\\": { \\"de\\": \\"Kurs\\", \\"en\\": \\"Course\\" } } ], \\"audience\\": [ { \\"id\\": \\"http://purl.org/dcx/lrmi-vocabs/educationalAudienceRole/student\\", \\"prefLabel\\": { \\"de\\": \\"Lernende\\", \\"en\\": \\"student\\" } } ], \\"mainEntityOfPage\\": [ { \\"id\\": \\"https://www.oernds.de/edu-sharing/components/render/84400a83-9d1a-4738-a19f-00fc332df247\\", \\"type\\": \\"WebPage\\", \\"dateCreated\\": \\"2020-03-21\\", \\"dateModified\\": \\"2020-03-22\\", \\"provider\\": { \\"id\\": \\"https://oerworldmap.org/resource/urn:uuid:4062c64d-b0ac-4941-95c2-8116f137326d\\", \\"type\\": \\"Service\\", \\"name\\": \\"ZOERR\\" } } ], \\"publisher\\": [ { \\"id\\": \\"https://www.wikidata.org/entity/Q54166\\", \\"type\\": \\"Organization\\", \\"name\\": \\"Technische Hochschule Köln\\" } ], \\"sourceOrganization\\": [ { \\"id\\": \\"https://www.wikidata.org/entity/Q54166\\", \\"type\\": \\"Organization\\", \\"name\\": \\"Technische Hochschule Köln\\" } ], \\"type\\": [ \\"LearningResource\\" ], \\"keywords\\": [ \\"Multimedia\\", \\"GitLab\\" ], \\"encoding\\": [ { \\"bitrate\\": \\"831 kb/s\\", \\"contentUrl\\": \\"https://some.content.org/download\\", \\"contentSize\\": \\"286MB\\", \\"embedUrl\\": \\"https://some.content.org/embed\\", \\"encodingFormat\\": \\"video/mp4\\", \\"sha256\\": \\"af96aba0790476495cfb5fa6d5612b91d8e404bb0d53aaf4b19bb8bd49843959\\", \\"type\\": \\"MediaObject\\" } ], \\"trailer\\": { \\"bitrate\\": \\"831 kb/s\\", \\"contentUrl\\": \\"https://some.content.org/download\\", \\"contentSize\\": \\"286MB\\", \\"embedUrl\\": \\"https://some.content.org/embed\\", \\"encodingFormat\\": \\"video/mp4\\", \\"sha256\\": \\"af96aba0790476495cfb5fa6d5612b91d8e404bb0d53aaf4b19bb8bd49843959\\", \\"type\\": \\"VideoObject\\" }, \\"assesses\\": [ { \\"id\\": \\"https://example.org/competencies/1\\", \\"prefLabel\\": { \\"en\\": \\"Awesomeness\\" } } ], \\"competencyRequired\\": [ { \\"id\\": \\"https://example.org/competencies/2\\", \\"prefLabel\\": { \\"en\\": \\"Humor\\" } } ], \\"educationalLevel\\": [ { \\"id\\": \\"https://w3id.org/kim/educationalLevel/level_A\\", \\"prefLabel\\": { \\"de\\": \\"Hochschule\\", \\"en\\": \\"University\\" } } ], \\"teaches\\": [ { \\"id\\": \\"https://example.org/competencies/3\\", \\"prefLabel\\": { \\"en\\": \\"Resilience\\" } } ]}")</value>
+						</replacement>
+						<replacement>
+							<token>LocalizedStringDto extends HashMap.String, String>  .</token>
+							<value>LocalizedStringDto extends HashMap&lt;String, String&gt;  {@com.fasterxml.jackson.annotation.JsonIgnore public boolean isEmpty() {return super.isEmpty();}</value>
+						</replacement>
 					</replacements>
 				</configuration>
 			</plugin>

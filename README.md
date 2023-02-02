@@ -23,6 +23,20 @@ The (backend) API is not part of the oersi public API. It is designed to be cons
     
             mvn spring-boot:run -Dspring-boot.run.arguments=--envConfigDir=/soma/path/conf
 
+## Local Development Environment
+
+To set up a local development environment that allows you to run the app locally via `mvn spring-boot:run` or execute unit-tests locally, you need an elasticsearch-instance. Easiest would be to start a local elasticsearch-instance via Docker:
+```
+docker run -it --rm --name elasticsearch -p 9200:9200 -e "ES_JAVA_OPTS=-Xms2g -Xmx2g" -e "discovery.type=single-node" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:7.17.7
+```
+
+## Supported Metadata Schema
+
+The schema that is supported by the backend have to include the following required properties:
+* `id` - unique identification of the resource
+* `mainEntityOfPage.id` - identification of the source metadata
+* `mainEntityOfPage.provider.name` - the name of the provider of the source metadata
+
 ## Rest API
 
 API definition in [src/main/resources/model/api.yaml](src/main/resources/model/api.yaml)

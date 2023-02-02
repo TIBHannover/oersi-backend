@@ -12,6 +12,8 @@ externalDocs:
 servers:
   - url: /
 tags:
+  - name: config-controller
+    description: EndPoint for Backend configuration
   - name: label-controller
     description: Endpoints for access to labels
   - name: label-definition-controller
@@ -48,6 +50,9 @@ paths:
     $ref: "metadata.yaml#/~1api~1metadata~1mainentityofpage~1{id}"
   /api/metadata/{id}:
     $ref: "metadata.yaml#/~1api~1metadata~1{id}"
+
+  /api/metadata-config:
+    $ref: "config.yaml#/~1api~1metadata-config"
 
   /api/oembed-json:
     $ref: "oembed.yaml#/~1api~1oembed-json"

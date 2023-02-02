@@ -4,23 +4,18 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.oersi.domain.Metadata;
+import org.oersi.domain.BackendMetadata;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Manage {@link Metadata}s.
- */
 public interface MetadataService {
-
   @Getter
   @Setter
   @ToString
   @RequiredArgsConstructor
   class MetadataUpdateResult {
-    private final Metadata metadata;
+    private final BackendMetadata metadata;
     private Boolean success = true;
     private List<String> messages = new ArrayList<>();
     public void addMessages(List<String> messages) {
@@ -28,61 +23,48 @@ public interface MetadataService {
     }
   }
 
-  /**
-   * Create or update the given {@link Metadata}.
-   *
-   * @param metadata metadata
-   * @return updated metadata
-   */
-  MetadataUpdateResult createOrUpdate(Metadata metadata);
+  MetadataUpdateResult createOrUpdate(BackendMetadata metadata);
+
+  List<MetadataUpdateResult> createOrUpdate(List<BackendMetadata> metadata);
 
   /**
-   * Create or update the given {@link Metadata}s.
-   *
-   * @param records list of metadata
-   * @return updated metadata
-   */
-  List<MetadataUpdateResult> createOrUpdate(List<Metadata> records);
-
-  /**
-   * Delete the given {@link Metadata}.
-   *
-   * @param metadata metadata
-   */
-  void delete(Metadata metadata);
-
-  /**
-   * Delete all existing {@link Metadata}.
-   */
-  void deleteAll();
-
-  /**
-   * Delete the {@link org.oersi.domain.MainEntityOfPage} that match the given provider name. Also delete the related {@link Metadata} if the mainEntityOfPage-List is empty afterwards.
-   *
-   * @param providerName provider name
-   */
-  void deleteMainEntityOfPageByProviderName(String providerName);
-
-  /**
-   * Delete the {@link org.oersi.domain.MainEntityOfPage} identified by the given id. Also delete the related {@link Metadata} if the mainEntityOfPage-List is empty afterwards.
-   * @param mainEntityOfPageId identifier of the MainEntityOfPage
-   */
-  boolean deleteMainEntityOfPageByIdentifier(String mainEntityOfPageId);
-
-  /**
-   * Finally delete/remove all {@link Metadata} records with {@link org.oersi.domain.Metadata.RecordStatus} DELETED. The last dateModified of the records has to be before the given value.
-   * @param dateModifiedUpperBound upper bound for date modified - remove only records whose dateModifiedInternal is before this bound.
-   */
-  void removeAllWithStatusDeleted(LocalDateTime dateModifiedUpperBound);
-
-  /**
-   * Retrieve {@link Metadata} for the given id.
+   * Retrieve {@link BackendMetadata} for the given id.
    *
    * @param id id
    * @return data
    */
-  Metadata findById(Long id);
+  BackendMetadata findById(String id);
 
-  List<Metadata> findByMainEntityOfPageId(final String mainEntityOfPageIdentifier);
+  List<BackendMetadata> findByMainEntityOfPageId(final String mainEntityOfPageId);
+
+  /**
+   * Delete the given {@link BackendMetadata}.
+   *
+   * @param metadata metadata
+   */
+  void delete(BackendMetadata metadata, boolean updatePublicIndices);
+
+  /**
+   * Delete all existing {@link BackendMetadata}.
+   */
+  void deleteAll(boolean updatePublicIndices);
+
+  /**
+   * Delete the mainEntityOfPage that match the given provider name. Also delete the related {@link BackendMetadata} if the mainEntityOfPage-List is empty afterwards.
+   *
+   * @param providerName provider name
+   */
+  void deleteMainEntityOfPageByProviderName(String providerName, boolean updatePublicIndices);
+
+  /**
+   * Delete the mainEntityOfPage identified by the given id. Also delete the related {@link BackendMetadata} if the mainEntityOfPage-List is empty afterwards.
+   * @param mainEntityOfPageId identifier of the MainEntityOfPage
+   */
+  boolean deleteMainEntityOfPageByIdentifier(String mainEntityOfPageId, boolean updatePublicIndices);
+
+  /**
+   * Initializes the elasticsearch mapping for the {@link BackendMetadata} index.
+   */
+  void initIndexMapping();
 
 }

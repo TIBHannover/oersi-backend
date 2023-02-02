@@ -3,16 +3,14 @@ package org.oersi.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.oersi.domain.Creator;
-import org.oersi.domain.License;
-import org.oersi.domain.Media;
-import org.oersi.domain.Metadata;
-import org.oersi.domain.Provider;
+import org.oersi.ElasticsearchServicesMock;
+import org.oersi.domain.BackendMetadata;
+import org.oersi.domain.OembedInfo;
 import org.oersi.dto.OembedResponseDto;
-import org.oersi.repository.MetadataRepository;
+import org.oersi.repository.EsMetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -20,17 +18,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
+@Import(ElasticsearchServicesMock.class)
 class OembedServiceTest {
 
   @Autowired
   private OembedService service;
-  @MockBean
-  private MetadataRepository repository;
+  @Autowired
+  private EsMetadataRepository repository; // mock from ElasticsearchServicesMock
 
   @BeforeEach
   void init() {
@@ -50,74 +50,68 @@ class OembedServiceTest {
     });
   }
 
-  private Metadata newMetadata() {
-    Metadata metadata = new Metadata();
-    metadata.setRecordStatusInternal(Metadata.RecordStatus.ACTIVE);
+  private BackendMetadata newMetadata() {
+    BackendMetadata metadata = new BackendMetadata();
+    OembedInfo oembedInfo = new OembedInfo();
 
-    List<Creator> creators = new ArrayList<>();
-    Creator author = new Creator();
-    author.setType("Person");
+    List<OembedInfo.Author> creators = new ArrayList<>();
+    OembedInfo.Author author = new OembedInfo.Author();
     author.setName("test test");
     creators.add(author);
+    oembedInfo.setAuthors(creators);
 
-    metadata.setCreator(creators);
-
-    License license = new License();
-    license.setIdentifier("https://creativecommons.org/licenses/by/4.0/");
-    metadata.setLicense(license);
-    metadata.setName("Test Title");
-    metadata.setIdentifier("https://www.test.de");
+    oembedInfo.setLicenseUrl("https://creativecommons.org/licenses/by/4.0/");
+    oembedInfo.setTitle("Test Title");
+    metadata.setOembedInfo(oembedInfo);
+    metadata.setId("aHR0cHM6Ly93d3cudGVzdC5kZQ=="); // https://www.test.de
 
     return metadata;
   }
 
   @Test
   void testVideoWidthAndHeight() {
-    Metadata dummyData = newMetadata();
-    Media videoEncoding = new Media();
-    videoEncoding.setEncodingFormat("video/mp4");
-    videoEncoding.setEmbedUrl("https://embed.me/12345");
-    dummyData.setEncoding(List.of(videoEncoding));
+    BackendMetadata dummyData = newMetadata();
+    dummyData.getOembedInfo().setVideoEmbedUrl("https://embed.me/12345");
 
-    when(repository.findByIdentifier(dummyData.getIdentifier())).thenReturn(List.of(dummyData));
+    when(repository.findById(dummyData.getId())).thenReturn(Optional.of(dummyData));
 
     OembedResponseDto oembed;
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    oembed = service.getOembedResponse(dummyData.getId(), null, null);
     assertThat(oembed.getWidth()).isEqualTo(560);
     assertThat(oembed.getHeight()).isEqualTo(315);
 
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), 500, null);
+    oembed = service.getOembedResponse(dummyData.getId(), 500, null);
     assertThat(oembed.getWidth()).isEqualTo(500);
     assertThat(oembed.getHeight()).isEqualTo(281);
 
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), 500, 250);
+    oembed = service.getOembedResponse(dummyData.getId(), 500, 250);
     assertThat(oembed.getWidth()).isEqualTo(444);
     assertThat(oembed.getHeight()).isEqualTo(250);
 
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), 400, 250);
+    oembed = service.getOembedResponse(dummyData.getId(), 400, 250);
     assertThat(oembed.getWidth()).isEqualTo(400);
     assertThat(oembed.getHeight()).isEqualTo(225);
   }
 
   @Test
   void testNotFound() {
-    when(repository.findByIdentifier(Mockito.anyString())).thenReturn(List.of());
+    when(repository.findById(Mockito.anyString())).thenReturn(Optional.empty());
     OembedResponseDto oembed = service.getOembedResponse("https://some.id", null, null);
     assertThat(oembed).isNull();
   }
 
   @Test
   void testImageNotLoadable() {
-    Metadata dummyData = newMetadata();
-    dummyData.setImage("null");
-    when(repository.findByIdentifier(dummyData.getIdentifier())).thenReturn(List.of(dummyData));
+    BackendMetadata dummyData = newMetadata();
+    dummyData.getOembedInfo().setThumbnailUrl("null");
+    when(repository.findById(dummyData.getId())).thenReturn(Optional.of(dummyData));
     OembedResponseDto oembed;
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    oembed = service.getOembedResponse(dummyData.getId(), null, null);
     assertThat(oembed.getWidth()).isNull();
     assertThat(oembed.getHeight()).isNull();
 
-    dummyData.setImage("ioexception");
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    dummyData.getOembedInfo().setThumbnailUrl("ioexception");
+    oembed = service.getOembedResponse(dummyData.getId(), null, null);
     assertThat(oembed.getThumbnailUrl()).isNull();
     assertThat(oembed.getThumbnailWidth()).isNull();
     assertThat(oembed.getThumbnailHeight()).isNull();
@@ -125,102 +119,97 @@ class OembedServiceTest {
 
   @Test
   void testFindByBase64EncodedUrl() {
-    Metadata dummyData = newMetadata();
-    when(repository.findByIdentifier("https://www.test.de")).thenReturn(List.of(dummyData));
+    BackendMetadata dummyData = newMetadata();
+    when(repository.findById(dummyData.getId())).thenReturn(Optional.of(dummyData));
     OembedResponseDto oembed = service.getOembedResponse("https://oersi.de/resources/aHR0cHM6Ly93d3cudGVzdC5kZQ==", null, null);
     assertThat(oembed).isNotNull();
   }
 
   @Test
   void testLicense() {
-    Metadata dummyData = newMetadata();
-    when(repository.findByIdentifier("https://www.test.de")).thenReturn(List.of(dummyData));
-    OembedResponseDto oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
-    assertThat(oembed.getLicenseUrl()).isEqualTo(dummyData.getLicense().getIdentifier());
+    BackendMetadata dummyData = newMetadata();
+    when(repository.findById(dummyData.getId())).thenReturn(Optional.of(dummyData));
+    OembedResponseDto oembed = service.getOembedResponse(dummyData.getId(), null, null);
+    assertThat(oembed.getLicenseUrl()).isEqualTo(dummyData.getOembedInfo().getLicenseUrl());
 
-    dummyData.setLicense(null);
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    dummyData.getOembedInfo().setLicenseUrl(null);
+    oembed = service.getOembedResponse(dummyData.getId(), null, null);
     assertThat(oembed.getLicenseUrl()).isNull();
   }
 
   @Test
   void testAuthor() {
-    Metadata dummyData = newMetadata();
-    List<Creator> creators = new ArrayList<>();
-    Creator author = new Creator();
-    author.setType("Person");
+    BackendMetadata dummyData = newMetadata();
+    List<OembedInfo.Author> creators = new ArrayList<>();
+    OembedInfo.Author author = new OembedInfo.Author();
     author.setName("test1 test");
-    author.setIdentifier("https://orcid.org/1234-5678-0987-6543");
-    Creator author2 = new Creator();
-    author2.setType("Person");
+    author.setUrl("https://orcid.org/1234-5678-0987-6543");
+    OembedInfo.Author author2 = new OembedInfo.Author();
     author2.setName("test2 test");
-    author2.setIdentifier("https://orcid.org/5678-0987-6543-1234");
+    author2.setUrl("https://orcid.org/5678-0987-6543-1234");
     creators.add(author);
     creators.add(author2);
-    dummyData.setCreator(creators);
+    dummyData.getOembedInfo().setAuthors(creators);
 
-    when(repository.findByIdentifier("https://www.test.de")).thenReturn(List.of(dummyData));
-    OembedResponseDto oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    when(repository.findById(dummyData.getId())).thenReturn(Optional.of(dummyData));
+    OembedResponseDto oembed = service.getOembedResponse(dummyData.getId(), null, null);
     assertThat(oembed.getAuthors()).hasSize(2);
     assertThat(oembed.getAuthorName()).isEqualTo("test1 test, test2 test");
     assertThat(oembed.getAuthorUrl()).isEqualTo("https://orcid.org/1234-5678-0987-6543,https://orcid.org/5678-0987-6543-1234");
 
     creators = new ArrayList<>();
-    author = new Creator();
-    author.setType("Person");
-    author.setIdentifier("https://orcid.org/1234-5678-0987-6543");
+    author = new OembedInfo.Author();
+    author.setUrl("https://orcid.org/1234-5678-0987-6543");
     creators.add(author);
-    dummyData.setCreator(creators);
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    dummyData.getOembedInfo().setAuthors(creators);
+    oembed = service.getOembedResponse(dummyData.getId(), null, null);
     assertThat(oembed.getAuthorName()).isNull();
   }
 
   @Test
   void testProvider() {
-    Metadata dummyData = newMetadata();
-    when(repository.findByIdentifier(dummyData.getIdentifier())).thenReturn(List.of(dummyData));
+    BackendMetadata dummyData = newMetadata();
+    when(repository.findById(dummyData.getId())).thenReturn(Optional.of(dummyData));
     OembedResponseDto oembed;
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    oembed = service.getOembedResponse(dummyData.getId(), null, null);
     assertThat(oembed.getProviderName()).isNull();
     assertThat(oembed.getProviderUrl()).isNull();
 
-    Provider provider = new Provider();
-    provider.setName("YouTube");
-    provider.setIdentifier("https://youtube.com/");
-    dummyData.setProvider(provider);
+    dummyData.getOembedInfo().setProviderName("YouTube");
+    dummyData.getOembedInfo().setProviderUrl("https://youtube.com/");
 
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    oembed = service.getOembedResponse(dummyData.getId(), null, null);
     assertThat(oembed.getProviderName()).isEqualTo("YouTube");
     assertThat(oembed.getProviderUrl()).isEqualTo("https://youtube.com/");
   }
 
   @Test
   void testThumbnail() {
-    Metadata dummyData = newMetadata();
-    when(repository.findByIdentifier(dummyData.getIdentifier())).thenReturn(List.of(dummyData));
+    BackendMetadata dummyData = newMetadata();
+    when(repository.findById(dummyData.getId())).thenReturn(Optional.of(dummyData));
     OembedResponseDto oembed;
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    oembed = service.getOembedResponse(dummyData.getId(), null, null);
     assertThat(oembed.getThumbnailUrl()).isNull();
     assertThat(oembed.getThumbnailWidth()).isNull();
     assertThat(oembed.getThumbnailHeight()).isNull();
 
-    dummyData.setImage("media/image001.png");
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, null);
+    dummyData.getOembedInfo().setThumbnailUrl("media/image001.png");
+    oembed = service.getOembedResponse(dummyData.getId(), null, null);
     assertThat(oembed.getThumbnailUrl()).isNotNull();
     assertThat(oembed.getThumbnailWidth()).isEqualTo(900);
     assertThat(oembed.getThumbnailHeight()).isEqualTo(772);
 
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), 1000, 1000);
+    oembed = service.getOembedResponse(dummyData.getId(), 1000, 1000);
     assertThat(oembed.getThumbnailUrl()).isNotNull();
     assertThat(oembed.getThumbnailWidth()).isEqualTo(900);
     assertThat(oembed.getThumbnailHeight()).isEqualTo(772);
 
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), 800, null);
+    oembed = service.getOembedResponse(dummyData.getId(), 800, null);
     assertThat(oembed.getThumbnailUrl()).isNull();
     assertThat(oembed.getThumbnailWidth()).isNull();
     assertThat(oembed.getThumbnailHeight()).isNull();
 
-    oembed = service.getOembedResponse(dummyData.getIdentifier(), null, 750);
+    oembed = service.getOembedResponse(dummyData.getId(), null, 750);
     assertThat(oembed.getThumbnailUrl()).isNull();
     assertThat(oembed.getThumbnailWidth()).isNull();
     assertThat(oembed.getThumbnailHeight()).isNull();
