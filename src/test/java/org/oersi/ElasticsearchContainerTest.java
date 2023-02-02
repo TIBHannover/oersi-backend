@@ -1,6 +1,7 @@
 package org.oersi;
 
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest
 @Import(ElasticsearchContainerTest.ElasticsearchBackendConfig.class)
 @Testcontainers
+@Slf4j
 public abstract class ElasticsearchContainerTest {
 
   private static final String IMAGE_NAME = "docker.elastic.co/elasticsearch/elasticsearch:7.17.7";
@@ -48,9 +50,6 @@ public abstract class ElasticsearchContainerTest {
   @PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
   public static class ElasticsearchBackendConfig extends ElasticsearchConfiguration {
 
-    @Value("${elasticsearch.host}")
-    private String elasticsearchHost;
-
     @Value("${elasticsearch.oersi_backend_manager_username}")
     private String backendManagerUsername;
 
@@ -60,6 +59,8 @@ public abstract class ElasticsearchContainerTest {
     @Override
     public @NonNull ClientConfiguration clientConfiguration() {
       final int elasticsearchPort = elasticsearchContainer.getMappedPort(9200);
+      final String elasticsearchHost = elasticsearchContainer.getHost();
+      log.info("Using {}:{} as elasticsearch container connection", elasticsearchHost, elasticsearchPort);
       return ClientConfiguration.builder()
         .connectedTo(elasticsearchHost + ":" + elasticsearchPort)
         .withBasicAuth(backendManagerUsername, backendManagerPassword)
