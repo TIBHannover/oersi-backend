@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.oersi.domain.BackendMetadata;
 import org.oersi.domain.OembedInfo;
-import org.oersi.repository.EsMetadataRepository;
+import org.oersi.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -39,11 +39,12 @@ public class MetadataServiceImpl implements MetadataService {
 
   private static final String METADATA_PROPERTY_NAME_MAIN_ENTITY_OF_PAGE = "mainEntityOfPage";
 
-  private final @NonNull EsMetadataRepository metadataRepository;
+  private final @NonNull MetadataRepository metadataRepository;
   private final @NonNull PublicMetadataIndexService publicMetadataIndexService;
   private final @NonNull MetadataCustomProcessor metadataCustomProcessor;
   private final @NonNull MetadataAutoUpdater metadataAutoUpdater;
   private final @NonNull ElasticsearchOperations elasticsearchOperations;
+  private final @NonNull MetadataValidator metadataValidator;
 
   @Value("classpath:backend-index-mapping.json")
   private Resource indexMapping;
@@ -61,17 +62,17 @@ public class MetadataServiceImpl implements MetadataService {
     for (BackendMetadata metadata : records) {
       MetadataUpdateResult result = new MetadataUpdateResult(metadata);
 
-      // TODO
-//      ValidatorResult validatorResult = new MetadataValidator(metadata).validate();
-//      if (!validatorResult.isValid()) {
-//        log.debug("invalid data: {}, violations: {}", metadata, validatorResult.getViolations());
-//        result.setSuccess(false);
-//        result.addMessages(validatorResult.getViolations());
-//        results.add(result);
-//        continue;
-//      }
       metadataAutoUpdater.initAutoUpdateInfo(metadata);
       metadataCustomProcessor.process(metadata);
+
+      ValidatorResult validatorResult = metadataValidator.validate(metadata);
+      if (!validatorResult.isValid()) {
+        log.debug("invalid data: {}, violations: {}", metadata, validatorResult.getViolations());
+        result.setSuccess(false);
+        result.addMessages(validatorResult.getViolations());
+        results.add(result);
+        continue;
+      }
 
       OembedInfo oembedInfo = metadataAutoUpdater.initOembedInfo(metadata);
       oembedInfo = metadataCustomProcessor.processOembedInfo(oembedInfo, metadata);

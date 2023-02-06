@@ -8,7 +8,7 @@ import org.oersi.domain.BackendMetadata;
 import org.oersi.domain.OembedInfo;
 import org.oersi.dto.OembedResponseAuthorsDto;
 import org.oersi.dto.OembedResponseDto;
-import org.oersi.repository.EsMetadataRepository;
+import org.oersi.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -42,7 +42,7 @@ public class OembedServiceImpl implements OembedService {
   }
   private ImageLoader imageLoader = new UrlImageLoader();
 
-  private final @NonNull EsMetadataRepository metadataRepository;
+  private final @NonNull MetadataRepository metadataRepository;
 
   @Override
   public OembedResponseDto getOembedResponse(String url, Integer maxWidth, Integer maxHeight) {

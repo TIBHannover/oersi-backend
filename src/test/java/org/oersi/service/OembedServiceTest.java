@@ -7,7 +7,7 @@ import org.oersi.ElasticsearchServicesMock;
 import org.oersi.domain.BackendMetadata;
 import org.oersi.domain.OembedInfo;
 import org.oersi.dto.OembedResponseDto;
-import org.oersi.repository.EsMetadataRepository;
+import org.oersi.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -30,7 +30,7 @@ class OembedServiceTest {
   @Autowired
   private OembedService service;
   @Autowired
-  private EsMetadataRepository repository; // mock from ElasticsearchServicesMock
+  private MetadataRepository repository; // mock from ElasticsearchServicesMock
 
   @BeforeEach
   void init() {

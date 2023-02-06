@@ -1,17 +1,19 @@
 package org.oersi;
 
 import org.oersi.repository.BackendConfigRepository;
-import org.oersi.repository.EsMetadataRepository;
-import org.oersi.service.MetadataService;
+import org.oersi.repository.MetadataRepository;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 
 @TestConfiguration
 public class ElasticsearchServicesMock {
   @MockBean
-  private EsMetadataRepository metadataRepository;
-  @MockBean
-  private MetadataService metadataService;
+  private MetadataRepository metadataRepository;
   @MockBean
   private BackendConfigRepository configRepository;
+  @MockBean
+  private ElasticsearchOperations elasticsearchOperations;
+  @MockBean
+  private ElasticsearchStartupApplicationListener elasticsearchStartupApplicationListener;
 }
