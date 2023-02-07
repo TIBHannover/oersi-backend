@@ -36,8 +36,7 @@
       }
     },
     "required": [
-      "id",
-      "prefLabel"
+      "id"
     ]
   }
 }

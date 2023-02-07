@@ -7,7 +7,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.oersi.domain.BackendConfig;
-import org.oersi.domain.BackendMetadata;
+import org.oersi.service.MetadataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,6 +36,8 @@ public abstract class ElasticsearchContainerTest {
 
   @Autowired
   private ElasticsearchOperations elasticsearchOperations;
+  @Autowired
+  private MetadataService metadataService;
 
   @Container
   private static final ElasticsearchContainer elasticsearchContainer = new ElasticsearchContainer(IMAGE_NAME)
@@ -79,12 +81,9 @@ public abstract class ElasticsearchContainerTest {
   }
 
   @AfterEach
-  void recreateIndices() {
-    recreateIndex(BackendMetadata.class);
-    recreateIndex(BackendConfig.class);
-  }
-  private void recreateIndex(Class<?> clazz) {
-    IndexOperations indexOperations = elasticsearchOperations.indexOps(clazz);
+  void clearIndices() {
+    metadataService.deleteAll(false);
+    IndexOperations indexOperations = elasticsearchOperations.indexOps(BackendConfig.class);
     indexOperations.delete();
     indexOperations.create();
   }

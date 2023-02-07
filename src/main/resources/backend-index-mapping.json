@@ -10,9 +10,6 @@
       "type": "date",
       "format": "date_hour_minute_second"
     },
-    "recordStatus": {
-      "type": "text"
-    },
     "data": {
       "properties": {
         "mainEntityOfPage": {

@@ -12,6 +12,7 @@ import org.oersi.dto.MetadataBulkUpdateResponseMessagesDto;
 import org.oersi.dto.MetadataMainEntityOfPageBulkDeleteDto;
 import org.oersi.service.MetadataService;
 import org.oersi.service.MetadataHelper;
+import org.oersi.service.MetadataValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 public class MetadataController implements MetadataControllerApi {
 
   private final @NonNull MetadataService metadataService;
+  private final @NonNull MetadataValidator metadataValidator;
 
   /**
    * Retrieve the metadata with the given id.
@@ -71,7 +73,7 @@ public class MetadataController implements MetadataControllerApi {
 
   @Override
   public ResponseEntity<Map<String, Object>> createOrUpdate(Map<String, Object> body) {
-    if (!hasMandatoryMetadataFields(body)) {
+    if (!metadataValidator.validateBaseFields(body).isValid()) {
       return ResponseEntity.badRequest().build();
     }
     BackendMetadata metadata = MetadataHelper.toMetadata(body);
@@ -83,31 +85,6 @@ public class MetadataController implements MetadataControllerApi {
     return ResponseEntity.ok(result.getMetadata().getData());
   }
 
-  private boolean hasMandatoryMetadataFields(Map<String, Object> body) {
-    if (body.get("id") == null) {
-      return false;
-    }
-    if (!(body.get("mainEntityOfPage") instanceof List<?>)) {
-      return false;
-    }
-    for (var mainEntityOfPage: (List<?>) body.get("mainEntityOfPage")) {
-      if (!(mainEntityOfPage instanceof Map<?, ?>)) {
-        return false;
-      }
-      Map<? ,?> m = (Map<?, ?>) mainEntityOfPage;
-      if (m.get("id") == null) {
-        return false;
-      }
-      if (!(m.get("provider") instanceof Map<? ,?>)) {
-        return false;
-      }
-      if (((Map<? ,?>) m.get("provider")).get("name") == null) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   /**
    * Create or update many {@link BackendMetadata}
    *
@@ -116,6 +93,9 @@ public class MetadataController implements MetadataControllerApi {
    */
   @Override
   public ResponseEntity<MetadataBulkUpdateResponseDto> createOrUpdateMany(@RequestBody final List<Map<String, Object>> records) {
+    if (records.stream().anyMatch(r -> !metadataValidator.validateBaseFields(r).isValid())) {
+      return ResponseEntity.badRequest().build();
+    }
     List<BackendMetadata> backendMetadata = records.stream().map(MetadataHelper::toMetadata).collect(Collectors.toList());
     List<MetadataService.MetadataUpdateResult> results = metadataService.createOrUpdate(backendMetadata);
     List<MetadataService.MetadataUpdateResult> failures = results.stream().filter(r -> !r.getSuccess()).collect(Collectors.toList());
@@ -141,6 +121,9 @@ public class MetadataController implements MetadataControllerApi {
    */
   @Override
   public ResponseEntity<Map<String, Object>> update(@PathVariable final String id, @RequestBody final Map<String, Object> metadataDto) {
+    if (!metadataValidator.validateBaseFields(metadataDto).isValid()) {
+      return ResponseEntity.badRequest().build();
+    }
     BackendMetadata metadata = metadataService.findById(id);
     if (metadata == null) {
       return getResponseForNonExistingData(id);

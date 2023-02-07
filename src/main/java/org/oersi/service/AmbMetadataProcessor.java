@@ -65,9 +65,15 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
     if (featureAddMissingParentItems) {
       addMissingParentItemsForHierarchicalVocab(metadata);
     }
-    storeLabels(metadata);
-
     fillInternalIndex(metadata);
+  }
+  @Override
+  public void postProcess(BackendMetadata metadata) {
+    storeLabels(metadata);
+  }
+  @Override
+  public OembedInfo processOembedInfo(OembedInfo oembedInfo, BackendMetadata metadata) {
+    return ambOembedHelper.processOembedInfo(oembedInfo, metadata);
   }
 
   private void addMissingInfos(BackendMetadata metadata) {
@@ -80,11 +86,6 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
       encoding.add(Map.of("embedUrl", metadata.getAutoUpdateInfo().getEmbedUrl()));
       metadata.getData().put(FIELD_NAME_ENCODING, encoding);
     }
-  }
-
-  @Override
-  public OembedInfo processOembedInfo(OembedInfo oembedInfo, BackendMetadata metadata) {
-    return ambOembedHelper.processOembedInfo(oembedInfo, metadata);
   }
 
   private void fillInternalIndex(BackendMetadata metadata) {

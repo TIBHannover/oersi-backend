@@ -13,30 +13,41 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Map;
 
 @Service
 @Slf4j
 public class MetadataValidator {
 
+  private final Schema baseSchema;
   private final Schema schema;
 
-  public MetadataValidator(@Value("classpath:schemas/schema.json") Resource rawSchema) throws IOException {
-    schema = loadSchema(rawSchema);
+  public MetadataValidator(@Value("classpath:schemas/amb/schema.json") Resource rawSchema, @Value("classpath:schemas/base/schema.json") Resource rawBaseSchema) throws IOException {
+    baseSchema  = loadSchema(rawBaseSchema, "classpath://schemas/base/");
+    schema = loadSchema(rawSchema, "classpath://schemas/amb/");
   }
 
-  private Schema loadSchema(Resource rawSchema) throws IOException {
+  private Schema loadSchema(Resource rawSchema, String scope) throws IOException {
     SchemaLoader schemaLoader = SchemaLoader.builder()
-      .schemaJson(new JSONObject(new JSONTokener(rawSchema.getInputStream())))//
-      .schemaClient(SchemaClient.classPathAwareClient())//
-      .resolutionScope("classpath://schemas/")//
+      .schemaJson(new JSONObject(new JSONTokener(rawSchema.getInputStream())))
+      .schemaClient(SchemaClient.classPathAwareClient())
+      .resolutionScope(scope)
       .build();
     return schemaLoader.load().build();
   }
 
   public ValidatorResult validate(BackendMetadata metadata) {
+    return validate(schema, metadata.getData());
+  }
+
+  public ValidatorResult validateBaseFields(Map<String, Object> data) {
+    return validate(baseSchema, data);
+  }
+
+  private ValidatorResult validate(Schema s, Map<String, Object> data) {
     ValidatorResult result = new ValidatorResult();
     try {
-      schema.validate(new JSONObject(metadata.getData()));
+      s.validate(new JSONObject(data));
     } catch (ValidationException e) {
       e.getAllMessages().forEach(result::addViolation);
     }

@@ -163,10 +163,10 @@ public class MetadataServiceImpl implements MetadataService {
   @Override
   public void deleteAll(boolean updatePublicIndices) {
     log.info("delete all metadata");
+    Document mapping = getMapping();
     IndexOperations indexOperations = elasticsearchOperations.indexOps(BackendMetadata.class);
     indexOperations.delete();
-    indexOperations.create();
-    initIndexMapping();
+    indexOperations.create(indexOperations.createSettings(), mapping);
     if (updatePublicIndices) {
       publicMetadataIndexService.deleteAll();
     }
@@ -235,14 +235,19 @@ public class MetadataServiceImpl implements MetadataService {
 
   @Override
   public void initIndexMapping() {
+    Document mapping = getMapping();
+    IndexOperations indexOperations = elasticsearchOperations.indexOps(BackendMetadata.class);
+    indexOperations.putMapping(mapping);
+  }
+
+  private Document getMapping() {
     Document mapping;
     try {
       mapping = Document.parse(IOUtils.toString(indexMapping.getInputStream()));
     } catch (IOException e) {
       throw new IllegalStateException("index mapping cannot be loaded");
     }
-    IndexOperations indexOperations = elasticsearchOperations.indexOps(BackendMetadata.class);
-    indexOperations.putMapping(mapping);
+    return mapping;
   }
 
 }
