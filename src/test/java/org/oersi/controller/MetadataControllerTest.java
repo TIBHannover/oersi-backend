@@ -11,13 +11,21 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.oersi.ElasticsearchContainerTest;
+import org.oersi.domain.BackendConfig;
 import org.oersi.domain.BackendMetadata;
+import org.oersi.repository.BackendConfigRepository;
 import org.oersi.repository.MetadataRepository;
 import org.oersi.service.MetadataHelper;
+import org.oersi.service.PublicMetadataIndexService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.IndexOperations;
+import org.springframework.data.elasticsearch.core.document.Document;
+import org.springframework.data.elasticsearch.core.index.PutTemplateRequest;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -33,6 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -57,6 +66,12 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
   private MockMvc mvc;
   @Autowired
   private MetadataRepository repository;
+  @Autowired
+  private BackendConfigRepository configRepository;
+  @Autowired
+  private ElasticsearchOperations elasticsearchOperations;
+  @Autowired
+  private PublicMetadataIndexService publicMetadataIndexService;
   @MockBean
   private JavaMailSender mailSender;
 
@@ -76,8 +91,27 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
     return objectMapper.writeValueAsString(obj);
   }
 
+  private BackendConfig setupPublicIndices() {
+    BackendConfig initialConfig = new BackendConfig();
+    initialConfig.setMetadataIndexName("oer_data_123");
+    initialConfig.setAdditionalMetadataIndexName("oer_data_additional_123");
+    configRepository.save(initialConfig);
+    Document mapping = Document.parse("{\"dynamic\": \"false\"}");
+    IndexOperations indexOperations = elasticsearchOperations.indexOps(IndexCoordinates.of(initialConfig.getMetadataIndexName()));
+    var request = PutTemplateRequest.builder(initialConfig.getMetadataIndexName(), initialConfig.getMetadataIndexName()).withMappings(mapping).build();
+    indexOperations.putTemplate(request);
+    IndexOperations additionalIndexOperations = elasticsearchOperations.indexOps(IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName()));
+    request = PutTemplateRequest.builder(initialConfig.getAdditionalMetadataIndexName(), initialConfig.getAdditionalMetadataIndexName()).withMappings(mapping).build();
+    additionalIndexOperations.putTemplate(request);
+    return initialConfig;
+  }
+
   private BackendMetadata createTestMetadata() {
-    return repository.save(getTestMetadata());
+    BackendMetadata data = getTestMetadata();
+    BackendMetadata clone = MetadataHelper.toMetadata(data.getData());
+    clone.setAdditionalData(clone.getData());
+    publicMetadataIndexService.updatePublicIndices(List.of(clone));
+    return repository.save(data);
   }
 
   private BackendMetadata getTestMetadata() {
@@ -215,6 +249,18 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
             "{\"keywords\":[\"Gitlab\",\"Multimedia\"],\"about\":[{\"prefLabel\":{\"de\":\"Mathematik\",\"en\":\"mathematics\"},\"id\":\"https://w3id.org/kim/hochschulfaechersystematik/testsubject\"}],\"caption\":[{\"inLanguage\":\"en\",\"encodingFormat\":\"text/vtt\",\"id\":\"https://example.org/subs-en.vtt\",\"type\":\"MediaObject\"}],\"description\":\"description\",\"type\":[\"Course\",\"LearningResource\"],\"mainEntityOfPage\":[{\"provider\":{\"name\":\"testname\",\"id\":\"https://example.org/provider/testprovider\"},\"id\":\"https://example.org/desc/123\"}],\"competencyRequired\":[{\"prefLabel\":{\"de\":\"Deutsch\",\"en\":\"English\"},\"id\":\"https://example.org/competencies/2\"}],\"conditionsOfAccess\":{\"id\":\"https://w3id.org/kim/conditionsOfAccess/no_login\"},\"duration\":\"PT47M58S\",\"trailer\":{\"embedUrl\":\"https://example.org/trailer\",\"type\":\"VideoObject\"},\"teaches\":[{\"prefLabel\":{\"de\":\"Deutsch\",\"en\":\"English\"},\"id\":\"https://example.org/teaches/1\"}],\"dateCreated\":\"2020-04-08\",\"assesses\":[{\"prefLabel\":{\"de\":\"Deutsch\",\"en\":\"English\"},\"id\":\"https://example.org/assesses/1\"}],\"contributor\":[{\"affiliation\":{\"name\":\"name\",\"type\":\"Organization\"},\"honorificPrefix\":\"Dr.\",\"name\":\"Jane Doe\",\"type\":\"Person\"}],\"id\":\"https://example.org\",\"learningResourceType\":[{\"prefLabel\":{\"de\":\"Kurs\",\"en\":\"course\"},\"id\":\"https://w3id.org/kim/hcrt/testType\"}],\"educationalLevel\":[{\"prefLabel\":{\"de\":\"Deutsch\",\"en\":\"English\"},\"id\":\"https://w3id.org/kim/educationalLevel/level_A\"}],\"audience\":[{\"prefLabel\":{\"de\":\"Lernender\",\"en\":\"student\"},\"id\":\"http://purl.org/dcx/lrmi-vocabs/educationalAudienceRole/testaudience\"}],\"creator\":[{\"name\":\"GivenName FamilyName\",\"affiliation\":{\"name\":\"name\",\"type\":\"Organization\"},\"type\":\"Person\"},{\"name\":\"name\",\"id\":\"https://example.org/ror\",\"type\":\"Organization\"}],\"inLanguage\":[\"en\"],\"@context\":[\"https://w3id.org/kim/amb/draft/context.jsonld\",{\"@language\":\"de\"}],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"name\":\"name\",\"sourceOrganization\":[{\"name\":\"sourceOrganization\",\"type\":\"Organization\"}],\"publisher\":[{\"name\":\"publisher\",\"id\":\"https://example.org/desc/123\",\"type\":\"Organization\"}],\"isAccessibleForFree\":true}"));
+  }
+
+  @Test
+  void testPostRequestWithPublicIndex() throws Exception {
+    BackendConfig initialConfig = setupPublicIndices();
+    Map<String, Object> metadata = getTestMetadataDto();
+
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+        .content(asJson(metadata))).andExpect(status().isOk());
+
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
   }
 
   @Test
@@ -430,6 +476,20 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
   }
 
   @Test
+  void testDeleteRequestWithPublicIndex() throws Exception {
+    BackendConfig initialConfig = setupPublicIndices();
+    BackendMetadata existingMetadata = createTestMetadata();
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/" + existingMetadata.getId())
+      .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+
+    assertEquals(0, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
+    assertEquals(0, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+  }
+
+  @Test
   void testDeleteAllRequest() throws Exception {
     createTestMetadata();
 
@@ -440,6 +500,37 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
   }
 
   @Test
+  void testDeleteAllWithPublicIndexRequest() throws Exception {
+    BackendConfig initialConfig = setupPublicIndices();
+    createTestMetadata();
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH)
+      .contentType(MediaType.APPLICATION_JSON).param("update-public", "true"))
+      .andExpect(status().isOk());
+
+    Assertions.assertEquals(0, repository.count());
+    assertEquals(0, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
+    assertEquals(0, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+  }
+
+  @Test
+  void testDeleteAllAndKeepPublicIndexRequest() throws Exception {
+    BackendConfig initialConfig = setupPublicIndices();
+    createTestMetadata();
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH)
+        .contentType(MediaType.APPLICATION_JSON).param("update-public", "false"))
+      .andExpect(status().isOk());
+
+    Assertions.assertEquals(0, repository.count());
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+  }
+  @Test
   void testDeleteByProviderName() throws Exception {
     createTestMetadata();
 
@@ -448,6 +539,25 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
       .andExpect(status().isOk());
 
     Assertions.assertEquals(0, repository.count());
+  }
+
+  @Test
+  void testDeleteMainEntityOfPageByProviderNameAndKeepMetadata() throws Exception {
+    BackendMetadata metadata = getTestMetadata();
+    List<Map<String, Object>> mainEntityOfPage = MetadataHelper.parseList(metadata.getData(), "mainEntityOfPage", new TypeReference<>() {});
+    assertNotNull(mainEntityOfPage);
+    mainEntityOfPage.add(Map.of(
+      "id", "https://example2.org/desc/123",
+      "provider", Map.of("id", "https://example.org/provider/testprovider2", "name", "testname2")
+    ));
+    metadata.getData().put("mainEntityOfPage", mainEntityOfPage);
+    repository.save(metadata);
+
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/mainentityofpage")
+        .contentType(MediaType.APPLICATION_JSON).content("{\"providerName\": \"testname\"}"))
+      .andExpect(status().isOk());
+
+    Assertions.assertEquals(1, repository.count());
   }
 
   @Test
@@ -498,6 +608,24 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
     String encodedIdentifier = Base64.getUrlEncoder().encodeToString(((String) mainEntityOfPage.get(0).get("id")).getBytes(StandardCharsets.UTF_8));
     mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/mainentityofpage/" + encodedIdentifier))
       .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void testDeleteMainEntityOfPageAndKeepRemainingMetadataRequest() throws Exception {
+    BackendMetadata metadata = getTestMetadata();
+    List<Map<String, Object>> mainEntityOfPage = MetadataHelper.parseList(metadata.getData(), "mainEntityOfPage", new TypeReference<>() {});
+    assertNotNull(mainEntityOfPage);
+    mainEntityOfPage.add(Map.of(
+        "id", "https://example2.org/desc/123",
+        "provider", Map.of("id", "https://example.org/provider/testprovider2", "name", "testname2")
+    ));
+    metadata.getData().put("mainEntityOfPage", mainEntityOfPage);
+    repository.save(metadata);
+
+    String encodedIdentifier = Base64.getUrlEncoder().encodeToString(((String) mainEntityOfPage.get(0).get("id")).getBytes(StandardCharsets.UTF_8));
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/mainentityofpage/" + encodedIdentifier))
+      .andExpect(status().isOk());
+    Assertions.assertEquals(1, repository.count());
   }
 
   @Test

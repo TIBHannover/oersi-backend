@@ -86,6 +86,7 @@ public abstract class ElasticsearchContainerTest {
     IndexOperations indexOperations = elasticsearchOperations.indexOps(BackendConfig.class);
     indexOperations.delete();
     indexOperations.create();
+    indexOperations.refresh();
   }
 
   @AfterAll

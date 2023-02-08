@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.jupiter.api.Test;
 import org.oersi.ElasticsearchServicesMock;
 import org.oersi.domain.BackendMetadata;
+import org.oersi.domain.OembedInfo;
 import org.oersi.domain.VocabItem;
 import org.oersi.repository.VocabItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,6 +146,37 @@ class AmbMetadataProcessorTest {
     when(labelRepository.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
     processor.addMissingLabels(testData);
     List.of("about", "audience", "conditionsOfAccess", "learningResourceType").forEach(field -> assertThat(testData.get(field)).isNull());
+  }
+
+  @Test
+  void testOembedInfo() {
+    BackendMetadata data = MetadataHelper.toMetadata(
+      Map.of(
+        "id", "https://www.test.de",
+        "name", "test",
+        "creator", List.of(
+          Map.of(
+            "type", "Person",
+            "name", "GivenName FamilyName"
+          ),
+          Map.of(
+            "type", "Organization",
+            "name", "name",
+            "id", "https://example.org/ror"
+          )
+        ),
+        "image", "https://example.org/image/123.png",
+        "encoding", List.of(new HashMap<>(Map.of(
+          "type", "MediaObject",
+          "embedUrl", "https://example.org/embed/#/123"
+        )))
+      ));
+    OembedInfo oembedInfo = new OembedInfo();
+    processor.processOembedInfo(oembedInfo, data);
+    assertThat(oembedInfo.getTitle()).isEqualTo(data.getData().get("name"));
+    assertThat(oembedInfo.getAuthors()).hasSize(2);
+    assertThat(oembedInfo.getThumbnailUrl()).isEqualTo(data.getData().get("image"));
+    assertThat(oembedInfo.getVideoEmbedUrl()).isEqualTo("https://example.org/embed/#/123");
   }
 
 }

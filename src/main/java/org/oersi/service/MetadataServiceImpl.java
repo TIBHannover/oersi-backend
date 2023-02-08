@@ -84,6 +84,7 @@ public class MetadataServiceImpl implements MetadataService {
         metadata.getData().put(METADATA_PROPERTY_NAME_MAIN_ENTITY_OF_PAGE, mergeMainEntityOfPageList(existingMetadata, metadata));
       }
       metadata.setDateModified(LocalDateTime.now());
+      metadataCustomProcessor.postProcess(metadata);
 
       results.add(result);
     }
@@ -167,6 +168,7 @@ public class MetadataServiceImpl implements MetadataService {
     IndexOperations indexOperations = elasticsearchOperations.indexOps(BackendMetadata.class);
     indexOperations.delete();
     indexOperations.create(indexOperations.createSettings(), mapping);
+    indexOperations.refresh();
     if (updatePublicIndices) {
       publicMetadataIndexService.deleteAll();
     }
@@ -233,11 +235,13 @@ public class MetadataServiceImpl implements MetadataService {
     metadata.setDateModified(LocalDateTime.now());
   }
 
+  @Transactional
   @Override
   public void initIndexMapping() {
     Document mapping = getMapping();
     IndexOperations indexOperations = elasticsearchOperations.indexOps(BackendMetadata.class);
     indexOperations.putMapping(mapping);
+    indexOperations.refresh();
   }
 
   private Document getMapping() {

@@ -13,6 +13,7 @@ import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -43,19 +44,26 @@ public class PublicMetadataIndexServiceImpl implements PublicMetadataIndexServic
   }
 
 
+  @Transactional
   @Override
   public void updatePublicIndices(List<BackendMetadata> backendMetadata) {
     IndexCoordinates metadataIndexCoordinates = getPublicMetadataIndexCoordinates();
     if (metadataIndexCoordinates != null) {
       List<UpdateQuery> updates = backendMetadata.stream()
         .map(m -> getUpdateQuery(m.getId(), m.getData())).filter(Objects::nonNull).collect(Collectors.toList());
-      elasticsearchOperations.bulkUpdate(updates, metadataIndexCoordinates);
+      if (!updates.isEmpty()) {
+        elasticsearchOperations.bulkUpdate(updates, metadataIndexCoordinates);
+        elasticsearchOperations.indexOps(metadataIndexCoordinates).refresh();
+      }
     }
     IndexCoordinates additionalMetadataIndexCoordinates = getPublicAdditionalMetadataIndexCoordinates();
     if (additionalMetadataIndexCoordinates != null) {
       List<UpdateQuery> updatesInternal = backendMetadata.stream()
         .map(m -> getUpdateQuery(m.getId(), m.getAdditionalData())).filter(Objects::nonNull).collect(Collectors.toList());
-      elasticsearchOperations.bulkUpdate(updatesInternal, additionalMetadataIndexCoordinates);
+      if (!updatesInternal.isEmpty()) {
+        elasticsearchOperations.bulkUpdate(updatesInternal, additionalMetadataIndexCoordinates);
+        elasticsearchOperations.indexOps(additionalMetadataIndexCoordinates).refresh();
+      }
     }
   }
 
@@ -66,12 +74,14 @@ public class PublicMetadataIndexServiceImpl implements PublicMetadataIndexServic
     return UpdateQuery.builder(id).withDocument(Document.from(data)).withDocAsUpsert(true).build();
   }
 
+  @Transactional
   @Override
   public void deleteAll() {
     recreateIndex(getPublicMetadataIndexCoordinates());
     recreateIndex(getPublicAdditionalMetadataIndexCoordinates());
   }
 
+  @Transactional
   @Override
   public void delete(List<BackendMetadata> backendMetadata) {
     List<String> ids = backendMetadata.stream().map(BackendMetadata::getId).collect(Collectors.toList());
@@ -82,6 +92,7 @@ public class PublicMetadataIndexServiceImpl implements PublicMetadataIndexServic
   private void delete(IndexCoordinates coordinates, List<String> ids) {
     if (coordinates != null) {
       ids.forEach(id -> elasticsearchOperations.delete(id, coordinates));
+      elasticsearchOperations.indexOps(coordinates).refresh();
     }
   }
 
@@ -91,6 +102,7 @@ public class PublicMetadataIndexServiceImpl implements PublicMetadataIndexServic
       IndexOperations indexOperations = elasticsearchOperations.indexOps(coordinates);
       indexOperations.delete();
       indexOperations.create();
+      elasticsearchOperations.indexOps(coordinates).refresh();
     }
   }
 

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.oersi.ElasticsearchServicesMock;
 import org.oersi.domain.BackendMetadata;
+import org.oersi.repository.LabelRepository;
 import org.oersi.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -39,6 +41,8 @@ class MetadataServiceTest {
   private LabelService labelService;
   @MockBean
   private JavaMailSender mailSender;
+  @Autowired
+  private LabelRepository labelRepository;
 
   @BeforeEach
   public void setup() {
@@ -279,4 +283,16 @@ class MetadataServiceTest {
     result = service.findById(metadata.getId());
     assertThat(result).isNull();
   }
+
+
+  @Test
+  void testStoreLabels() {
+    labelRepository.deleteAll();
+    labelService.clearCache();
+    BackendMetadata metadata = newMetadata();
+    when(repository.findById(metadata.getId())).thenReturn(Optional.empty());
+    service.createOrUpdate(metadata);
+    verify(labelService, atLeastOnce()).createOrUpdate(anyString(), anyString(), anyString(), anyString());
+  }
+
 }
