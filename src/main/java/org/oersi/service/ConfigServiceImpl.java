@@ -23,9 +23,9 @@ public class ConfigServiceImpl implements ConfigService {
   @Transactional
   @Override
   public void updateMetadataConfig(BackendConfig backendConfig) {
-    log.info("using new config {}", backendConfig);
-    backendConfigRepository.save(backendConfig);
-    currentConfig = backendConfig;
+    log.debug("updating config {}", backendConfig);
+    currentConfig = backendConfigRepository.createOrUpdate(backendConfig);
+    log.info("using new config {}", currentConfig);
   }
 
   @Override
