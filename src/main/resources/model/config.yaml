@@ -35,3 +35,7 @@ components:
         additionalMetadataIndexName:
           type: "string"
           description: "name of the internal oer-metadata index"
+        customConfig:
+          type: object
+          additionalProperties:
+            type: object

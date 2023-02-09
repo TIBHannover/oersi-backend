@@ -3,9 +3,11 @@ package org.oersi.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.jupiter.api.Test;
 import org.oersi.ElasticsearchServicesMock;
+import org.oersi.domain.BackendConfig;
 import org.oersi.domain.BackendMetadata;
 import org.oersi.domain.OembedInfo;
 import org.oersi.domain.VocabItem;
+import org.oersi.repository.BackendConfigRepository;
 import org.oersi.repository.VocabItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -33,6 +36,8 @@ class AmbMetadataProcessorTest {
   private LabelDefinitionService labelRepository;
   @MockBean
   private VocabItemRepository vocabItemRepository;
+  @Autowired
+  private BackendConfigRepository configRepository; // mock from ElasticsearchServicesMock
 
   @Test
   void testAddParentItemsForHierarchicalVocab() {
@@ -177,6 +182,67 @@ class AmbMetadataProcessorTest {
     assertThat(oembedInfo.getAuthors()).hasSize(2);
     assertThat(oembedInfo.getThumbnailUrl()).isEqualTo(data.getData().get("image"));
     assertThat(oembedInfo.getVideoEmbedUrl()).isEqualTo("https://example.org/embed/#/123");
+  }
+
+  @Test
+  void testCreatorToPersonsMapping() {
+    BackendMetadata data = MetadataHelper.toMetadata(
+      new HashMap<>(Map.of(
+        "id", "https://www.test.de",
+        "name", "test",
+        "creator", List.of(
+          Map.of(
+            "type", "Person",
+            "name", "GivenName FamilyName"
+          ),
+          Map.of(
+            "type", "Organization",
+            "name", "name",
+            "id", "https://example.org/ror"
+          )
+        )
+      )));
+    processor.process(data);
+    assertThat(data.getAdditionalData()).isNotNull().containsEntry("persons", List.of(Map.of("type", "Person", "name", "GivenName FamilyName")));
+  }
+  @Test
+  void testPublisherToInstitutionWhitelistMapping() {
+    BackendConfig config = new BackendConfig();
+    config.setCustomConfig(Map.of(
+      "publisherToInstitutionWhitelist", List.of(
+        Map.of("regex", ".*(ABC-institution).*"),
+        Map.of("regex", ".*(XxxYyyZzz-institute of technology).*", "name", "XYZ-institute")
+      )
+    ));
+    when(configRepository.findById("oersi_backend_config")).thenReturn(Optional.of(config));
+    BackendMetadata data = MetadataHelper.toMetadata(
+      new HashMap<>(Map.of(
+        "id", "https://www.test.de",
+        "name", "test",
+        "publisher", List.of(
+          Map.of(
+            "type", "Organization",
+            "name", "an organization that is not whitelisted"
+          ),
+          Map.of(
+            "type", "Organization",
+            "name", "an amazing ABC-institution (great)"
+          ),
+          Map.of(
+            "type", "Organization",
+            "name", "XxxYyyZzz-institute of technology"
+          )
+        )
+      )));
+    processor.process(data);
+    assertThat(
+      data.getAdditionalData()).isNotNull()
+      .containsEntry(
+        "institutions", List.of(
+          Map.of("type", "Organization", "name", "ABC-institution"),
+          Map.of("type", "Organization", "name", "XYZ-institute")
+      )
+    );
   }
 
 }

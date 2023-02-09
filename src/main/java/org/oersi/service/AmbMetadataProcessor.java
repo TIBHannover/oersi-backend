@@ -1,9 +1,11 @@
 package org.oersi.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.oersi.domain.BackendConfig;
 import org.oersi.domain.BackendMetadata;
 import org.oersi.domain.OembedInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,6 +46,7 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
   private final @NonNull LabelDefinitionService labelDefinitionService;
   private final @NonNull VocabService vocabService;
   private final @NonNull LabelService labelService;
+  private final @NonNull ConfigService configService;
 
   @Value("${feature.add_missing_labels}")
   private boolean featureAddMissingLabels;
@@ -106,10 +110,50 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
     if (sourceOrganization != null) {
       institutions.addAll(sourceOrganization);
     }
-    // TODO publisher + publisher_mappings
+    List<Map<String, Object>> publishers = MetadataHelper.parseList(internalData, "publisher", new TypeReference<>() {});
+    institutions.addAll(determineInstitutionsForWhitelistedPublisher(publishers));
     internalData.put("institutions", institutions);
 
     metadata.setAdditionalData(internalData);
+  }
+
+  @Data
+  public static class WhitelistMapping {
+    private String name;
+    private String regex;
+  }
+
+  private List<WhitelistMapping> getPublisherToInstitutionWhitelistMapping() {
+    BackendConfig config = configService.getMetadataConfig();
+    if (config != null && config.getCustomConfig() != null) {
+      List<WhitelistMapping> publisherMappings = MetadataHelper.parseList(config.getCustomConfig(), "publisherToInstitutionWhitelist", new TypeReference<>() {});
+      if (publisherMappings != null) {
+        return publisherMappings;
+      }
+    }
+    return new ArrayList<>();
+  }
+
+  private List<Map<String, Object>> determineInstitutionsForWhitelistedPublisher(List<Map<String, Object>> publishers) {
+    List<Map<String, Object>> institutions = new ArrayList<>();
+    if (publishers == null || publishers.isEmpty()) {
+      return institutions;
+    }
+    List<WhitelistMapping> publisherMappings = getPublisherToInstitutionWhitelistMapping();
+    publishers.forEach(publisher -> publisherMappings.forEach(mapping -> {
+      String publisherName = (String) publisher.get("name");
+      var pattern = Pattern.compile(mapping.getRegex());
+      var matcher = pattern.matcher(publisherName);
+      if (matcher.matches()) {
+        if (mapping.getName() != null) {
+          publisher.put("name", mapping.getName());
+        } else {
+          publisher.put("name", matcher.group(1));
+        }
+        institutions.add(publisher);
+      }
+    }));
+    return institutions;
   }
 
   private void addDefaultValues(final BackendMetadata metadata) {
