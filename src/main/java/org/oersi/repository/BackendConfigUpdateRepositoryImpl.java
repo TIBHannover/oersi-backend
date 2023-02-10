@@ -18,7 +18,7 @@ import java.util.Map;
 @Service
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class BackendConfigUpdateRepositoryImpl implements UpdateDocumentRepository<BackendConfig> {
+public class BackendConfigUpdateRepositoryImpl implements BackendConfigUpdateRepository {
 
   private static final ObjectMapper objectMapper = new ObjectMapper();
   private final @NonNull ElasticsearchOperations elasticsearchOperations;
