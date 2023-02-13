@@ -87,7 +87,7 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
       encoding = new ArrayList<>();
     }
     if (!hasEncodingWithEmbedUrl && metadata.getAutoUpdateInfo() != null && metadata.getAutoUpdateInfo().getEmbedUrl() != null) {
-      encoding.add(Map.of("embedUrl", metadata.getAutoUpdateInfo().getEmbedUrl()));
+      encoding.add(Map.of("embedUrl", metadata.getAutoUpdateInfo().getEmbedUrl(), "type", "MediaObject"));
       metadata.getData().put(FIELD_NAME_ENCODING, encoding);
     }
   }
