@@ -164,6 +164,11 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
     if (metadata.get("isAccessibleForFree") == null) {
       metadata.getData().put("isAccessibleForFree", true);
     }
+    List<Map<String, Object>> encoding = MetadataHelper.parseList(metadata.getData(), FIELD_NAME_ENCODING, new TypeReference<>() {});
+    if (encoding != null) {
+      encoding.stream().filter(e -> e.get("type") == null).forEach(e -> e.put("type", "MediaObject"));
+      metadata.getData().put(FIELD_NAME_ENCODING, encoding);
+    }
   }
 
   /**

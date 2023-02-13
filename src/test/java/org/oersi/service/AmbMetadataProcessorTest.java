@@ -245,4 +245,27 @@ class AmbMetadataProcessorTest {
     );
   }
 
+  @Test
+  void testEncodingDefaultValueForType() {
+    BackendMetadata data = MetadataHelper.toMetadata(
+      new HashMap<>(Map.of(
+        "id", "https://www.test.de",
+        "name", "test",
+        "encoding", List.of(
+          Map.of(
+            "contentUrl", "https://example.org/contentUrl"
+          ),
+          Map.of(
+            "embedUrl", "https://example.org/embed/123"
+          )
+        )
+      )));
+    processor.process(data);
+    assertThat(data.getData()).isNotNull()
+      .containsEntry("encoding", List.of(
+        Map.of("contentUrl", "https://example.org/contentUrl", "type", "MediaObject"),
+        Map.of("embedUrl", "https://example.org/embed/123", "type", "MediaObject")
+      ));
+  }
+
 }
