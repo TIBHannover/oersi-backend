@@ -211,6 +211,9 @@ class MetadataServiceTest {
     List<Map<String, Object>> mainEntityOfPage = MetadataHelper.parseList(result.getData(), "mainEntityOfPage", new TypeReference<>() {});
     assertNotNull(mainEntityOfPage);
     assertEquals(2, mainEntityOfPage.size());
+    List<Map<String, Object>> mainEntityOfPageInternal = MetadataHelper.parseList(result.getAdditionalData(), "mainEntityOfPage", new TypeReference<>() {});
+    assertNotNull(mainEntityOfPageInternal);
+    assertEquals(2, mainEntityOfPageInternal.size());
   }
 
   @Test

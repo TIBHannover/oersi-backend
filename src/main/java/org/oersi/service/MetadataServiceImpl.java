@@ -61,6 +61,11 @@ public class MetadataServiceImpl implements MetadataService {
     List<MetadataUpdateResult> results = new ArrayList<>();
     for (BackendMetadata metadata : records) {
       MetadataUpdateResult result = new MetadataUpdateResult(metadata);
+      BackendMetadata existingMetadata = findMatchingMetadata(metadata);
+      if (existingMetadata != null) {
+        log.debug("existing data: {}", existingMetadata);
+        metadata.getData().put(METADATA_PROPERTY_NAME_MAIN_ENTITY_OF_PAGE, mergeMainEntityOfPageList(existingMetadata, metadata));
+      }
 
       metadataAutoUpdater.initAutoUpdateInfo(metadata);
       metadataCustomProcessor.process(metadata);
@@ -78,11 +83,6 @@ public class MetadataServiceImpl implements MetadataService {
       oembedInfo = metadataCustomProcessor.processOembedInfo(oembedInfo, metadata);
       metadata.setOembedInfo(oembedInfo);
 
-      BackendMetadata existingMetadata = findMatchingMetadata(metadata);
-      if (existingMetadata != null) {
-        log.debug("existing data: {}", existingMetadata);
-        metadata.getData().put(METADATA_PROPERTY_NAME_MAIN_ENTITY_OF_PAGE, mergeMainEntityOfPageList(existingMetadata, metadata));
-      }
       metadata.setDateModified(LocalDateTime.now());
       metadataCustomProcessor.postProcess(metadata);
 
