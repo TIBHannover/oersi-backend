@@ -54,7 +54,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Test of {@link MetadataController}.
  */
-@SpringBootTest
 @AutoConfigureMockMvc
 @WithMockUser(roles = {"MANAGE_OERMETADATA"})
 class MetadataControllerTest extends ElasticsearchContainerTest {
