@@ -7,7 +7,7 @@ import java.util.Map;
 
 public interface VocabService {
 
-  List<VocabItem> updateVocab(String vocabIdentifier, List<VocabItem> items);
+  Iterable<VocabItem> updateVocab(String vocabIdentifier, List<VocabItem> items);
 
   /**
    * @param vocabIdentifier identifier of the vocabulary

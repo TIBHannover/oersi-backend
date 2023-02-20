@@ -34,8 +34,8 @@ class AmbMetadataProcessorTest {
 
   @MockBean
   private LabelDefinitionService labelRepository;
-  @MockBean
-  private VocabItemRepository vocabItemRepository;
+  @Autowired
+  private VocabItemRepository vocabItemRepository; // mock from ElasticsearchServicesMock
   @Autowired
   private BackendConfigRepository configRepository; // mock from ElasticsearchServicesMock
 
