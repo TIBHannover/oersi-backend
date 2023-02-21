@@ -28,9 +28,9 @@ public class LabelDefinitionServiceImpl implements LabelDefinitionService {
 
   @Transactional
   @Override
-  public List<LabelDefinition> createOrUpdate(List<LabelDefinition> labelDefinitions) {
+  public Iterable<LabelDefinition> createOrUpdate(List<LabelDefinition> labelDefinitions) {
     log.info("Update {} label definitions", labelDefinitions.size());
-    List<LabelDefinition> existingLabels = labelDefinitionRepository.findAll();
+    Iterable<LabelDefinition> existingLabels = labelDefinitionRepository.findAll();
     Map<String, LabelDefinition> existingLabelsById = new HashMap<>();
     for (LabelDefinition existingLabel : existingLabels) {
       existingLabelsById.put(existingLabel.getIdentifier(), existingLabel);
@@ -39,7 +39,7 @@ public class LabelDefinitionServiceImpl implements LabelDefinitionService {
     for (LabelDefinition labelDefinition : labelDefinitions) {
       LabelDefinition existingLabel = existingLabelsById.get(labelDefinition.getIdentifier());
       if (existingLabel != null) {
-        existingLabel.setLabel(labelDefinition.getLabel());
+        existingLabel.setLocalizedStrings(labelDefinition.getLocalizedStrings());
         labelsToUpdate.add(existingLabel);
       } else {
         labelsToUpdate.add(labelDefinition);
@@ -62,7 +62,7 @@ public class LabelDefinitionServiceImpl implements LabelDefinitionService {
 
   @Transactional(readOnly = true)
   @Override
-  public LabelDefinition findById(Long id) {
+  public LabelDefinition findById(String id) {
     if (id == null) {
       return null;
     }
@@ -71,7 +71,7 @@ public class LabelDefinitionServiceImpl implements LabelDefinitionService {
   }
 
   @Transactional(readOnly = true, isolation = Isolation.SERIALIZABLE)
-  public List<LabelDefinition> findAll() {
+  public Iterable<LabelDefinition> findAll() {
     return labelDefinitionRepository.findAll();
   }
 
@@ -84,18 +84,18 @@ public class LabelDefinitionServiceImpl implements LabelDefinitionService {
     if (result == null) {
       log.debug("Init localized label cache (byIdentifier)");
       synchronized (labelDefinitionRepository) {
-        List<LabelDefinition> labelDefinitions = findAll();
+        Iterable<LabelDefinition> labelDefinitions = findAll();
         result = initLocalizedLabelByIdentifierCache(labelDefinitions);
       }
     }
     return result;
   }
-  private Map<String, Map<String, String>> initLocalizedLabelByIdentifierCache(List<LabelDefinition> labelDefinitions) {
+  private Map<String, Map<String, String>> initLocalizedLabelByIdentifierCache(Iterable<LabelDefinition> labelDefinitions) {
     Map<String, Map<String, String>> result = Collections.synchronizedMap(new HashMap<>());
     for (LabelDefinition labelDefinition : labelDefinitions) {
       Map<String, String> languageLabels = result.computeIfAbsent(labelDefinition.getIdentifier(), k -> Collections.synchronizedMap(new HashMap<>()));
-      if (labelDefinition.getLabel() != null && labelDefinition.getLabel().getLocalizedStrings() != null) {
-        languageLabels.putAll(labelDefinition.getLabel().getLocalizedStrings());
+      if (labelDefinition.getLocalizedStrings() != null) {
+        languageLabels.putAll(labelDefinition.getLocalizedStrings());
       }
     }
     localizedLabelByIdentifier = result;

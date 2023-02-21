@@ -16,7 +16,7 @@ public interface LabelDefinitionService {
    * @param labelDefinitions labelDefinitions
    * @return updated labelDefinitions
    */
-  List<LabelDefinition> createOrUpdate(List<LabelDefinition> labelDefinitions);
+  Iterable<LabelDefinition> createOrUpdate(List<LabelDefinition> labelDefinitions);
 
   /**
    * Delete the given {@link LabelDefinition}.
@@ -31,7 +31,7 @@ public interface LabelDefinitionService {
    * @param id id
    * @return data
    */
-  LabelDefinition findById(Long id);
+  LabelDefinition findById(String id);
 
   /**
    * Retrieve the localized labels for the given identifier.
