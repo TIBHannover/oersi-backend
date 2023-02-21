@@ -63,11 +63,11 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
     if (featureAddMissingMetadataInfos) {
       addMissingInfos(metadata);
     }
-    if (featureAddMissingLabels) {
-      addMissingLabels(metadata);
-    }
     if (featureAddMissingParentItems) {
       addMissingParentItemsForHierarchicalVocab(metadata);
+    }
+    if (featureAddMissingLabels) {
+      addMissingLabels(metadata);
     }
     fillInternalIndex(metadata);
   }
