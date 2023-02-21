@@ -35,7 +35,7 @@ public class LabelDefinitionController implements LabelDefinitionControllerApi {
       LabelDefinition definition = new LabelDefinition();
       definition.setIdentifier(e.getKey());
       if (e.getValue() != null) {
-        definition.setLocalizedStrings(new HashMap<>(e.getValue()));
+        definition.setLabel(new HashMap<>(e.getValue()));
       }
       return definition;
     }).collect(Collectors.toList());

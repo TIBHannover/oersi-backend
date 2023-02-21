@@ -39,7 +39,7 @@ public class LabelDefinitionServiceImpl implements LabelDefinitionService {
     for (LabelDefinition labelDefinition : labelDefinitions) {
       LabelDefinition existingLabel = existingLabelsById.get(labelDefinition.getIdentifier());
       if (existingLabel != null) {
-        existingLabel.setLocalizedStrings(labelDefinition.getLocalizedStrings());
+        existingLabel.setLabel(labelDefinition.getLabel());
         labelsToUpdate.add(existingLabel);
       } else {
         labelsToUpdate.add(labelDefinition);
@@ -94,8 +94,8 @@ public class LabelDefinitionServiceImpl implements LabelDefinitionService {
     Map<String, Map<String, String>> result = Collections.synchronizedMap(new HashMap<>());
     for (LabelDefinition labelDefinition : labelDefinitions) {
       Map<String, String> languageLabels = result.computeIfAbsent(labelDefinition.getIdentifier(), k -> Collections.synchronizedMap(new HashMap<>()));
-      if (labelDefinition.getLocalizedStrings() != null) {
-        languageLabels.putAll(labelDefinition.getLocalizedStrings());
+      if (labelDefinition.getLabel() != null) {
+        languageLabels.putAll(labelDefinition.getLabel());
       }
     }
     localizedLabelByIdentifier = result;

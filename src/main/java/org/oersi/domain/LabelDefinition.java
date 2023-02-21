@@ -16,7 +16,6 @@ public class LabelDefinition {
   @Id
   private String id;
   private String identifier;
-
-  private Map<String, String> localizedStrings;
+  private Map<String, String> label;
 
 }

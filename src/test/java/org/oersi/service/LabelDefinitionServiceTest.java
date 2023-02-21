@@ -50,7 +50,7 @@ class LabelDefinitionServiceTest {
     Map<String, String> localizedStrings = new HashMap<>();
     localizedStrings.put("de", "test1");
     localizedStrings.put("en", "test2");
-    definition.setLocalizedStrings(localizedStrings);
+    definition.setLabel(localizedStrings);
     return definition;
   }
 
@@ -105,12 +105,12 @@ class LabelDefinitionServiceTest {
   @Test
   void testFindLocalizedLabelWithUndefinedLocalizedString() {
     List<LabelDefinition> existing = List.of(getTestData());
-    existing.get(0).setLocalizedStrings(new HashMap<>());
+    existing.get(0).setLabel(new HashMap<>());
     when(repository.findAll()).thenReturn(existing);
     Map<String, String> result = service.findLocalizedLabelByIdentifier("XXX");
     assertThat(result).isEmpty();
 
-    existing.get(0).setLocalizedStrings(null);
+    existing.get(0).setLabel(null);
     when(repository.findAll()).thenReturn(existing);
     result = service.findLocalizedLabelByIdentifier("XXX");
     assertThat(result).isEmpty();
@@ -134,7 +134,7 @@ class LabelDefinitionServiceTest {
     assertThat(result).hasSize(2).containsKeys("de", "en").containsEntry("de", "test1");
 
     List<LabelDefinition> newData = List.of(getTestData());
-    newData.get(0).setLocalizedStrings(Map.of("de", "test3"));
+    newData.get(0).setLabel(Map.of("de", "test3"));
     service.createOrUpdate(newData);
     when(repository.findAll()).thenReturn(newData);
     result = service.findLocalizedLabelByIdentifier("XXX"); // second time for cached result
