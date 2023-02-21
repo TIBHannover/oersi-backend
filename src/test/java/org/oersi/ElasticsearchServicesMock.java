@@ -1,6 +1,7 @@
 package org.oersi;
 
 import org.oersi.repository.BackendConfigRepository;
+import org.oersi.repository.LabelRepository;
 import org.oersi.repository.MetadataRepository;
 import org.oersi.repository.VocabItemRepository;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -15,6 +16,8 @@ public class ElasticsearchServicesMock {
   private BackendConfigRepository configRepository;
   @MockBean
   private VocabItemRepository vocabItemRepository;
+  @MockBean
+  private LabelRepository repository;
   @MockBean
   private ElasticsearchOperations elasticsearchOperations;
   @MockBean

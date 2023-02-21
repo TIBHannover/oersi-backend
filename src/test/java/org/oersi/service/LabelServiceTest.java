@@ -26,8 +26,8 @@ class LabelServiceTest {
 
   @Autowired
   private LabelService service;
-  @MockBean
-  private LabelRepository repository;
+  @Autowired
+  private LabelRepository repository; // mock from ElasticsearchServicesMock
   @MockBean
   private JavaMailSender mailSender;
 
