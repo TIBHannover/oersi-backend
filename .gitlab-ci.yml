@@ -52,7 +52,7 @@ test:
 deploy branch:
   extends: .deploy_job
   script:
-    - mvn $MAVEN_CLI_OPTS package
+    - "mvn $MAVEN_CLI_OPTS package -Dmaven.test.skip"
   artifacts:
     paths:
      - target/*.war
@@ -62,7 +62,7 @@ deploy branch:
 deploy release:
   extends: .deploy_job
   script:
-    - mvn $MAVEN_CLI_OPTS deploy
+    - "mvn $MAVEN_CLI_OPTS deploy -Dmaven.test.skip"
   only:
     - tags
 
