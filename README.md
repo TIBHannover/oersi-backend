@@ -1,6 +1,6 @@
 # OER Search Index Backend
 
-Backend / API of the OER Search Index for internal use. Provides access to the oer index data. Read data without authentification. Crud-operations to oer sql data authenticated.
+Backend / API of the OER Search Index for internal use. Provides access to the oer index data. Read data without authentification. Crud-operations to oer metadata authenticated.
 
 The (backend) API is not part of the oersi public API. It is designed to be consumed by the other oersi components (etl, frontend,...) or by a custom component (like a custom frontend).
 
@@ -23,6 +23,20 @@ The (backend) API is not part of the oersi public API. It is designed to be cons
     
             mvn spring-boot:run -Dspring-boot.run.arguments=--envConfigDir=/soma/path/conf
 
+## Local Development Environment
+
+To set up a local development environment that allows you to run the app locally via `mvn spring-boot:run` or execute unit-tests locally, you need an elasticsearch-instance. Easiest would be to start a local elasticsearch-instance via Docker:
+```
+docker run -it --rm --name elasticsearch -p 9200:9200 -e "ES_JAVA_OPTS=-Xms2g -Xmx2g" -e "discovery.type=single-node" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:7.17.7
+```
+
+## Supported Metadata Schema
+
+The schema that is supported by the backend have to include the following required properties:
+* `id` - unique identification of the resource
+* `mainEntityOfPage.id` - identification of the source metadata
+* `mainEntityOfPage.provider.name` - the name of the provider of the source metadata
+
 ## Rest API
 
 API definition in [src/main/resources/model/api.yaml](src/main/resources/model/api.yaml)
@@ -33,8 +47,8 @@ API definition in [src/main/resources/model/api.yaml](src/main/resources/model/a
     * Use directly the elasticsearch API - see [Elasticsearch Search API](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-search.html) and [Elasticsearch Query DSL](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-script-query.html)
     * default value for public adress: **/resources/api-internal/search/oer_data/**
     * example `curl -L oersi.org/resources/api-internal/search/oer_data/_search`
-* **_MetadataController_**: CRUD-operations to the sql data **/api/metadata/**
-    * based on https://dini-ag-kim.github.io/lrmi-profile/draft/schemas/schema.json ([conversion](https://gitlab.com/oersi/oersi-backend/-/issues/8#note_344342881))
+* **_MetadataController_**: CRUD-operations to the metadata **/api/metadata/**
+    * based on [src/main/resources/schemas/amb/schema.json](src/main/resources/schemas/amb/schema.json) ([conversion](https://gitlab.com/oersi/oersi-backend/-/issues/8#note_344342881))
     * bulk-update and -deletion via **/api/metadata/bulk**. Recommended bulk-update-size: 25
 * **_LabelController_**: Retrieve labels from the data **/api/label/**
     * Internal use - this is not part of the public API
@@ -74,15 +88,13 @@ API definition in [src/main/resources/model/api.yaml](src/main/resources/model/a
 #### Auto Update missing infos
 
 * Activate via feature-toggle `feature.add_missing_metadata_infos`. 
-* If active, set embed url, provider name/url and width/height of the image during the metadata creation/update. Only missing data will be set. Update by rules that apply if the id matches a regex: Is configured in the _oersi.properties_ -> **autoupdate**-properties
+* If active, set embed url during the metadata creation/update. Only missing data will be set. Update by rules that apply if the id matches a regex: Is configured in the _oersi.properties_ -> **autoupdate**-properties
 
 ## Technologies
 
 * **springboot** - The backend is a springboot application, provided as war file
-* **liquibase** - Automatically manage database updates
 * **spring-security** - Secure write-operations to oer index data
 * **project lombok** - Automatically generate code like getter, setter, equals, hashcode,...
      * Set up your IDE: [https://projectlombok.org/setup/overview](https://projectlombok.org/setup/overview)
 * **modelmapper** - Automatic mapping between DTOs and Entities
 * **swagger** -  design, build, document, and consume RESTful web services
-                                    

@@ -73,8 +73,7 @@
         style: simple
         explode: false
         schema:
-          type: integer
-          format: int64
+          type: string
     responses:
       "200":
         description: OK
@@ -109,8 +108,7 @@
         style: simple
         explode: false
         schema:
-          type: integer
-          format: int64
+          type: string
     requestBody:
       description: Label Definition
       content:
@@ -151,8 +149,7 @@
         style: simple
         explode: false
         schema:
-          type: integer
-          format: int64
+          type: string
     responses:
       "200":
         description: OK

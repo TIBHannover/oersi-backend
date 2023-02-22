@@ -12,8 +12,6 @@ Example
 
 TODOs
 
-* [ ] adjust backend API
-* [ ] adjust backend domain model and sql schema
-* [ ] add to elasticsearch schema and consider in logstash process
+* [ ] adjust backend metadata schema
 
 /label Schema

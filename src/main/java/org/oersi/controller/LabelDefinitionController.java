@@ -7,7 +7,6 @@ import org.modelmapper.MappingException;
 import org.modelmapper.ModelMapper;
 import org.oersi.api.LabelDefinitionControllerApi;
 import org.oersi.domain.LabelDefinition;
-import org.oersi.domain.LocalizedString;
 import org.oersi.dto.LabelDefinitionDto;
 import org.oersi.dto.LocalizedStringDto;
 import org.oersi.service.LabelDefinitionService;
@@ -18,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,9 +35,7 @@ public class LabelDefinitionController implements LabelDefinitionControllerApi {
       LabelDefinition definition = new LabelDefinition();
       definition.setIdentifier(e.getKey());
       if (e.getValue() != null) {
-        LocalizedString labels = new LocalizedString();
-        labels.setLocalizedStrings(e.getValue());
-        definition.setLabel(labels);
+        definition.setLabel(new HashMap<>(e.getValue()));
       }
       return definition;
     }).collect(Collectors.toList());
@@ -55,14 +53,14 @@ public class LabelDefinitionController implements LabelDefinitionControllerApi {
   public ResponseEntity<String> handleMappingException(final MappingException e) {
     return ControllerUtil.handleMappingException(e);
   }
-  
-  private ResponseEntity<LabelDefinitionDto> getResponseForNonExistingData(final Long id) {
+
+  private ResponseEntity<LabelDefinitionDto> getResponseForNonExistingData(final String id) {
     log.debug("LabelDefinition with id {} does not exist!", id);
     return ResponseEntity.notFound().build();
   }
 
   @Override
-  public ResponseEntity<LabelDefinitionDto> findById(final Long id) {
+  public ResponseEntity<LabelDefinitionDto> findById(final String id) {
     LabelDefinition data = labelDefinitionService.findById(id);
     if (data == null) {
       return getResponseForNonExistingData(id);
@@ -78,7 +76,7 @@ public class LabelDefinitionController implements LabelDefinitionControllerApi {
    */
   @Override
   public ResponseEntity<LabelDefinitionDto> createOrUpdate(@RequestBody final LabelDefinitionDto labelDefinitionDto) {
-    LabelDefinition labelDefinition = labelDefinitionService.createOrUpdate(List.of(convertToEntity(labelDefinitionDto))).get(0);
+    LabelDefinition labelDefinition = labelDefinitionService.createOrUpdate(List.of(convertToEntity(labelDefinitionDto))).iterator().next();
     log.debug("Created/Updated labelDefinition: {}", labelDefinition);
     return ResponseEntity.ok(convertToDto(labelDefinition));
   }
@@ -104,13 +102,13 @@ public class LabelDefinitionController implements LabelDefinitionControllerApi {
    * @return response
    */
   @Override
-  public ResponseEntity<LabelDefinitionDto> update(@PathVariable final Long id,
+  public ResponseEntity<LabelDefinitionDto> update(@PathVariable final String id,
                                             @RequestBody final LabelDefinitionDto labelDefinitionDto) {
     LabelDefinition labelDefinition = labelDefinitionService.findById(id);
     if (labelDefinition == null) {
       return getResponseForNonExistingData(id);
     }
-    labelDefinition = labelDefinitionService.createOrUpdate(List.of(convertToEntity(labelDefinitionDto))).get(0);
+    labelDefinition = labelDefinitionService.createOrUpdate(List.of(convertToEntity(labelDefinitionDto))).iterator().next();
     log.debug("Updated labelDefinition: {}", labelDefinition);
     return ResponseEntity.ok(convertToDto(labelDefinition));
   }
@@ -122,7 +120,7 @@ public class LabelDefinitionController implements LabelDefinitionControllerApi {
    * @return response
    */
   @Override
-  public ResponseEntity<LabelDefinitionDto> delete(@PathVariable final Long id) {
+  public ResponseEntity<LabelDefinitionDto> delete(@PathVariable final String id) {
     LabelDefinition labelDefinitionDto = labelDefinitionService.findById(id);
     if (labelDefinitionDto == null) {
       return getResponseForNonExistingData(id);

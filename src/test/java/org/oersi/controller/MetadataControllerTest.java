@@ -2,46 +2,30 @@ package org.oersi.controller;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.modelmapper.ModelMapper;
-import org.oersi.domain.About;
-import org.oersi.domain.Affiliation;
-import org.oersi.domain.Assesses;
-import org.oersi.domain.Audience;
-import org.oersi.domain.Caption;
-import org.oersi.domain.CompetencyRequired;
-import org.oersi.domain.ConditionsOfAccess;
-import org.oersi.domain.Contributor;
-import org.oersi.domain.Creator;
-import org.oersi.domain.EducationalLevel;
-import org.oersi.domain.LabelledConcept;
-import org.oersi.domain.LearningResourceType;
-import org.oersi.domain.License;
-import org.oersi.domain.LocalizedString;
-import org.oersi.domain.MainEntityOfPage;
-import org.oersi.domain.Metadata;
-import org.oersi.domain.Provider;
-import org.oersi.domain.Publisher;
-import org.oersi.domain.SourceOrganization;
-import org.oersi.domain.Teaches;
-import org.oersi.domain.Trailer;
-import org.oersi.dto.LabelledConceptDto;
-import org.oersi.dto.LanguageDto;
-import org.oersi.dto.LocalizedStringDto;
-import org.oersi.dto.MediaObjectDto;
-import org.oersi.dto.MetadataDto;
+import org.oersi.ElasticsearchContainerTest;
+import org.oersi.domain.BackendConfig;
+import org.oersi.domain.BackendMetadata;
+import org.oersi.repository.BackendConfigRepository;
 import org.oersi.repository.MetadataRepository;
+import org.oersi.service.MetadataHelper;
+import org.oersi.service.PublicMetadataIndexService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.IndexOperations;
+import org.springframework.data.elasticsearch.core.document.Document;
+import org.springframework.data.elasticsearch.core.index.PutTemplateRequest;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -49,14 +33,16 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -68,30 +54,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Test of {@link MetadataController}.
  */
-@SpringBootTest
 @AutoConfigureMockMvc
 @WithMockUser(roles = {"MANAGE_OERMETADATA"})
-class MetadataControllerTest {
+class MetadataControllerTest extends ElasticsearchContainerTest {
 
   /** base path of the {@link MetadataController} */
   private static final String METADATA_CONTROLLER_BASE_PATH = "/api/metadata";
 
   @Autowired
   private MockMvc mvc;
-
   @Autowired
   private MetadataRepository repository;
-
   @Autowired
-  private ModelMapper modelMapper;
+  private BackendConfigRepository configRepository;
+  @Autowired
+  private ElasticsearchOperations elasticsearchOperations;
+  @Autowired
+  private PublicMetadataIndexService publicMetadataIndexService;
   @MockBean
   private JavaMailSender mailSender;
 
-  @AfterEach
-  void cleanup() {
-    repository.deleteAll();
-    repository.flush();
-  }
 
   private static String asJson(final Object obj) throws JsonProcessingException {
     ObjectMapper objectMapper = new ObjectMapper();
@@ -108,119 +90,120 @@ class MetadataControllerTest {
     return objectMapper.writeValueAsString(obj);
   }
 
-  private Metadata createTestMetadata() {
-    return repository.saveAndFlush(getTestMetadata());
+  private BackendConfig setupPublicIndices() {
+    BackendConfig initialConfig = new BackendConfig();
+    initialConfig.setMetadataIndexName("oer_data_123");
+    initialConfig.setAdditionalMetadataIndexName("oer_data_additional_123");
+    configRepository.save(initialConfig);
+    Document mapping = Document.parse("{\"dynamic\": \"false\"}");
+    IndexOperations indexOperations = elasticsearchOperations.indexOps(IndexCoordinates.of(initialConfig.getMetadataIndexName()));
+    var request = PutTemplateRequest.builder(initialConfig.getMetadataIndexName(), initialConfig.getMetadataIndexName()).withMappings(mapping).build();
+    indexOperations.putTemplate(request);
+    IndexOperations additionalIndexOperations = elasticsearchOperations.indexOps(IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName()));
+    request = PutTemplateRequest.builder(initialConfig.getAdditionalMetadataIndexName(), initialConfig.getAdditionalMetadataIndexName()).withMappings(mapping).build();
+    additionalIndexOperations.putTemplate(request);
+    return initialConfig;
   }
 
-  private Metadata getTestMetadata() {
-    Metadata metadata = new Metadata();
-    metadata.setRecordStatusInternal(Metadata.RecordStatus.ACTIVE);
-
-    Creator author = new Creator();
-    author.setType("Person");
-    author.setName("GivenName FamilyName");
-    Affiliation authorAffiliation = new Affiliation();
-    authorAffiliation.setName("name");
-    authorAffiliation.setType("Organization");
-    author.setAffiliation(authorAffiliation);
-    Creator institution = new Creator();
-    institution.setType("Organization");
-    institution.setName("name");
-    metadata.setCreator(List.of(author, institution));
-
-    Caption caption = new Caption();
-    caption.setType("MediaObject");
-    caption.setIdentifier("https://example.org/subs-en.vtt");
-    caption.setInLanguage("en");
-    caption.setEncodingFormat("text/vtt");
-    metadata.setCaption(List.of(caption));
-
-    Contributor contributor = new Contributor();
-    contributor.setName("Jane Doe");
-    contributor.setType("Person");
-    contributor.setHonorificPrefix("Dr.");
-    Affiliation contributorAffiliation = new Affiliation();
-    contributorAffiliation.setName("name");
-    contributorAffiliation.setType("Organization");
-    contributor.setAffiliation(contributorAffiliation);
-    metadata.setContributor(List.of(contributor));
-
-    ConditionsOfAccess conditionsOfAccess = new ConditionsOfAccess();
-    conditionsOfAccess.setIdentifier("https://w3id.org/kim/conditionsOfAccess/no_login");
-    metadata.setConditionsOfAccess(conditionsOfAccess);
-
-    MainEntityOfPage mainEntityOfPage = new MainEntityOfPage();
-    mainEntityOfPage.setIdentifier("https://example.org/desc/123");
-    Provider provider = new Provider();
-    provider.setName("testname");
-    mainEntityOfPage.setProvider(provider);
-    metadata.setMainEntityOfPage(new ArrayList<>(List.of(mainEntityOfPage)));
-
-    SourceOrganization sourceOrganization = new SourceOrganization();
-    sourceOrganization.setName("sourceOrganization");
-    metadata.setSourceOrganization(new ArrayList<>(List.of(sourceOrganization)));
-
-    Publisher publisher = new Publisher();
-    publisher.setName("publisher");
-    publisher.setIdentifier("https://example.org/desc/123");
-    publisher.setType("Organization");
-    metadata.setPublisher(new ArrayList<>(List.of(publisher)));
-
-    metadata.setAudience(List.of(setDefaultLabelledConceptValues(new Audience(), "audience", Map.of("de", "Lernender", "en", "student"))));
-    metadata.setLearningResourceType(List.of(setDefaultLabelledConceptValues(new LearningResourceType(), "learningResourceType", Map.of("de", "Kurs", "en", "course"))));
-    metadata.setAbout(List.of(setDefaultLabelledConceptValues(new About(), "subject", Map.of("de", "Mathematik", "en", "mathematics"))));
-
-    Trailer trailer = new Trailer();
-    trailer.setType("VideoObject");
-    trailer.setEmbedUrl("https://example.org/trailer");
-    metadata.setTrailer(trailer);
-
-    metadata.setAssesses(List.of(setDefaultLabelledConceptValues(new Assesses(), "https://example.org/assesses/1", Map.of("de", "Deutsch", "en", "English"))));
-    metadata.setCompetencyRequired(List.of(setDefaultLabelledConceptValues(new CompetencyRequired(), "https://example.org/competencies/2", Map.of("de", "Deutsch", "en", "English"))));
-    metadata.setEducationalLevel(List.of(setDefaultLabelledConceptValues(new EducationalLevel(), "https://w3id.org/kim/educationalLevel/level_A", Map.of("de", "Deutsch", "en", "English"))));
-    metadata.setTeaches(List.of(setDefaultLabelledConceptValues(new Teaches(), "https://example.org/teaches/1", Map.of("de", "Deutsch", "en", "English"))));
-
-    metadata.setType(new ArrayList<>(List.of("Course", "LearningResource")));
-    metadata.setKeywords(new ArrayList<>(List.of("Gitlab", "Multimedia")));
-
-    metadata.setDescription("description");
-    metadata.setDuration("PT47M58S");
-    metadata.setInLanguage(new ArrayList<>(List.of("en")));
-    License license = new License();
-    license.setIdentifier("https://creativecommons.org/licenses/by/4.0/");
-    metadata.setLicense(license);
-    metadata.setName("name");
-    metadata.setIdentifier("https://example.org");
-
-    metadata.setDateCreated("2020-04-08");
-
-    metadata.setDateModifiedInternal(LocalDateTime.now());
-
-    metadata.setContextUri("https://w3id.org/kim/lrmi-profile/draft/context.jsonld");
-    metadata.setContextLanguage("de");
-    return metadata;
+  private BackendMetadata createTestMetadata() {
+    BackendMetadata data = getTestMetadata();
+    BackendMetadata clone = MetadataHelper.toMetadata(data.getData());
+    clone.setAdditionalData(clone.getData());
+    publicMetadataIndexService.updatePublicIndices(List.of(clone));
+    return repository.save(data);
   }
 
-  private <T extends LabelledConcept> T setDefaultLabelledConceptValues(T concept, String identifier, Map<String, String> localizedStrings) {
-    concept.setIdentifier(identifier);
-    LocalizedString prefLabel = new LocalizedString();
-    prefLabel.setLocalizedStrings(localizedStrings);
-    concept.setPrefLabel(prefLabel);
-    return concept;
+  private BackendMetadata getTestMetadata() {
+    return MetadataHelper.toMetadata(new HashMap<>(Map.ofEntries(
+      Map.entry("@context", List.of("https://w3id.org/kim/amb/draft/context.jsonld", Map.of("@language", "de"))),
+      Map.entry("type", new ArrayList<>(List.of("Course", "LearningResource"))),
+      Map.entry("id", "https://example.org"),
+      Map.entry("name", "name"),
+      Map.entry("description", "description"),
+      Map.entry("keywords", new ArrayList<>(List.of("Gitlab", "Multimedia"))),
+      Map.entry("inLanguage", new ArrayList<>(List.of("en"))),
+      Map.entry("license", Map.of("id", "https://creativecommons.org/licenses/by/4.0/")),
+      Map.entry("creator", new ArrayList<>(List.of(
+        Map.of(
+          "type", "Person",
+          "name", "GivenName FamilyName",
+          "affiliation", Map.of("name", "name", "type", "Organization")
+        ),
+        Map.of(
+          "type", "Organization",
+          "name", "name",
+          "id", "https://example.org/ror"
+        )
+      ))),
+      Map.entry("caption", new ArrayList<>(List.of(
+        Map.of(
+          "type", "MediaObject",
+          "id", "https://example.org/subs-en.vtt",
+          "inLanguage", "en",
+          "encodingFormat", "text/vtt"
+        )
+      ))),
+      Map.entry("contributor", new ArrayList<>(List.of(
+        Map.of(
+          "type", "Person",
+          "name", "Jane Doe",
+          "honorificPrefix", "Dr.",
+          "affiliation", Map.of("name", "name", "type", "Organization")
+        )
+      ))),
+      Map.entry("conditionsOfAccess", Map.of("id", "https://w3id.org/kim/conditionsOfAccess/no_login")),
+      Map.entry("dateCreated", "2020-04-08"),
+      Map.entry("duration", "PT47M58S"),
+      Map.entry("audience", new ArrayList<>(List.of(
+        new HashMap<>(Map.of(
+          "id", "http://purl.org/dcx/lrmi-vocabs/educationalAudienceRole/testaudience",
+          "prefLabel", Map.of("de", "Lernender", "en", "student")
+        ))
+      ))),
+      Map.entry("learningResourceType", new ArrayList<>(List.of(
+        new HashMap<>(Map.of(
+          "id", "https://w3id.org/kim/hcrt/testType",
+          "prefLabel", Map.of("de", "Kurs", "en", "course")
+        ))
+      ))),
+      Map.entry("about", new ArrayList<>(List.of(
+        new HashMap<>(Map.of(
+          "id", "https://w3id.org/kim/hochschulfaechersystematik/testsubject",
+          "prefLabel", Map.of("de", "Mathematik", "en", "mathematics")
+        ))
+      ))),
+      Map.entry("mainEntityOfPage", new ArrayList<>(List.of(
+        Map.of(
+          "id", "https://example.org/desc/123",
+          "provider", Map.of("id", "https://example.org/provider/testprovider", "name", "testname")
+        )
+      ))),
+      Map.entry("publisher", new ArrayList<>(List.of(
+        Map.of("name", "publisher", "id", "https://example.org/desc/123", "type", "Organization")
+      ))),
+      Map.entry("sourceOrganization", new ArrayList<>(List.of(
+        Map.of("name", "sourceOrganization", "type", "Organization")
+      ))),
+      Map.entry("trailer", Map.of("type", "VideoObject", "embedUrl", "https://example.org/trailer")),
+      Map.entry("assesses", List.of(Map.of("id", "https://example.org/assesses/1", "prefLabel", Map.of("de", "Deutsch", "en", "English")))),
+      Map.entry("competencyRequired", List.of(Map.of("id", "https://example.org/competencies/2", "prefLabel", Map.of("de", "Deutsch", "en", "English")))),
+      Map.entry("educationalLevel", List.of(Map.of("id", "https://w3id.org/kim/educationalLevel/level_A", "prefLabel", Map.of("de", "Deutsch", "en", "English")))),
+      Map.entry("teaches", List.of(Map.of("id", "https://example.org/teaches/1", "prefLabel", Map.of("de", "Deutsch", "en", "English"))))
+    )));
   }
 
-  private MetadataDto getTestMetadataDto() {
-    return modelMapper.map(getTestMetadata(), MetadataDto.class);
+  private Map<String, Object> getTestMetadataDto() {
+    return getTestMetadata().getData();
   }
 
   @Test
   void testGetRequest() throws Exception {
-    Metadata metadata = createTestMetadata();
+    BackendMetadata metadata = createTestMetadata();
 
     mvc.perform(get(METADATA_CONTROLLER_BASE_PATH + "/" + metadata.getId()))
         .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.name").value(metadata.getName()))
-        .andExpect(jsonPath("$.id").value(metadata.getIdentifier()));
+        .andExpect(jsonPath("$.name").value(metadata.get("name")))
+        .andExpect(jsonPath("$.id").value(metadata.get("id")));
   }
 
   @Test
@@ -230,15 +213,14 @@ class MetadataControllerTest {
 
   @Test
   void testInvalidContextUri() throws Exception {
-    MetadataDto metadata = getTestMetadataDto();
-    List<Object> context = List.of(3, metadata.getAtContext().get(1));
-    metadata.setAtContext(context);
+    Map<String, Object> metadata = getTestMetadataDto();
+    metadata.put("@context", List.of(3, Map.of("@language", "de")));
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isBadRequest());
 
     // put request
-    Metadata existingMetadata = createTestMetadata();
+    BackendMetadata existingMetadata = createTestMetadata();
     mvc.perform(put(METADATA_CONTROLLER_BASE_PATH + "/" + existingMetadata.getId())
         .contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isBadRequest());
@@ -246,15 +228,13 @@ class MetadataControllerTest {
 
   @Test
   void testInvalidContextLanguage() throws Exception {
-    MetadataDto metadata = getTestMetadataDto();
-    List<Object> context = List.of(metadata.getAtContext().get(0), Map.of("invalid", "de"));
-    metadata.setAtContext(context);
+    Map<String, Object> metadata = getTestMetadataDto();
+    metadata.put("@context", List.of("https://w3id.org/kim/amb/draft/context.jsonld", Map.of("invalid", "de")));
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isBadRequest());
 
-    context = List.of(metadata.getAtContext().get(0), "invalid");
-    metadata.setAtContext(context);
+    metadata.put("@context", List.of("https://w3id.org/kim/amb/draft/context.jsonld", "invalid"));
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isBadRequest());
@@ -262,20 +242,31 @@ class MetadataControllerTest {
 
   @Test
   void testPostRequest() throws Exception {
-    MetadataDto metadata = getTestMetadataDto();
+    Map<String, Object> metadata = getTestMetadataDto();
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
-            "{\"@context\": [\"https://w3id.org/kim/lrmi-profile/draft/context.jsonld\",{\"@language\": \"de\"}],\n" +
-                    "\"id\":\"https://example.org\",\"name\":\"name\",\"caption\": [{\"type\": \"MediaObject\",\"id\": \"https://example.org/subs-en.vtt\",\"encodingFormat\": \"text/vtt\",\"inLanguage\": \"en\"}],\"conditionsOfAccess\":{\"id\":\"https://w3id.org/kim/conditionsOfAccess/no_login\"},\"contributor\":[{\"name\":\"Jane Doe\",\"type\":\"Person\",\"affiliation\": {\"name\":\"name\"}}],\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\",\"affiliation\": {\"name\":\"name\"}},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"duration\":\"PT47M58S\",\"isAccessibleForFree\":true,\"about\":[{\"id\":\"subject\",\"prefLabel\":{\"de\":\"Mathematik\",\"en\":\"mathematics\"}}],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"Kurs\",\"en\":\"course\"}}],\"audience\":[{\"id\":\"audience\",\"prefLabel\":{\"de\":\"Lernender\",\"en\":\"student\"}}],\"mainEntityOfPage\":[{\"id\":\"https://example.org/desc/123\"}], \"publisher\":[{\"name\":\"publisher\"}], \"sourceOrganization\":[{\"name\":\"sourceOrganization\"}], \"keywords\":[\"Gitlab\", \"Multimedia\"], \"type\":[\"Course\", \"LearningResource\"], \"assesses\": [{\"prefLabel\":{\"de\":\"Deutsch\",\"en\":\"English\"}}]}"));
+            "{\"keywords\":[\"Gitlab\",\"Multimedia\"],\"about\":[{\"prefLabel\":{\"de\":\"Mathematik\",\"en\":\"mathematics\"},\"id\":\"https://w3id.org/kim/hochschulfaechersystematik/testsubject\"}],\"caption\":[{\"inLanguage\":\"en\",\"encodingFormat\":\"text/vtt\",\"id\":\"https://example.org/subs-en.vtt\",\"type\":\"MediaObject\"}],\"description\":\"description\",\"type\":[\"Course\",\"LearningResource\"],\"mainEntityOfPage\":[{\"provider\":{\"name\":\"testname\",\"id\":\"https://example.org/provider/testprovider\"},\"id\":\"https://example.org/desc/123\"}],\"competencyRequired\":[{\"prefLabel\":{\"de\":\"Deutsch\",\"en\":\"English\"},\"id\":\"https://example.org/competencies/2\"}],\"conditionsOfAccess\":{\"id\":\"https://w3id.org/kim/conditionsOfAccess/no_login\"},\"duration\":\"PT47M58S\",\"trailer\":{\"embedUrl\":\"https://example.org/trailer\",\"type\":\"VideoObject\"},\"teaches\":[{\"prefLabel\":{\"de\":\"Deutsch\",\"en\":\"English\"},\"id\":\"https://example.org/teaches/1\"}],\"dateCreated\":\"2020-04-08\",\"assesses\":[{\"prefLabel\":{\"de\":\"Deutsch\",\"en\":\"English\"},\"id\":\"https://example.org/assesses/1\"}],\"contributor\":[{\"affiliation\":{\"name\":\"name\",\"type\":\"Organization\"},\"honorificPrefix\":\"Dr.\",\"name\":\"Jane Doe\",\"type\":\"Person\"}],\"id\":\"https://example.org\",\"learningResourceType\":[{\"prefLabel\":{\"de\":\"Kurs\",\"en\":\"course\"},\"id\":\"https://w3id.org/kim/hcrt/testType\"}],\"educationalLevel\":[{\"prefLabel\":{\"de\":\"Deutsch\",\"en\":\"English\"},\"id\":\"https://w3id.org/kim/educationalLevel/level_A\"}],\"audience\":[{\"prefLabel\":{\"de\":\"Lernender\",\"en\":\"student\"},\"id\":\"http://purl.org/dcx/lrmi-vocabs/educationalAudienceRole/testaudience\"}],\"creator\":[{\"name\":\"GivenName FamilyName\",\"affiliation\":{\"name\":\"name\",\"type\":\"Organization\"},\"type\":\"Person\"},{\"name\":\"name\",\"id\":\"https://example.org/ror\",\"type\":\"Organization\"}],\"inLanguage\":[\"en\"],\"@context\":[\"https://w3id.org/kim/amb/draft/context.jsonld\",{\"@language\":\"de\"}],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"name\":\"name\",\"sourceOrganization\":[{\"name\":\"sourceOrganization\",\"type\":\"Organization\"}],\"publisher\":[{\"name\":\"publisher\",\"id\":\"https://example.org/desc/123\",\"type\":\"Organization\"}],\"isAccessibleForFree\":true}"));
+  }
+
+  @Test
+  void testPostRequestWithPublicIndex() throws Exception {
+    BackendConfig initialConfig = setupPublicIndices();
+    Map<String, Object> metadata = getTestMetadataDto();
+
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+        .content(asJson(metadata))).andExpect(status().isOk());
+
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
   }
 
   @Test
   void testBulkUpdate() throws Exception {
-    MetadataDto metadata1 = getTestMetadataDto();
-    MetadataDto metadata2 = getTestMetadataDto();
-    metadata2.setId("https://example.org/record2");
+    Map<String, Object> metadata1 = getTestMetadataDto();
+    Map<String, Object> metadata2 = getTestMetadataDto();
+    metadata2.put("id", "https://example.org/record2");
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH + "/bulk").contentType(MediaType.APPLICATION_JSON)
         .content(asJson(List.of(metadata1, metadata2)))).andExpect(status().isOk())
@@ -284,10 +275,10 @@ class MetadataControllerTest {
 
   @Test
   void testBulkUpdateWithFailure() throws Exception {
-    MetadataDto metadata1 = getTestMetadataDto();
-    MetadataDto metadata2 = getTestMetadataDto();
-    metadata2.setId("https://example.org/record2");
-    metadata2.setImage("invalid url");
+    Map<String, Object> metadata1 = getTestMetadataDto();
+    Map<String, Object> metadata2 = getTestMetadataDto();
+    metadata2.put("id", "https://example.org/record2");
+    metadata2.put("image", "invalid url");
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH + "/bulk").contentType(MediaType.APPLICATION_JSON)
         .content(asJson(List.of(metadata1, metadata2)))).andExpect(status().isOk())
@@ -295,80 +286,61 @@ class MetadataControllerTest {
   }
 
   @Test
-  void testPostRequestWithLongName() throws Exception {
-    MetadataDto metadata = getTestMetadataDto();
-    metadata.setName("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lore Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lore");
+  void testBulkUpdateWithMissingRequiredParameter() throws Exception {
+    Map<String, Object> metadata1 = getTestMetadataDto();
+    Map<String, Object> metadata2 = getTestMetadataDto();
+    metadata2.remove("id");
 
-    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
-        .content(asJson(metadata))).andExpect(status().isOk());
-  }
-
-  @Test
-  void testPostRequestWithLongDescription() throws Exception {
-    MetadataDto metadata = getTestMetadataDto();
-    metadata.setDescription("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. \n" +
-        "\n" +
-        "Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. \n" +
-        "\n" +
-        "Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. \n" +
-        "\n" +
-        "Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. \n" +
-        "\n" +
-        "Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis. \n" +
-        "\n" +
-        "At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam dolore dolores duo eirmod eos erat, et nonumy sed tempor et et invidunt justo labore Stet clita ea et gubergren, kasd magna no rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat. \n" +
-        "\n" +
-        "Consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. \n" +
-        "\n" +
-        "Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facili");
-
-    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
-        .content(asJson(metadata))).andExpect(status().isOk());
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH + "/bulk").contentType(MediaType.APPLICATION_JSON)
+        .content(asJson(List.of(metadata1, metadata2)))).andExpect(status().isBadRequest());
   }
 
   @Test
   void testPostRequestUpdatePrefLabel() throws Exception {
-    MetadataDto metadata = getTestMetadataDto();
-    LocalizedStringDto prefLabel = new LocalizedStringDto();
-    prefLabel.put("de", "test");
-    metadata.getLearningResourceType().get(0).setPrefLabel(prefLabel);
+    Map<String, Object> metadata = getTestMetadataDto();
+    List<Map<String, Object>> learningResourceTypes = MetadataHelper.parseList(metadata, "learningResourceType", new TypeReference<>() {});
+    Assertions.assertNotNull(learningResourceTypes);
+    learningResourceTypes.get(0).put("prefLabel", Map.of("de", "test"));
+    metadata.put("learningResourceType", learningResourceTypes);
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
-            "{\"learningResourceType\":[{\"id\":\"learningResourceType\",\"prefLabel\":{\"de\":\"test\"}}]}"));
+            "{\"learningResourceType\":[{\"id\":\"https://w3id.org/kim/hcrt/testType\",\"prefLabel\":{\"de\":\"test\"}}]}"));
   }
 
   @Test
   void testPostRequestCreateMultipleLearningResourceTypes() throws Exception {
-    MetadataDto metadata = getTestMetadataDto();
-    LabelledConceptDto learningResourceType = new LabelledConceptDto();
-    learningResourceType.setId("learningResourceType2");
-    metadata.getLearningResourceType().add(learningResourceType);
+    Map<String, Object> metadata = getTestMetadataDto();
+    List<Map<String, Object>> learningResourceTypes = MetadataHelper.parseList(metadata, "learningResourceType", new TypeReference<>() {});
+    Assertions.assertNotNull(learningResourceTypes);
+    learningResourceTypes.add(new HashMap<>(Map.of("id", "https://w3id.org/kim/hcrt/testType2")));
+    metadata.put("learningResourceType", learningResourceTypes);
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
-            "{\"learningResourceType\":[{\"id\":\"learningResourceType\"}, {\"id\":\"learningResourceType2\"}]}"));
+            "{\"learningResourceType\":[{\"id\":\"https://w3id.org/kim/hcrt/testType\"}, {\"id\":\"https://w3id.org/kim/hcrt/testType2\"}]}"));
   }
 
   @Test
   void testPostRequestCreateMultipleAudiences() throws Exception {
-    MetadataDto metadata = getTestMetadataDto();
-    LabelledConceptDto audience = new LabelledConceptDto();
-    audience.setId("audience2");
-    metadata.getAudience().add(audience);
+    Map<String, Object> metadata = getTestMetadataDto();
+    List<Map<String, Object>> audiences = MetadataHelper.parseList(metadata, "audience", new TypeReference<>() {});
+    Assertions.assertNotNull(audiences);
+    audiences.add(new HashMap<>(Map.of("id", "http://purl.org/dcx/lrmi-vocabs/educationalAudienceRole/testaudience2")));
+    metadata.put("audience", audiences);
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
       .content(asJson(metadata))).andExpect(status().isOk())
       .andExpect(content().json(
-        "{\"audience\":[{\"id\":\"audience\"}, {\"id\":\"audience2\"}]}"));
+        "{\"audience\":[{\"id\":\"http://purl.org/dcx/lrmi-vocabs/educationalAudienceRole/testaudience\"}, {\"id\":\"http://purl.org/dcx/lrmi-vocabs/educationalAudienceRole/testaudience2\"}]}"));
   }
 
   @Test
   void testPostRequestCreateMultipleLanguages() throws Exception {
-    MetadataDto metadata = getTestMetadataDto();
-    metadata.getInLanguage().add(LanguageDto.FR);
+    Map<String, Object> metadata = getTestMetadataDto();
+    metadata.put("inLanguage", List.of("en", "fr"));
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
       .content(asJson(metadata))).andExpect(status().isOk())
@@ -379,32 +351,42 @@ class MetadataControllerTest {
   @Test
   void testPostRequestWithExistingDataNullData() throws Exception {
     createTestMetadata();
-    MetadataDto metadata = getTestMetadataDto();
-    metadata.setAbout(null);
-    metadata.setAssesses(null);
-    metadata.setCaption(null);
-    metadata.setCompetencyRequired(null);
-    metadata.setCreator(null);
-    metadata.setContributor(null);
-    metadata.setAudience(null);
-    metadata.setEducationalLevel(null);
-    metadata.setMainEntityOfPage(null);
-    metadata.setKeywords(null);
-    metadata.setTeaches(null);
-    metadata.setType(null);
-    metadata.setLearningResourceType(null);
+    Map<String, Object> metadata = getTestMetadataDto();
+    metadata.remove("about");
+    metadata.remove("assesses");
+    metadata.remove("audience");
+    metadata.remove("caption");
+    metadata.remove("competencyRequired");
+    metadata.remove("creator");
+    metadata.remove("contributor");
+    metadata.remove("educationalLevel");
+    metadata.remove("keywords");
+    metadata.remove("learningResourceType");
+    metadata.remove("teaches");
+    metadata.remove("type");
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
-        .content(asJson(metadata))).andExpect(status().isOk())
-        .andExpect(content().json(
-            "{\"id\":\"https://example.org\",\"name\":\"name\",\"creator\":[],\"description\":\"description\",\"about\":[],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[],\"audience\":[],\"mainEntityOfPage\":[{\"id\":\"https://example.org/desc/123\"}], \"type\":[\"LearningResource\"]}"));
+      .content(asJson(metadata))).andExpect(status().isOk())
+      .andExpect(content().json(
+            "{\"id\":\"https://example.org\",\"name\":\"name\",\"description\":\"description\",\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"]}"))
+      .andExpect(jsonPath("$.about").doesNotExist())
+      .andExpect(jsonPath("$.assesses").doesNotExist())
+      .andExpect(jsonPath("$.audience").doesNotExist())
+      .andExpect(jsonPath("$.caption").doesNotExist())
+      .andExpect(jsonPath("$.competencyRequired").doesNotExist())
+      .andExpect(jsonPath("$.creator").doesNotExist())
+      .andExpect(jsonPath("$.contributor").doesNotExist())
+      .andExpect(jsonPath("$.educationalLevel").doesNotExist())
+      .andExpect(jsonPath("$.keywords").doesNotExist())
+      .andExpect(jsonPath("$.learningResourceType").doesNotExist())
+      .andExpect(jsonPath("$.teaches").doesNotExist());
   }
 
   @Test
   void testPostRequestWithExistingEmptyType() throws Exception {
     createTestMetadata();
-    MetadataDto metadata = getTestMetadataDto();
-    metadata.setType(new ArrayList<>());
+    Map<String, Object> metadata = getTestMetadataDto();
+    metadata.put("type", new ArrayList<>());
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
       .content(asJson(metadata))).andExpect(status().isOk())
@@ -414,8 +396,8 @@ class MetadataControllerTest {
 
   @Test
   void testPostRequestWithInvalidId() throws Exception {
-    MetadataDto metadata = getTestMetadataDto();
-    metadata.setId("this is no uri");
+    Map<String, Object> metadata = getTestMetadataDto();
+    metadata.put("id", "this is no uri");
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
       .content(asJson(metadata)))
@@ -424,8 +406,11 @@ class MetadataControllerTest {
 
   @Test
   void testPostRequestWithInvalidPrefLabel() throws Exception {
-    MetadataDto metadata = getTestMetadataDto();
-    metadata.getAudience().get(0).getPrefLabel().put("invalid code", "value");
+    Map<String, Object> metadata = getTestMetadataDto();
+    List<Map<String, Object>> learningResourceTypes = MetadataHelper.parseList(metadata, "learningResourceType", new TypeReference<>() {});
+    Assertions.assertNotNull(learningResourceTypes);
+    learningResourceTypes.get(0).put("prefLabel", Map.of("invalid code", "value"));
+    metadata.put("learningResourceType", learningResourceTypes);
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
       .content(asJson(metadata)))
@@ -434,8 +419,8 @@ class MetadataControllerTest {
 
   @Test
   void testPostRequestWithMissingRequiredParameter() throws Exception {
-    MetadataDto metadata = getTestMetadataDto();
-    metadata.setId(null);
+    Map<String, Object> metadata = getTestMetadataDto();
+    metadata.remove("id");
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isBadRequest());
@@ -443,34 +428,37 @@ class MetadataControllerTest {
 
   @Test
   void testPutRequest() throws Exception {
-    Metadata existingMetadata = createTestMetadata();
-    MetadataDto metadata = getTestMetadataDto();
-    metadata.getMainEntityOfPage().get(0).setId("https://example2.org/desc/123");
+    BackendMetadata existingMetadata = createTestMetadata();
+    Map<String, Object> metadata = getTestMetadataDto();
+    metadata.put("mainEntityOfPage", new ArrayList<>(List.of(
+      Map.of(
+        "id", "https://example2.org/desc/123",
+        "provider", Map.of("id", "http://example.org/provider/testprovider2", "name", "testname2")
+      )
+    )));
 
     mvc.perform(put(METADATA_CONTROLLER_BASE_PATH + "/" + existingMetadata.getId())
         .contentType(MediaType.APPLICATION_JSON).content(asJson(metadata)))
         .andExpect(status().isOk()).andExpect(content().json(
-            "{\"id\":\"https://example.org\",\"name\":\"name\",\"creator\":[{\"name\":\"GivenName FamilyName\",\"type\":\"Person\"},{\"name\":\"name\",\"type\":\"Organization\"}],\"description\":\"description\",\"about\":[{\"id\":\"subject\"}],\"license\":{\"id\":\"https://creativecommons.org/licenses/by/4.0/\"},\"dateCreated\":\"2020-04-08\",\"inLanguage\":[\"en\"],\"learningResourceType\":[{\"id\":\"learningResourceType\"}],\"audience\":[{\"id\":\"audience\"}],\"mainEntityOfPage\":[{\"id\":\"https://example.org/desc/123\"}, {\"id\":\"https://example2.org/desc/123\"}]}"));
+            "{\"id\":\"https://example.org\",\"mainEntityOfPage\":[{\"id\":\"https://example.org/desc/123\"}, {\"id\":\"https://example2.org/desc/123\"}]}"));
 
     Assertions.assertEquals(1, repository.count());
   }
 
   @Test
   void testPutRequestWithMissingRequiredParameter() throws Exception {
-    Metadata existingMetadata = createTestMetadata();
-    MetadataDto metadata = getTestMetadataDto();
-    metadata.setId(null);
+    BackendMetadata existingMetadata = createTestMetadata();
+    Map<String, Object> metadata = getTestMetadataDto();
+    metadata.remove("id");
 
     mvc.perform(put(METADATA_CONTROLLER_BASE_PATH + "/" + existingMetadata.getId())
         .contentType(MediaType.APPLICATION_JSON).content(asJson(metadata)))
         .andExpect(status().isBadRequest());
   }
 
-
   @Test
   void testPutRequestWithNonExistingData() throws Exception {
-    MetadataDto metadata = getTestMetadataDto();
-    metadata.getMainEntityOfPage().get(0).setId("https://example2.org/desc/123");
+    Map<String, Object> metadata = getTestMetadataDto();
 
     mvc.perform(put(METADATA_CONTROLLER_BASE_PATH + "/1").contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isNotFound());
@@ -478,12 +466,26 @@ class MetadataControllerTest {
 
   @Test
   void testDeleteRequest() throws Exception {
-    Metadata existingMetadata = createTestMetadata();
+    BackendMetadata existingMetadata = createTestMetadata();
 
     mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/" + existingMetadata.getId())
         .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
 
     Assertions.assertEquals(0, repository.count());
+  }
+
+  @Test
+  void testDeleteRequestWithPublicIndex() throws Exception {
+    BackendConfig initialConfig = setupPublicIndices();
+    BackendMetadata existingMetadata = createTestMetadata();
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/" + existingMetadata.getId())
+      .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+
+    assertEquals(0, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
+    assertEquals(0, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
   }
 
   @Test
@@ -497,6 +499,37 @@ class MetadataControllerTest {
   }
 
   @Test
+  void testDeleteAllWithPublicIndexRequest() throws Exception {
+    BackendConfig initialConfig = setupPublicIndices();
+    createTestMetadata();
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH)
+      .contentType(MediaType.APPLICATION_JSON).param("update-public", "true"))
+      .andExpect(status().isOk());
+
+    Assertions.assertEquals(0, repository.count());
+    assertEquals(0, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
+    assertEquals(0, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+  }
+
+  @Test
+  void testDeleteAllAndKeepPublicIndexRequest() throws Exception {
+    BackendConfig initialConfig = setupPublicIndices();
+    createTestMetadata();
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH)
+        .contentType(MediaType.APPLICATION_JSON).param("update-public", "false"))
+      .andExpect(status().isOk());
+
+    Assertions.assertEquals(0, repository.count());
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+  }
+  @Test
   void testDeleteByProviderName() throws Exception {
     createTestMetadata();
 
@@ -508,9 +541,27 @@ class MetadataControllerTest {
   }
 
   @Test
+  void testDeleteMainEntityOfPageByProviderNameAndKeepMetadata() throws Exception {
+    BackendMetadata metadata = getTestMetadata();
+    List<Map<String, Object>> mainEntityOfPage = MetadataHelper.parseList(metadata.getData(), "mainEntityOfPage", new TypeReference<>() {});
+    assertNotNull(mainEntityOfPage);
+    mainEntityOfPage.add(Map.of(
+      "id", "https://example2.org/desc/123",
+      "provider", Map.of("id", "https://example.org/provider/testprovider2", "name", "testname2")
+    ));
+    metadata.getData().put("mainEntityOfPage", mainEntityOfPage);
+    repository.save(metadata);
+
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/mainentityofpage")
+        .contentType(MediaType.APPLICATION_JSON).content("{\"providerName\": \"testname\"}"))
+      .andExpect(status().isOk());
+
+    Assertions.assertEquals(1, repository.count());
+  }
+
+  @Test
   void testDeleteRequestWithNonExistingData() throws Exception {
-    mvc.perform(
-        delete(METADATA_CONTROLLER_BASE_PATH + "/1").contentType(MediaType.APPLICATION_JSON))
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/1").contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNotFound());
 
     Assertions.assertEquals(0, repository.count());
@@ -518,9 +569,9 @@ class MetadataControllerTest {
 
   @Test
   void testDatesWithoutTime() throws Exception {
-    MetadataDto metadata = getTestMetadataDto();
-    metadata.setDateCreated("2020-04-08");
-    metadata.setDatePublished("2022-07-08");
+    Map<String, Object> metadata = getTestMetadataDto();
+    metadata.put("dateCreated", "2020-04-08");
+    metadata.put("datePublished", "2022-07-08");
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isOk())
@@ -529,9 +580,9 @@ class MetadataControllerTest {
 
   @Test
   void testDatesWithTime() throws Exception {
-    MetadataDto metadata = getTestMetadataDto();
-    metadata.setDateCreated("2020-04-08T10:00:00Z");
-    metadata.setDatePublished("2022-07-08T12:34:56Z");
+    Map<String, Object> metadata = getTestMetadataDto();
+    metadata.put("dateCreated", "2020-04-08T10:00:00Z");
+    metadata.put("datePublished", "2022-07-08T12:34:56Z");
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
         .content(asJson(metadata))).andExpect(status().isOk())
@@ -539,22 +590,11 @@ class MetadataControllerTest {
   }
 
   @Test
-  void testConvertEncodingType() {
-    MetadataDto metadata = new MetadataDto();
-    MediaObjectDto encoding = new MediaObjectDto();
-    encoding.setType(MediaObjectDto.TypeEnum.MEDIAOBJECT);
-    metadata.setEncoding(List.of(encoding));
-    Metadata entity = modelMapper.map(metadata, Metadata.class);
-    MetadataDto result = modelMapper.map(entity, MetadataDto.class);
-    Assertions.assertNotNull(result.getEncoding());
-    Assertions.assertTrue(result.getEncoding().size() > 0);
-    Assertions.assertEquals(MediaObjectDto.TypeEnum.MEDIAOBJECT, result.getEncoding().get(0).getType());
-  }
-
-  @Test
   void testDeleteMainEntityOfPageRequest() throws Exception {
-    Metadata metadata = createTestMetadata();
-    String encodedIdentifier = Base64.getUrlEncoder().encodeToString(metadata.getMainEntityOfPage().get(0).getIdentifier().getBytes(StandardCharsets.UTF_8));
+    BackendMetadata metadata = createTestMetadata();
+    List<Map<String, Object>> mainEntityOfPage = MetadataHelper.parseList(metadata.getData(), "mainEntityOfPage", new TypeReference<>() {});
+    assertNotNull(mainEntityOfPage);
+    String encodedIdentifier = Base64.getUrlEncoder().encodeToString(((String) mainEntityOfPage.get(0).get("id")).getBytes(StandardCharsets.UTF_8));
     mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/mainentityofpage/" + encodedIdentifier))
       .andExpect(status().isOk());
     Assertions.assertEquals(0, repository.count());
@@ -562,9 +602,29 @@ class MetadataControllerTest {
 
   @Test
   void testDeleteMainEntityOfPageForNonExistingDataRequest() throws Exception {
-    String encodedIdentifier = Base64.getUrlEncoder().encodeToString(getTestMetadataDto().getMainEntityOfPage().get(0).getId().getBytes(StandardCharsets.UTF_8));
+    List<Map<String, Object>> mainEntityOfPage = MetadataHelper.parseList(getTestMetadataDto(), "mainEntityOfPage", new TypeReference<>() {});
+    assertNotNull(mainEntityOfPage);
+    String encodedIdentifier = Base64.getUrlEncoder().encodeToString(((String) mainEntityOfPage.get(0).get("id")).getBytes(StandardCharsets.UTF_8));
     mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/mainentityofpage/" + encodedIdentifier))
       .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void testDeleteMainEntityOfPageAndKeepRemainingMetadataRequest() throws Exception {
+    BackendMetadata metadata = getTestMetadata();
+    List<Map<String, Object>> mainEntityOfPage = MetadataHelper.parseList(metadata.getData(), "mainEntityOfPage", new TypeReference<>() {});
+    assertNotNull(mainEntityOfPage);
+    mainEntityOfPage.add(Map.of(
+        "id", "https://example2.org/desc/123",
+        "provider", Map.of("id", "https://example.org/provider/testprovider2", "name", "testname2")
+    ));
+    metadata.getData().put("mainEntityOfPage", mainEntityOfPage);
+    repository.save(metadata);
+
+    String encodedIdentifier = Base64.getUrlEncoder().encodeToString(((String) mainEntityOfPage.get(0).get("id")).getBytes(StandardCharsets.UTF_8));
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/mainentityofpage/" + encodedIdentifier))
+      .andExpect(status().isOk());
+    Assertions.assertEquals(1, repository.count());
   }
 
   @Test
@@ -572,25 +632,5 @@ class MetadataControllerTest {
     String encodedIdentifier = Base64.getUrlEncoder().encodeToString("invalid invalid".getBytes(StandardCharsets.UTF_8));
     mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/mainentityofpage/" + encodedIdentifier))
       .andExpect(status().isBadRequest());
-  }
-
-  @Test
-  void testRemoveRecordsWithStatusDeletedRequest() throws Exception {
-    Metadata metadata = getTestMetadata();
-    metadata.setRecordStatusInternal(Metadata.RecordStatus.DELETED);
-    metadata.setDateModifiedInternal(LocalDateTime.now());
-    repository.saveAndFlush(metadata);
-
-    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH)
-      .contentType(MediaType.APPLICATION_JSON).content("{\"cleanupDeleted\": true, \"cleanupDeletedOffset\": 86400000 }"))
-      .andExpect(status().isOk());
-
-    Assertions.assertEquals(1, repository.count());
-
-    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH)
-        .contentType(MediaType.APPLICATION_JSON).content("{\"cleanupDeleted\": true, \"cleanupDeletedOffset\": 0 }"))
-      .andExpect(status().isOk());
-
-    Assertions.assertEquals(0, repository.count());
   }
 }

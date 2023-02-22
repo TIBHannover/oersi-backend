@@ -1,0 +1,32 @@
+{
+  "dynamic": "false",
+  "properties": {
+    "_class": {
+      "type": "keyword",
+      "index": false,
+      "doc_values": false
+    },
+    "dateModified": {
+      "type": "date",
+      "format": "date_hour_minute_second"
+    },
+    "data": {
+      "properties": {
+        "mainEntityOfPage": {
+          "properties": {
+            "id": {
+              "type": "keyword"
+            },
+            "provider": {
+              "properties": {
+                "name": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

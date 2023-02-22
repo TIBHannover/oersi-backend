@@ -3,12 +3,13 @@ package org.oersi.service;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.oersi.ElasticsearchServicesMock;
 import org.oersi.domain.LabelDefinition;
-import org.oersi.domain.LocalizedString;
 import org.oersi.repository.LabelDefinitionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.mail.javamail.JavaMailSender;
 
 import java.util.ArrayList;
@@ -23,12 +24,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
+@Import(ElasticsearchServicesMock.class)
 class LabelDefinitionServiceTest {
 
   @Autowired
   private LabelDefinitionService service;
-  @MockBean
-  private LabelDefinitionRepository repository;
+  @Autowired
+  private LabelDefinitionRepository repository; // mock from ElasticsearchServicesMock
   @MockBean
   private JavaMailSender mailSender;
 
@@ -45,12 +47,10 @@ class LabelDefinitionServiceTest {
   private LabelDefinition getTestData() {
     LabelDefinition definition = new LabelDefinition();
     definition.setIdentifier("XXX");
-    LocalizedString localizedString = new LocalizedString();
     Map<String, String> localizedStrings = new HashMap<>();
     localizedStrings.put("de", "test1");
     localizedStrings.put("en", "test2");
-    localizedString.setLocalizedStrings(localizedStrings);
-    definition.setLabel(localizedString);
+    definition.setLabel(localizedStrings);
     return definition;
   }
 
@@ -85,8 +85,8 @@ class LabelDefinitionServiceTest {
   @Test
   void testFindById() {
     LabelDefinition data = getTestData();
-    when(repository.findById(1L)).thenReturn(Optional.of(data));
-    LabelDefinition result = service.findById(1L);
+    when(repository.findById("1")).thenReturn(Optional.of(data));
+    LabelDefinition result = service.findById("1");
     assertThat(result).isNotNull();
   }
 
@@ -105,7 +105,7 @@ class LabelDefinitionServiceTest {
   @Test
   void testFindLocalizedLabelWithUndefinedLocalizedString() {
     List<LabelDefinition> existing = List.of(getTestData());
-    existing.get(0).setLabel(new LocalizedString());
+    existing.get(0).setLabel(new HashMap<>());
     when(repository.findAll()).thenReturn(existing);
     Map<String, String> result = service.findLocalizedLabelByIdentifier("XXX");
     assertThat(result).isEmpty();
@@ -134,7 +134,7 @@ class LabelDefinitionServiceTest {
     assertThat(result).hasSize(2).containsKeys("de", "en").containsEntry("de", "test1");
 
     List<LabelDefinition> newData = List.of(getTestData());
-    newData.get(0).getLabel().setLocalizedStrings(Map.of("de", "test3"));
+    newData.get(0).setLabel(Map.of("de", "test3"));
     service.createOrUpdate(newData);
     when(repository.findAll()).thenReturn(newData);
     result = service.findLocalizedLabelByIdentifier("XXX"); // second time for cached result

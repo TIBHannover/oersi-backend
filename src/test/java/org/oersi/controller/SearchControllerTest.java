@@ -11,10 +11,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.net.URI;
 import org.junit.jupiter.api.Test;
+import org.oersi.ElasticsearchServicesMock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -29,6 +31,7 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestPropertySource(value = "classpath:application.properties")
+@Import(ElasticsearchServicesMock.class)
 class SearchControllerTest {
 
   private final static String testPath = "/test";

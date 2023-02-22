@@ -1,0 +1,41 @@
+/api/metadata-config:
+  post:
+    tags:
+      - "config-controller"
+    summary: "update backend config"
+    description: "update backend config"
+    operationId: "updateMetadataConfig"
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Config"
+      required: false
+    responses:
+      "200":
+        description: OK
+        content: {}
+      "400":
+        description: Bad Request
+        content: {}
+      "401":
+        description: Unauthorized
+        content: {}
+      "403":
+        description: Forbidden
+        content: {}
+components:
+  schemas:
+    Config:
+      type: "object"
+      properties:
+        metadataIndexName:
+          type: "string"
+          description: "name of the oer-metadata index"
+        additionalMetadataIndexName:
+          type: "string"
+          description: "name of the internal oer-metadata index"
+        customConfig:
+          type: object
+          additionalProperties:
+            type: object

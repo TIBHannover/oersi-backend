@@ -1,19 +1,15 @@
 package org.oersi.domain;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.Document;
 
-import javax.persistence.Entity;
+@Data
+@Document(indexName = "oersi_backend_vocab_item")
+public class VocabItem {
 
-@Getter
-@Setter
-@ToString(callSuper = true)
-@NoArgsConstructor
-@Entity
-public class VocabItem extends BaseEntity {
-
+  @Id
+  private String id;
   private String vocabIdentifier;
   private String itemKey;
   private String parentKey;

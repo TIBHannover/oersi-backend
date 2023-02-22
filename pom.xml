@@ -33,7 +33,20 @@
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
+			<artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webflux</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.json</groupId>
+			<artifactId>jakarta.json-api</artifactId>
+			<version>2.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -45,15 +58,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-validation</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-mail</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.liquibase</groupId>
-			<artifactId>liquibase-core</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.modelmapper</groupId>
@@ -85,17 +90,12 @@
 			<artifactId>batik-transcoder</artifactId>
 			<version>1.16</version>
 		</dependency>
+		<dependency>
+			<groupId>com.github.erosb</groupId>
+			<artifactId>everit-json-schema</artifactId>
+			<version>1.14.1</version>
+		</dependency>
 
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.mariadb.jdbc</groupId>
-			<artifactId>mariadb-java-client</artifactId>
-			<scope>runtime</scope>
-		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-tomcat</artifactId>
@@ -117,6 +117,18 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>elasticsearch</artifactId>
+			<version>1.17.6</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>1.17.6</version>
+			<scope>test</scope>
+		</dependency>
 		<!--Add swagger Dependency -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
@@ -135,51 +147,6 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.liquibase</groupId>
-				<artifactId>liquibase-maven-plugin</artifactId>
-				<version>4.18.0</version>
-				<configuration>
-					<!-- NOTE: h2 does not work here! -->
-					<!-- you can setup local mariadb via docker: docker run -e MYSQL_DATABASE=test -e MYSQL_USER=test -e MYSQL_PASSWORD=test -e MYSQL_ROOT_PASSWORD=xxx -p 3306:3306 -d mariadb:10.1 -->
-					<!-- Generate changelog from domain objects via 'mvn clean compile' + 'mvn liquibase:diff' -->
-					<changeLogFile>src/main/resources/db/changelog/db.changelog-master.yaml</changeLogFile>
-					<driver>org.mariadb.jdbc.Driver</driver>
-					<url>jdbc:mariadb://localhost:3306/test</url>
-					<username>test</username>
-					<password>test</password>
-					<referenceUrl>hibernate:spring:org.oersi.domain?dialect=org.hibernate.dialect.MySQL5InnoDBDialect&amp;hibernate.physical_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&amp;hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy</referenceUrl>
-					<diffChangeLogFile>target/liquibase-diff-changeLog.yml</diffChangeLogFile>
-				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>org.liquibase.ext</groupId>
-						<artifactId>liquibase-hibernate5</artifactId>
-						<version>4.16.1</version>
-					</dependency>
-
-					<dependency>
-						<groupId>org.javassist</groupId>
-						<artifactId>javassist</artifactId>
-						<version>3.29.2-GA</version>
-					</dependency>
-					<dependency>
-						<groupId>org.springframework.boot</groupId>
-						<artifactId>spring-boot-starter-data-jpa</artifactId>
-						<version>${project.parent.version}</version>
-					</dependency>
-					<dependency>
-						<groupId>javax.xml.bind</groupId>
-						<artifactId>jaxb-api</artifactId>
-						<version>2.3.1</version>
-					</dependency>
-					<dependency>
-						<groupId>javax.validation</groupId>
-						<artifactId>validation-api</artifactId>
-						<version>2.0.1.Final</version>
-					</dependency>
-				</dependencies>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -277,7 +244,14 @@
 							<token>description = "options of the metadata-delete-request", schema=@Schema... @Valid @RequestBody</token>
 							<value>description = "options of the metadata-delete-request", schema=@Schema()) @Valid @RequestBody(required = false)</value>
 						</replacement>
-
+						<replacement>
+							<token>ResponseEntity.Map.String, Object.. _createOrUpdate.@Parameter.in = ParameterIn.DEFAULT, description = "Metadata object", required=true, schema=@Schema..</token>
+							<value>ResponseEntity&lt;Map&lt;String, Object&gt;&gt; _createOrUpdate(@Parameter(in = ParameterIn.DEFAULT, description = "Metadata object", required=true, schema=@Schema(example="{ \\"@context\\": [ \\"https://w3id.org/kim/amb/draft/context.jsonld\\", { \\"@language\\": \\"de\\" } ], \\"id\\": \\"https://axel-klinger.gitlab.io/gitlab-for-documents/index.html\\", \\"name\\": \\"GitLab für Texte\\", \\"caption\\": [ { \\"type\\": \\"MediaObject\\", \\"id\\": \\"https://example.org/subs-de.vtt\\", \\"encodingFormat\\": \\"text/vtt\\", \\"inLanguage\\": \\"aa\\" } ], \\"creator\\": [ { \\"type\\": \\"Person\\", \\"id\\": \\"https://orcid.org/1234-5678-1234-5678\\", \\"name\\": \\"Max Mustermann\\", \\"honorificPrefix\\": \\"Dr.\\", \\"affiliation\\": { \\"id\\": \\"https://www.wikidata.org/entity/Q54166\\", \\"type\\": \\"Organization\\", \\"name\\": \\"Technische Hochschule Köln\\" } } ], \\"contributor\\": [ { \\"type\\": \\"Person\\", \\"name\\": \\"Maxi Mustermensch\\", \\"honorificPrefix\\": \\"Dr.\\", \\"affiliation\\": { \\"id\\": \\"https://www.wikidata.org/entity/Q54166\\", \\"type\\": \\"Organization\\", \\"name\\": \\"Technische Hochschule Köln\\" } } ], \\"conditionsOfAccess\\": { \\"type\\": \\"Concept\\", \\"id\\": \\"https://w3id.org/kim/conditionsOfAccess/no_login\\", \\"prefLabel\\": { \\"de\\": \\"Mathematik\\", \\"en\\": \\"Mathematics\\" } }, \\"description\\": \\"an example description\\", \\"duration\\": \\"PT47M58S\\", \\"isAccessibleForFree\\": true, \\"about\\": [ { \\"id\\": \\"https://w3id.org/kim/hochschulfaechersystematik/n105\\", \\"prefLabel\\": { \\"de\\": \\"Mathematik\\", \\"en\\": \\"Mathematics\\" } } ], \\"license\\": { \\"id\\": \\"https://creativecommons.org/licenses/by/4.0/\\" }, \\"image\\": \\"https://www.oernds.de/edu-sharing/preview?nodeId=84400a83-9d1a-4738-a19f-00fc332df247&amp;storeProtocol=workspace&amp;storeId=SpacesStore&amp;dontcache=1589890988103\\", \\"dateCreated\\": \\"2020-02-22\\", \\"datePublished\\": \\"2020-02-22\\", \\"inLanguage\\": [ \\"de\\", \\"en\\" ], \\"learningResourceType\\": [ { \\"id\\": \\"https://w3id.org/kim/hcrt/course\\", \\"prefLabel\\": { \\"de\\": \\"Kurs\\", \\"en\\": \\"Course\\" } } ], \\"audience\\": [ { \\"id\\": \\"http://purl.org/dcx/lrmi-vocabs/educationalAudienceRole/student\\", \\"prefLabel\\": { \\"de\\": \\"Lernende\\", \\"en\\": \\"student\\" } } ], \\"mainEntityOfPage\\": [ { \\"id\\": \\"https://www.oernds.de/edu-sharing/components/render/84400a83-9d1a-4738-a19f-00fc332df247\\", \\"type\\": \\"WebPage\\", \\"dateCreated\\": \\"2020-03-21\\", \\"dateModified\\": \\"2020-03-22\\", \\"provider\\": { \\"id\\": \\"https://oerworldmap.org/resource/urn:uuid:4062c64d-b0ac-4941-95c2-8116f137326d\\", \\"type\\": \\"Service\\", \\"name\\": \\"ZOERR\\" } } ], \\"publisher\\": [ { \\"id\\": \\"https://www.wikidata.org/entity/Q54166\\", \\"type\\": \\"Organization\\", \\"name\\": \\"Technische Hochschule Köln\\" } ], \\"sourceOrganization\\": [ { \\"id\\": \\"https://www.wikidata.org/entity/Q54166\\", \\"type\\": \\"Organization\\", \\"name\\": \\"Technische Hochschule Köln\\" } ], \\"type\\": [ \\"LearningResource\\" ], \\"keywords\\": [ \\"Multimedia\\", \\"GitLab\\" ], \\"encoding\\": [ { \\"bitrate\\": \\"831 kb/s\\", \\"contentUrl\\": \\"https://some.content.org/download\\", \\"contentSize\\": \\"286MB\\", \\"embedUrl\\": \\"https://some.content.org/embed\\", \\"encodingFormat\\": \\"video/mp4\\", \\"sha256\\": \\"af96aba0790476495cfb5fa6d5612b91d8e404bb0d53aaf4b19bb8bd49843959\\", \\"type\\": \\"MediaObject\\" } ], \\"trailer\\": { \\"bitrate\\": \\"831 kb/s\\", \\"contentUrl\\": \\"https://some.content.org/download\\", \\"contentSize\\": \\"286MB\\", \\"embedUrl\\": \\"https://some.content.org/embed\\", \\"encodingFormat\\": \\"video/mp4\\", \\"sha256\\": \\"af96aba0790476495cfb5fa6d5612b91d8e404bb0d53aaf4b19bb8bd49843959\\", \\"type\\": \\"VideoObject\\" }, \\"assesses\\": [ { \\"id\\": \\"https://example.org/competencies/1\\", \\"prefLabel\\": { \\"en\\": \\"Awesomeness\\" } } ], \\"competencyRequired\\": [ { \\"id\\": \\"https://example.org/competencies/2\\", \\"prefLabel\\": { \\"en\\": \\"Humor\\" } } ], \\"educationalLevel\\": [ { \\"id\\": \\"https://w3id.org/kim/educationalLevel/level_A\\", \\"prefLabel\\": { \\"de\\": \\"Hochschule\\", \\"en\\": \\"University\\" } } ], \\"teaches\\": [ { \\"id\\": \\"https://example.org/competencies/3\\", \\"prefLabel\\": { \\"en\\": \\"Resilience\\" } } ]}")</value>
+						</replacement>
+						<replacement>
+							<token>LocalizedStringDto extends HashMap.String, String>  .</token>
+							<value>LocalizedStringDto extends HashMap&lt;String, String&gt;  {@com.fasterxml.jackson.annotation.JsonIgnore public boolean isEmpty() {return super.isEmpty();}</value>
+						</replacement>
 					</replacements>
 				</configuration>
 			</plugin>

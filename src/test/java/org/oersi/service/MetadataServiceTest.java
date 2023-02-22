@@ -1,131 +1,142 @@
 package org.oersi.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.oersi.domain.About;
-import org.oersi.domain.Audience;
-import org.oersi.domain.Creator;
-import org.oersi.domain.LearningResourceType;
-import org.oersi.domain.License;
-import org.oersi.domain.LocalizedString;
-import org.oersi.domain.MainEntityOfPage;
-import org.oersi.domain.Metadata;
-import org.oersi.domain.Provider;
+import org.oersi.ElasticsearchServicesMock;
+import org.oersi.domain.BackendMetadata;
+import org.oersi.repository.LabelRepository;
 import org.oersi.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.mail.javamail.JavaMailSender;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
+@Import(ElasticsearchServicesMock.class)
 class MetadataServiceTest {
 
   @Autowired
   private MetadataService service;
-  @MockBean
-  private MetadataRepository repository;
+  @Autowired
+  private MetadataRepository repository; // mock from ElasticsearchServicesMock
   @MockBean
   private LabelService labelService;
   @MockBean
   private JavaMailSender mailSender;
+  @Autowired
+  private LabelRepository labelRepository;
 
-  private Metadata newMetadata() {
-    Metadata metadata = new Metadata();
+  @BeforeEach
+  public void setup() {
+  }
 
-    List<Creator> creators = new ArrayList<>();
-    Creator author = new Creator();
-    author.setType("Person");
-    author.setName("test test");
-    creators.add(author);
+  private BackendMetadata newMetadata() {
+    return MetadataHelper.toMetadata(new HashMap<>(Map.ofEntries(
+      Map.entry("@context", List.of("https://w3id.org/kim/amb/draft/context.jsonld", Map.of("@language", "de"))),
+      Map.entry("id", "https://www.test.de"),
+      Map.entry("name", "Test Title"),
+      Map.entry("description", "test description"),
+      Map.entry("inLanguage", new ArrayList<>(List.of("de"))),
+      Map.entry("license", Map.of("id", "https://creativecommons.org/publicdomain/zero/1.0/")),
+      Map.entry("creator", new ArrayList<>(List.of(
+        Map.of(
+          "type", "Person",
+          "name", "test test"
+        ),
+        Map.of(
+          "type", "Organization",
+          "name", "name",
+          "id", "https://example.org/ror"
+        )
+      ))),
+      Map.entry("audience", new ArrayList<>(List.of(
+        new HashMap<>(Map.of("id", "http://purl.org/dcx/lrmi-vocabs/educationalAudienceRole/testaudience"))
+      ))),
+      Map.entry("learningResourceType", new ArrayList<>(List.of(
+        new HashMap<>(Map.of(
+          "id", "https://w3id.org/kim/hcrt/testType",
+          "prefLabel", Map.of("de", "Kurs", "en", "course")
+        ))
+      ))),
+      Map.entry("about", new ArrayList<>(List.of(
+        new HashMap<>(Map.of("id", "https://w3id.org/kim/hochschulfaechersystematik/testsubject"))
+      ))),
+      Map.entry("mainEntityOfPage", new ArrayList<>(List.of(
+        Map.of(
+          "id", "http://example.url/desc/123",
+          "provider", Map.of("id", "http://example.url/provider/testprovider", "name", "provider name")
+        )
+      )))
+    )));
+  }
 
-    Creator institution = new Creator();
-    institution.setType("Organization");
-    institution.setName("name");
-    institution.setIdentifier("ror");
-    creators.add(institution);
-
-    metadata.setCreator(creators);
-
-    Audience audience = new Audience();
-    audience.setIdentifier("testaudience");
-    metadata.setAudience(new ArrayList<>(List.of(audience)));
-
-    MainEntityOfPage mainEntityOfPage = new MainEntityOfPage();
-    mainEntityOfPage.setIdentifier("http://example.url/desc/123");
-    metadata.setMainEntityOfPage(new ArrayList<>(List.of(mainEntityOfPage)));
-
-    LearningResourceType learningResourceType = new LearningResourceType();
-    learningResourceType.setIdentifier("testType");
-    LocalizedString lrtPrefLabel = new LocalizedString();
-    lrtPrefLabel.setLocalizedStrings(Map.of("de", "Kurs", "en", "course"));
-    learningResourceType.setPrefLabel(lrtPrefLabel);
-    metadata.setLearningResourceType(new ArrayList<>(List.of(learningResourceType)));
-
-    List<About> subjects = new ArrayList<>();
-    About about = new About();
-    about.setIdentifier("testsubject");
-    subjects.add(about);
-    metadata.setAbout(subjects);
-
-    metadata.setDescription("test description");
-    metadata.setInLanguage(new ArrayList<>(List.of("de")));
-    License license = new License();
-    license.setIdentifier("https://creativecommons.org/publicdomain/zero/1.0/");
-    metadata.setLicense(license);
-    metadata.setName("Test Title");
-    metadata.setIdentifier("https://www.test.de");
-    return metadata;
+  private Map<String, Object> buildMainEntityOfPage(String id, String provider) {
+    return Map.of(
+      "id", id,
+      "provider", Map.of("id", "http://example.url/provider/" + provider, "name", provider)
+    );
   }
 
   @Test
   void testCreateOrUpdateWithoutExistingData() {
-    Metadata metadata = newMetadata();
+    BackendMetadata metadata = newMetadata();
     service.createOrUpdate(metadata);
     verify(repository, times(1)).saveAll(anyList());
   }
 
   @Test
   void testCreateOrUpdateWithMinimalData() {
-    Metadata metadata = new Metadata();
-    metadata.setName("Test Title");
-    metadata.setIdentifier("https://www.test.de");
+    BackendMetadata dummy = newMetadata();
+    BackendMetadata metadata = MetadataHelper.toMetadata(new HashMap<>(Map.of(
+      "@context", dummy.getData().get("@context"),
+      "id", dummy.getData().get("id"),
+      "name", dummy.getData().get("name"),
+      "mainEntityOfPage", dummy.getData().get("mainEntityOfPage")
+    )));
     service.createOrUpdate(metadata);
     verify(repository, times(1)).saveAll(anyList());
   }
 
   @Test
-  void testCreateOrUpdateWithInvalidKeywordLength() {
-    Metadata metadata = newMetadata();
-    metadata.setKeywords(List.of("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
-    MetadataService.MetadataUpdateResult result = service.createOrUpdate(metadata);
-    assertThat(result.getSuccess()).isFalse();
-    verify(repository, times(0)).saveAll(anyList());
-  }
-
-  @Test
   void testCreateOrUpdateWithInvalidLanguageCodeInPrefLabel() {
-    Metadata metadata = newMetadata();
-    LocalizedString lrtPrefLabel = new LocalizedString();
-    lrtPrefLabel.setLocalizedStrings(Map.of("invalid", "test"));
-    metadata.getLearningResourceType().get(0).setPrefLabel(lrtPrefLabel);
+    BackendMetadata metadata = newMetadata();
+    metadata.getData().put(
+      "learningResourceType", new ArrayList<>(List.of(
+        new HashMap<>(Map.of(
+          "id", "https://w3id.org/kim/hcrt/testType",
+          "prefLabel", Map.of("invalid", "test")
+        ))
+      ))
+    );
     MetadataService.MetadataUpdateResult result = service.createOrUpdate(metadata);
     assertThat(result.getSuccess()).isFalse();
 
-    lrtPrefLabel = new LocalizedString();
-    lrtPrefLabel.setLocalizedStrings(Map.of("zz", "test"));
-    metadata.getLearningResourceType().get(0).setPrefLabel(lrtPrefLabel);
+    metadata.getData().put(
+      "learningResourceType", new ArrayList<>(List.of(
+        new HashMap<>(Map.of(
+          "id", "https://w3id.org/kim/hcrt/testType",
+          "prefLabel", Map.of("zz", "test")
+        ))
+      ))
+    );
     result = service.createOrUpdate(metadata);
     assertThat(result.getSuccess()).isFalse();
     verify(repository, times(0)).saveAll(anyList());
@@ -133,9 +144,9 @@ class MetadataServiceTest {
 
   @Test
   void testCreateOrUpdateWithEmptyMandatoryFields() {
-    Metadata metadata = newMetadata();
-    metadata.setIdentifier("");
-    metadata.setName("");
+    BackendMetadata metadata = newMetadata();
+    metadata.getData().put("id", "");
+    metadata.getData().put("name", "");
     MetadataService.MetadataUpdateResult result = service.createOrUpdate(metadata);
     assertThat(result.getSuccess()).isFalse();
     verify(repository, times(0)).saveAll(anyList());
@@ -143,144 +154,148 @@ class MetadataServiceTest {
 
   @Test
   void testCreateOrUpdateWithIncompleteLabel() {
-    Metadata metadata = newMetadata();
-    LocalizedString lrtPrefLabel = new LocalizedString();
-    metadata.getLearningResourceType().get(0).setPrefLabel(lrtPrefLabel);
-    metadata.getAudience().get(0).setIdentifier(null);
+    BackendMetadata metadata = newMetadata();
+    metadata.getData().put(
+      "learningResourceType", new ArrayList<>(List.of(
+        new HashMap<>(Map.of(
+          "id", "https://w3id.org/kim/hcrt/testType",
+          "prefLabel", new HashMap<>()
+        ))
+      ))
+    );
+    metadata.getData().put("audience", new ArrayList<>(List.of(new HashMap<>(Map.of()))));
     service.createOrUpdate(metadata);
     verify(labelService, times(0)).createOrUpdate(anyString(), anyString(), anyString(), anyString());
   }
 
   @Test
   void testCreateOrUpdateWithoutMainEntityOfPage() {
-    Metadata metadata = newMetadata();
-    metadata.setMainEntityOfPage(null);
+    BackendMetadata metadata = newMetadata();
+    metadata.getData().remove("mainEntityOfPage");
     service.createOrUpdate(metadata);
-    verify(repository, times(1)).saveAll(anyList());
+    verify(repository, times(0)).saveAll(anyList());
   }
 
   @Test
   void testCreateOrUpdateWithNoUrlMainEntityOfPageIdentifier() {
-    Metadata metadata = newMetadata();
-    metadata.getMainEntityOfPage().get(0).setIdentifier("TEST");
+    BackendMetadata metadata = newMetadata();
+    metadata.getData().put("mainEntityOfPage", new ArrayList<>(List.of(buildMainEntityOfPage("TEST", "testprovider"))));
     service.createOrUpdate(metadata);
-    metadata.getMainEntityOfPage().get(0).setIdentifier("!!$%");
+    metadata.getData().put("mainEntityOfPage", new ArrayList<>(List.of(buildMainEntityOfPage("!!$%", "testprovider2"))));
     service.createOrUpdate(metadata);
-    verify(repository, times(2)).saveAll(anyList());
-  }
-
-  @Test
-  void testCreateOrUpdateWithMainEntityOfPageSource() {
-    Metadata metadata = newMetadata();
-    service.createOrUpdate(metadata);
-    verify(repository, times(1)).saveAll(anyList());
-    assertThat(metadata.getMainEntityOfPage().get(0).getProvider()).isNotNull();
-    assertThat(metadata.getMainEntityOfPage().get(0).getProvider().getName())
-        .isEqualTo("example.url");
-
-    metadata.getMainEntityOfPage().get(0).setIdentifier("http://www.example2.url/desc/123");
-    metadata.getMainEntityOfPage().get(0).getProvider().setName(null);
-    service.createOrUpdate(metadata);
-    assertThat(metadata.getMainEntityOfPage().get(0).getProvider()).isNotNull();
-    assertThat(metadata.getMainEntityOfPage().get(0).getProvider().getName())
-        .isEqualTo("example2.url");
+    verify(repository, times(0)).saveAll(anyList());
   }
 
   @Test
   void testUpdateMainEntityOfPagesNotSet() {
-    Metadata existingData = newMetadata();
-    existingData.setMainEntityOfPage(null);
-    when(repository.findByIdentifier(existingData.getIdentifier()))
-        .thenReturn(List.of(existingData));
+    BackendMetadata existingData = newMetadata();
+    existingData.getData().remove("mainEntityOfPage");
+    when(repository.findById(existingData.getId())).thenReturn(Optional.of(existingData));
 
-    Metadata metadata = newMetadata();
-    metadata.getMainEntityOfPage().get(0).setIdentifier("http://www.example2.url/desc/123");
-    service.createOrUpdate(metadata);
-    assertEquals(1, metadata.getMainEntityOfPage().size());
+    BackendMetadata metadata = newMetadata();
+    metadata.getData().put("mainEntityOfPage", new ArrayList<>(List.of(buildMainEntityOfPage("http://example2.url/desc/123", "testprovider2"))));
+    BackendMetadata result = service.createOrUpdate(metadata).getMetadata();
+    List<Map<String, Object>> mainEntityOfPage = MetadataHelper.parseList(result.getData(), "mainEntityOfPage", new TypeReference<>() {});
+    assertNotNull(mainEntityOfPage);
+    assertEquals(1, mainEntityOfPage.size());
   }
 
   @Test
   void testUpdateMainEntityOfPagesDisjunct() {
-    Metadata existingData = newMetadata();
-    when(repository.findByIdentifier(existingData.getIdentifier()))
-        .thenReturn(List.of(existingData));
+    BackendMetadata existingData = newMetadata();
+    when(repository.findById(existingData.getId())).thenReturn(Optional.of(existingData));
 
-    Metadata metadata = newMetadata();
-    metadata.getMainEntityOfPage().get(0).setIdentifier("http://www.example2.url/desc/123");
-    service.createOrUpdate(metadata);
-    assertEquals(2, metadata.getMainEntityOfPage().size());
+    BackendMetadata metadata = newMetadata();
+    metadata.getData().put("mainEntityOfPage", new ArrayList<>(List.of(buildMainEntityOfPage("http://example2.url/desc/123", "testprovider2"))));
+    BackendMetadata result = service.createOrUpdate(metadata).getMetadata();
+    List<Map<String, Object>> mainEntityOfPage = MetadataHelper.parseList(result.getData(), "mainEntityOfPage", new TypeReference<>() {});
+    assertNotNull(mainEntityOfPage);
+    assertEquals(2, mainEntityOfPage.size());
+    List<Map<String, Object>> mainEntityOfPageInternal = MetadataHelper.parseList(result.getAdditionalData(), "mainEntityOfPage", new TypeReference<>() {});
+    assertNotNull(mainEntityOfPageInternal);
+    assertEquals(2, mainEntityOfPageInternal.size());
   }
 
   @Test
   void testUpdateMainEntityOfPagesMerge() {
-    Metadata existingData = newMetadata();
-    when(repository.findByIdentifier(existingData.getIdentifier()))
-        .thenReturn(List.of(existingData));
+    BackendMetadata existingData = newMetadata();
+    when(repository.findById(existingData.getId())).thenReturn(Optional.of(existingData));
 
-    Metadata metadata = newMetadata();
-    MainEntityOfPage mainEntityOfPage = new MainEntityOfPage();
-    mainEntityOfPage.setIdentifier("http://www.example2.url/desc/123");
-    metadata.getMainEntityOfPage().add(mainEntityOfPage);
-    service.createOrUpdate(metadata);
-    assertEquals(2, metadata.getMainEntityOfPage().size());
+    BackendMetadata metadata = newMetadata();
+    List<Map<String, Object>> mainEntityOfPage = MetadataHelper.parseList(metadata.getData(), "mainEntityOfPage", new TypeReference<>() {});
+    assertNotNull(mainEntityOfPage);
+    mainEntityOfPage.add(buildMainEntityOfPage("http://example2.url/desc/123", "testprovider2"));
+    metadata.getData().put("mainEntityOfPage", mainEntityOfPage);
+    BackendMetadata result = service.createOrUpdate(metadata).getMetadata();
+    mainEntityOfPage = MetadataHelper.parseList(result.getData(), "mainEntityOfPage", new TypeReference<>() {});
+    assertNotNull(mainEntityOfPage);
+    assertEquals(2, mainEntityOfPage.size());
   }
 
   @Test
   void testCreateOrUpdateWithGivenProvider() {
-    Metadata metadata = newMetadata();
-    Provider provider = new Provider();
-    provider.setName("testname");
-    metadata.getMainEntityOfPage().get(0).setProvider(provider);
-    service.createOrUpdate(metadata);
+    BackendMetadata metadata = newMetadata();
+    List<Map<String, Object>> mainEntityOfPage = MetadataHelper.parseList(metadata.getData(), "mainEntityOfPage", new TypeReference<>() {});
+    assertNotNull(mainEntityOfPage);
+    mainEntityOfPage.get(0).put("provider", Map.of("name", "testname", "id", "https://example.org/provider/provider"));
+    metadata.getData().put("mainEntityOfPage", mainEntityOfPage);
+    BackendMetadata result = service.createOrUpdate(metadata).getMetadata();
     verify(repository, times(1)).saveAll(anyList());
-    assertThat(metadata.getMainEntityOfPage().get(0).getProvider()).isNotNull();
-    assertThat(metadata.getMainEntityOfPage().get(0).getProvider().getName()).isEqualTo("testname");
+    mainEntityOfPage = MetadataHelper.parseList(result.getData(), "mainEntityOfPage", new TypeReference<>() {});
+    assertNotNull(mainEntityOfPage);
+    Map<String, Object> provider = MetadataHelper.parse(mainEntityOfPage.get(0), "provider", new TypeReference<>() {});
+    assertThat(provider).isNotNull().containsEntry("name", "testname");
   }
 
   @Test
   void testCreateOrUpdateWithMissingMainEntityOfPageIdentifier() {
-    Metadata metadata = newMetadata();
-    metadata.getMainEntityOfPage().get(0).setIdentifier(null);
+    BackendMetadata metadata = newMetadata();
+    List<Map<String, Object>> mainEntityOfPage = MetadataHelper.parseList(metadata.getData(), "mainEntityOfPage", new TypeReference<>() {});
+    assertNotNull(mainEntityOfPage);
+    mainEntityOfPage.get(0).remove("id");
     service.createOrUpdate(metadata);
     verify(repository, times(1)).saveAll(anyList());
   }
 
   @Test
   void testCreateOrUpdateWithExistingDataFoundById() {
-    Metadata metadata = newMetadata();
-    metadata.setId(1L);
-    when(repository.findById(1L)).thenReturn(Optional.of(metadata));
-    service.createOrUpdate(metadata);
-    verify(repository, times(1)).saveAll(anyList());
-  }
-
-  @Test
-  void testCreateOrUpdateWithExistingDataFoundByUrl() {
-    Metadata metadata = newMetadata();
-    when(repository.findByIdentifier(metadata.getIdentifier())).thenReturn(List.of(metadata));
+    BackendMetadata metadata = newMetadata();
+    when(repository.findById(metadata.getId())).thenReturn(Optional.of(metadata));
     service.createOrUpdate(metadata);
     verify(repository, times(1)).saveAll(anyList());
   }
 
   @Test
   void testDelete() {
-    Metadata metadata = newMetadata();
-    service.delete(metadata);
+    BackendMetadata metadata = newMetadata();
+    service.delete(metadata, false);
     verify(repository, times(1)).deleteAll(anyList());
   }
 
   @Test
   void testFindById() {
-    Metadata metadata = newMetadata();
-    when(repository.findById(1L)).thenReturn(Optional.of(metadata));
-    Metadata result = service.findById(1L);
+    BackendMetadata metadata = newMetadata();
+    when(repository.findById(metadata.getId())).thenReturn(Optional.of(metadata));
+    BackendMetadata result = service.findById(metadata.getId());
     assertThat(result).isNotNull();
 
     result = service.findById(null);
     assertThat(result).isNull();
 
-    when(repository.findById(1L)).thenReturn(Optional.empty());
-    result = service.findById(1L);
+    when(repository.findById(metadata.getId())).thenReturn(Optional.empty());
+    result = service.findById(metadata.getId());
     assertThat(result).isNull();
   }
+
+
+  @Test
+  void testStoreLabels() {
+    labelRepository.deleteAll();
+    labelService.clearCache();
+    BackendMetadata metadata = newMetadata();
+    when(repository.findById(metadata.getId())).thenReturn(Optional.empty());
+    service.createOrUpdate(metadata);
+    verify(labelService, atLeastOnce()).createOrUpdate(anyString(), anyString(), anyString(), anyString());
+  }
+
 }

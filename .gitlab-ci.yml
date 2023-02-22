@@ -2,15 +2,27 @@
 #workaround until https://github.com/rzwitserloot/lombok/issues/2681 is fixed
 image: maven:3.6-openjdk-11
 
+# DinD service is required for Testcontainers
+services:
+  - name: docker:dind
+    # explicitly disable tls to avoid docker startup interruption
+    command: ["--tls=false"]
+
 variables:
   MAVEN_CLI_OPTS: "--batch-mode -s ci_settings.xml"
   MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+  # Instruct Testcontainers to use the daemon of DinD, use port 2735 for non-tls connections.
+  DOCKER_HOST: "tcp://docker:2375"
+  # Instruct Docker not to start over TLS.
+  DOCKER_TLS_CERTDIR: ""
+  # Improve performance with overlayfs.
+  DOCKER_DRIVER: overlay2
 
 cache:
   paths:
     - .m2/repository/
     - target/
-    
+
 include:
   - local: '.gitlab-ci-sonar.yml'
 
@@ -46,11 +58,11 @@ deploy branch:
      - target/*.war
   only:
     - branches
-    
+
 deploy release:
   extends: .deploy_job
   script:
     - mvn $MAVEN_CLI_OPTS deploy
   only:
     - tags
-    
+

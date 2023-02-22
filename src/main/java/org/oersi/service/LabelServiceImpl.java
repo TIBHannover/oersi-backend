@@ -8,6 +8,7 @@ import org.oersi.domain.Label;
 import org.oersi.repository.LabelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -21,6 +22,7 @@ public class LabelServiceImpl implements LabelService {
   private Map<String, Map<String, String>> labelByLanguage = null;
   private Map<String, Map<String, Map<String, String>>> labelByLanguageAndGroup = null;
 
+  @Transactional
   @Override
   public Label createOrUpdate(String languageCode, String labelKey, String labelValue, String groupId) {
     String currentValue = findByLanguageAndGroup(languageCode, groupId).get(labelKey);
@@ -47,7 +49,7 @@ public class LabelServiceImpl implements LabelService {
     return savedLabel;
   }
 
-  private Map<String, Map<String, String>> initLabelByLanguageCache(List<Label> labels) {
+  private Map<String, Map<String, String>> initLabelByLanguageCache(Iterable<Label> labels) {
     Map<String, Map<String, String>> result = Collections.synchronizedMap(new HashMap<>());
     for (Label label : labels) {
       Map<String, String> languageLabels = result.computeIfAbsent(label.getLanguageCode(), k -> Collections.synchronizedMap(new HashMap<>()));
@@ -57,7 +59,7 @@ public class LabelServiceImpl implements LabelService {
     return result;
   }
 
-  private Map<String, Map<String, Map<String, String>>> initLabelByLanguageAndGroupCache(List<Label> labels) {
+  private Map<String, Map<String, Map<String, String>>> initLabelByLanguageAndGroupCache(Iterable<Label> labels) {
     Map<String, Map<String, Map<String, String>>> result = Collections.synchronizedMap(new HashMap<>());
     for (Label label : labels) {
       Map<String, Map<String, String>> languageLabels = result.computeIfAbsent(label.getLanguageCode(), k -> Collections.synchronizedMap(new HashMap<>()));
@@ -73,7 +75,7 @@ public class LabelServiceImpl implements LabelService {
     if (result == null) {
       log.debug("Init label cache (byLanguage)");
       synchronized (labelRepository) {
-        List<Label> labels = labelRepository.findAll();
+        Iterable<Label> labels = labelRepository.findAll();
         result = initLabelByLanguageCache(labels);
       }
     }
@@ -85,18 +87,20 @@ public class LabelServiceImpl implements LabelService {
     if (result == null) {
       log.debug("Init label cache (byLanguageAndGroup)");
       synchronized (labelRepository) {
-        List<Label> labels = labelRepository.findAll();
+        Iterable<Label> labels = labelRepository.findAll();
         result = initLabelByLanguageAndGroupCache(labels);
       }
     }
     return result;
   }
 
+  @Transactional(readOnly = true)
   @Override
   public Map<String, String> findByLanguage(String languageCode) {
     return new HashMap<>(getLabelByLanguageCache().computeIfAbsent(languageCode, k -> new HashMap<>()));
   }
 
+  @Transactional(readOnly = true)
   @Override
   public Map<String, String> findByLanguageAndGroup(String languageCode, String groupId) {
     return new HashMap<>(getLabelByLanguageAndGroupCache()

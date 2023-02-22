@@ -24,7 +24,7 @@ public class VocabServiceImpl implements VocabService {
 
   @Transactional
   @Override
-  public List<VocabItem> updateVocab(String vocabIdentifier, List<VocabItem> items) {
+  public Iterable<VocabItem> updateVocab(String vocabIdentifier, List<VocabItem> items) {
     List<VocabItem> existing = vocabItemRepository.findByVocabIdentifier(vocabIdentifier);
     vocabItemRepository.deleteAll(existing);
     return vocabItemRepository.saveAll(items);

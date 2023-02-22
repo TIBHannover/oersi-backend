@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "schema.json",
+  "description": "This is a generic JSON schema for just describing the mandatory fields that are necessary for all possible schemas",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "id.json"
+    },
+    "mainEntityOfPage": {
+      "$ref": "mainEntityOfPage.json"
+    }
+  },
+  "required": [
+    "id",
+    "mainEntityOfPage"
+  ]
+}
