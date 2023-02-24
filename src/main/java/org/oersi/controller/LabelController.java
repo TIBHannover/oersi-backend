@@ -21,7 +21,8 @@ public class LabelController implements LabelControllerApi {
 
   private final @NonNull LabelService labelService;
 
-  @Deprecated
+  /** @deprecated replaced by retrieveByLanguageAndField */
+  @Deprecated(forRemoval = true)
   @Override
   public ResponseEntity<Object> retrieveByLanguageAndGroup(@PathVariable String language, @RequestParam(required = false) String vocab) {
     Map<String, String> result;

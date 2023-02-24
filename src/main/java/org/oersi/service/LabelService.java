@@ -8,7 +8,8 @@ public interface LabelService {
 
   Label createOrUpdate(String languageCode, String labelKey, String labelValue, String fieldName);
   Map<String, String> findByLanguage(String languageCode);
-  @Deprecated
+  /** @deprecated replaced by findByLanguageAndField */
+  @Deprecated(forRemoval = true)
   Map<String, String> findByLanguageAndGroup(String languageCode, String groupId);
   Map<String, String> findByLanguageAndField(String languageCode, String field);
   void clearCache();

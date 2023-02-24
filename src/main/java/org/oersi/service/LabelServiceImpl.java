@@ -18,15 +18,20 @@ import java.util.stream.StreamSupport;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class LabelServiceImpl implements LabelService {
 
-  @Deprecated
+  /** @deprecated replaced by field */
+  @Deprecated(forRemoval = true)
   private static final String LABEL_GROUP_ID_AUDIENCE = "audience";
-  @Deprecated
+  /** @deprecated replaced by field */
+  @Deprecated(forRemoval = true)
   private static final String LABEL_GROUP_ID_CONDITIONS_OF_ACCESS = "conditionsOfAccess";
-  @Deprecated
+  /** @deprecated replaced by field */
+  @Deprecated(forRemoval = true)
   private static final String LABEL_GROUP_ID_LRT = "lrt";
-  @Deprecated
+  /** @deprecated replaced by field */
+  @Deprecated(forRemoval = true)
   private static final String LABEL_GROUP_ID_SUBJECT = "subject";
-  @Deprecated
+  /** @deprecated replaced by field */
+  @Deprecated(forRemoval = true)
   private static final Map<String, String> GROUP_TO_FIELD_MAPPING = Map.of(
     LABEL_GROUP_ID_AUDIENCE, LABEL_GROUP_ID_AUDIENCE,
     LABEL_GROUP_ID_CONDITIONS_OF_ACCESS, LABEL_GROUP_ID_CONDITIONS_OF_ACCESS,
@@ -117,7 +122,6 @@ public class LabelServiceImpl implements LabelService {
     return new HashMap<>(getLabelByLanguageCache().computeIfAbsent(languageCode, k -> new HashMap<>()));
   }
 
-  @Deprecated
   @Transactional(readOnly = true)
   @Override
   public Map<String, String> findByLanguageAndGroup(String languageCode, String groupId) {
