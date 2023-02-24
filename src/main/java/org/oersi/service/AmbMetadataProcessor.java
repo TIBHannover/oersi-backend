@@ -29,11 +29,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class AmbMetadataProcessor implements MetadataCustomProcessor {
 
-  private static final String LABEL_GROUP_ID_AUDIENCE = "audience";
-  private static final String LABEL_GROUP_ID_CONDITIONS_OF_ACCESS = "conditionsOfAccess";
-  private static final String LABEL_GROUP_ID_LRT = "lrt";
-  private static final String LABEL_GROUP_ID_SUBJECT = "subject";
-
   private static final String FIELD_NAME_ABOUT = "about";
   private static final String FIELD_NAME_AUDIENCE = "audience";
   private static final String FIELD_NAME_CONDITIONS_OF_ACCESS = "conditionsOfAccess";
@@ -176,33 +171,33 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
    * @param metadata metadata
    */
   private void storeLabels(final BackendMetadata metadata) {
-    storeLabels(metadata, FIELD_NAME_ABOUT, LABEL_GROUP_ID_SUBJECT);
-    storeLabels(metadata, FIELD_NAME_AUDIENCE, LABEL_GROUP_ID_AUDIENCE);
-    storeLabels(metadata, FIELD_NAME_CONDITIONS_OF_ACCESS, LABEL_GROUP_ID_CONDITIONS_OF_ACCESS);
-    storeLabels(metadata, FIELD_NAME_LEARNING_RESOURCE_TYPE, LABEL_GROUP_ID_LRT);
+    storeLabels(metadata, FIELD_NAME_ABOUT);
+    storeLabels(metadata, FIELD_NAME_AUDIENCE);
+    storeLabels(metadata, FIELD_NAME_CONDITIONS_OF_ACCESS);
+    storeLabels(metadata, FIELD_NAME_LEARNING_RESOURCE_TYPE);
   }
-  private void storeLabels(final BackendMetadata metadata, final String fieldName, final String groupId) {
+  private void storeLabels(final BackendMetadata metadata, final String fieldName) {
     Map<String, Object> data = metadata.getData();
     if (data.get(fieldName) instanceof List) {
       List<Map<String, Object>> labelledConceptList = MetadataHelper.parseList(data, fieldName, new TypeReference<>() {});
       if (labelledConceptList != null) {
-        labelledConceptList.forEach(l -> storeLabels(l, groupId));
+        labelledConceptList.forEach(l -> storeLabels(l, fieldName));
       }
     } else {
       Map<String, Object> labelledConcept = MetadataHelper.parse(data, fieldName, new TypeReference<>() {});
       if (labelledConcept != null) {
-        storeLabels(labelledConcept, groupId);
+        storeLabels(labelledConcept, fieldName);
       }
     }
   }
-  private void storeLabels(Map<String, Object> labelledConcept, final String groupId) {
+  private void storeLabels(Map<String, Object> labelledConcept, final String fieldName) {
     final String key = (String) labelledConcept.get("id");
     final Map<String, String> prefLabel = MetadataHelper.parse(labelledConcept, FIELD_NAME_PREF_LABEL, new TypeReference<>() {});
     if (key == null || prefLabel == null) {
       return;
     }
     for (Map.Entry<String, String> entry : prefLabel.entrySet()) {
-      labelService.createOrUpdate(entry.getKey(), key, entry.getValue(), groupId);
+      labelService.createOrUpdate(entry.getKey(), key, entry.getValue(), fieldName);
     }
   }
 

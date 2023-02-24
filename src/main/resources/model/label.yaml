@@ -1,11 +1,12 @@
-/api/label/{language}:
+/api/deprecated/label/{language}:
   get:
+    deprecated: true
     tags:
       - label-controller
     summary: Retrieve labels
     description: Retrieve labels for shared vocabularies. These labels will be retrieved
       from the existing data.
-    operationId: retrieve
+    operationId: retrieveByLanguageAndGroup
     parameters:
       - name: language
         in: path
@@ -27,6 +28,48 @@
             - audience
             - lrt
             - subject
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: object
+      "400":
+        description: Bad Request
+        content: {}
+      "401":
+        description: Unauthorized
+        content: {}
+      "403":
+        description: Forbidden
+        content: {}
+
+/api/label/{language}:
+  get:
+    tags:
+      - label-controller
+    summary: Retrieve labels
+    description: Retrieve labels for shared vocabularies. These labels will be retrieved
+      from the existing data.
+    operationId: retrieveByLanguageAndField
+    parameters:
+      - name: language
+        in: path
+        description: Language of the labels
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: field
+        in: query
+        description: Name of the field to retrieve the labels for. Labels of all fields if this parameter is omitted.
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
     responses:
       "200":
         description: OK

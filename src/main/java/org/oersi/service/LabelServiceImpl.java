@@ -11,21 +11,38 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.StreamSupport;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class LabelServiceImpl implements LabelService {
 
+  @Deprecated
+  private static final String LABEL_GROUP_ID_AUDIENCE = "audience";
+  @Deprecated
+  private static final String LABEL_GROUP_ID_CONDITIONS_OF_ACCESS = "conditionsOfAccess";
+  @Deprecated
+  private static final String LABEL_GROUP_ID_LRT = "lrt";
+  @Deprecated
+  private static final String LABEL_GROUP_ID_SUBJECT = "subject";
+  @Deprecated
+  private static final Map<String, String> GROUP_TO_FIELD_MAPPING = Map.of(
+    LABEL_GROUP_ID_AUDIENCE, LABEL_GROUP_ID_AUDIENCE,
+    LABEL_GROUP_ID_CONDITIONS_OF_ACCESS, LABEL_GROUP_ID_CONDITIONS_OF_ACCESS,
+    LABEL_GROUP_ID_LRT, "learningResourceType",
+    LABEL_GROUP_ID_SUBJECT, "about"
+  );
+
   private final @NonNull LabelRepository labelRepository;
 
   private Map<String, Map<String, String>> labelByLanguage = null;
-  private Map<String, Map<String, Map<String, String>>> labelByLanguageAndGroup = null;
+  private Map<String, Map<String, Map<String, String>>> labelByLanguageAndField = null;
 
   @Transactional
   @Override
-  public Label createOrUpdate(String languageCode, String labelKey, String labelValue, String groupId) {
-    String currentValue = findByLanguageAndGroup(languageCode, groupId).get(labelKey);
+  public Label createOrUpdate(String languageCode, String labelKey, String labelValue, String field) {
+    String currentValue = findByLanguageAndField(languageCode, field).get(labelKey);
     if (StringUtils.equals(currentValue, labelValue)) {
       return null;
     }
@@ -39,7 +56,7 @@ public class LabelServiceImpl implements LabelService {
       label.setLabelKey(labelKey);
     }
     label.setLabelValue(labelValue);
-    label.setGroupId(groupId);
+    label.setField(field);
     log.debug("Update label {}", label);
     Label savedLabel;
     synchronized (labelRepository) {
@@ -59,14 +76,14 @@ public class LabelServiceImpl implements LabelService {
     return result;
   }
 
-  private Map<String, Map<String, Map<String, String>>> initLabelByLanguageAndGroupCache(Iterable<Label> labels) {
+  private Map<String, Map<String, Map<String, String>>> initLabelByLanguageAndFieldCache(Iterable<Label> labels) {
     Map<String, Map<String, Map<String, String>>> result = Collections.synchronizedMap(new HashMap<>());
     for (Label label : labels) {
       Map<String, Map<String, String>> languageLabels = result.computeIfAbsent(label.getLanguageCode(), k -> Collections.synchronizedMap(new HashMap<>()));
-      Map<String, String> groupLabels = languageLabels.computeIfAbsent(label.getGroupId(), k -> Collections.synchronizedMap(new HashMap<>()));
-      groupLabels.put(label.getLabelKey(), label.getLabelValue());
+      Map<String, String> fieldLabels = languageLabels.computeIfAbsent(label.getField(), k -> Collections.synchronizedMap(new HashMap<>()));
+      fieldLabels.put(label.getLabelKey(), label.getLabelValue());
     }
-    labelByLanguageAndGroup = result;
+    labelByLanguageAndField = result;
     return result;
   }
 
@@ -82,13 +99,13 @@ public class LabelServiceImpl implements LabelService {
     return result;
   }
 
-  private Map<String, Map<String, Map<String, String>>> getLabelByLanguageAndGroupCache() {
-    Map<String, Map<String, Map<String, String>>> result = labelByLanguageAndGroup;
+  private Map<String, Map<String, Map<String, String>>> getLabelByLanguageAndFieldCache() {
+    Map<String, Map<String, Map<String, String>>> result = labelByLanguageAndField;
     if (result == null) {
-      log.debug("Init label cache (byLanguageAndGroup)");
+      log.debug("Init label cache (byLanguageAndField)");
       synchronized (labelRepository) {
         Iterable<Label> labels = labelRepository.findAll();
-        result = initLabelByLanguageAndGroupCache(labels);
+        result = initLabelByLanguageAndFieldCache(labels);
       }
     }
     return result;
@@ -100,18 +117,39 @@ public class LabelServiceImpl implements LabelService {
     return new HashMap<>(getLabelByLanguageCache().computeIfAbsent(languageCode, k -> new HashMap<>()));
   }
 
+  @Deprecated
   @Transactional(readOnly = true)
   @Override
   public Map<String, String> findByLanguageAndGroup(String languageCode, String groupId) {
-    return new HashMap<>(getLabelByLanguageAndGroupCache()
+    String field = GROUP_TO_FIELD_MAPPING.get(groupId);
+    return findByLanguageAndField(languageCode, field);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public Map<String, String> findByLanguageAndField(String languageCode, String field) {
+    return new HashMap<>(getLabelByLanguageAndFieldCache()
       .computeIfAbsent(languageCode, k -> new HashMap<>())
-      .computeIfAbsent(groupId, k -> new HashMap<>()));
+      .computeIfAbsent(field, k -> new HashMap<>()));
   }
 
   @Override
   public void clearCache() {
     labelByLanguage = null;
-    labelByLanguageAndGroup = null;
+    labelByLanguageAndField = null;
+  }
+
+  @Transactional
+  @Override
+  public void init() {
+    synchronized (labelRepository) {
+      Iterable<Label> labels = labelRepository.findAll();
+      StreamSupport.stream(labels.spliterator(), false).filter(l -> l.getField() == null).forEach(l -> {
+        l.setField(GROUP_TO_FIELD_MAPPING.get(l.getGroupId()));
+        labelRepository.save(l);
+      });
+    }
+    getLabelByLanguageCache();
   }
 
 }

@@ -47,7 +47,7 @@ class LabelControllerTest extends ElasticsearchContainerTest {
 
   @Test
   void testRetrieveAllExisting() throws Exception {
-    labelService.createOrUpdate("en", "key", "value", "lrt");
+    labelService.createOrUpdate("en", "key", "value", "learningResourceType");
 
     mvc.perform(get(LABEL_CONTROLLER_BASE_PATH + "/en"))
       .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -55,21 +55,39 @@ class LabelControllerTest extends ElasticsearchContainerTest {
   }
 
   @Test
-  void testRetrieveGroupExisting() throws Exception {
+  void testRetrieveFieldExisting() throws Exception {
     labelService.createOrUpdate("en", "key1", "value1", "audience");
-    labelService.createOrUpdate("en", "key2", "value2", "lrt");
+    labelService.createOrUpdate("en", "key2", "value2", "learningResourceType");
 
-    mvc.perform(get(LABEL_CONTROLLER_BASE_PATH + "/en").param("vocab", "audience"))
+    mvc.perform(get(LABEL_CONTROLLER_BASE_PATH + "/en").param("field", "audience"))
       .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
       .andExpect(jsonPath("$.key1").value("value1"));
   }
 
 
   @Test
-  void testRetrieveNonExistingGroup() throws Exception {
-    labelService.createOrUpdate("en", "key2", "value2", "lrt");
+  void testRetrieveNonExistingField() throws Exception {
+    labelService.createOrUpdate("en", "key2", "value2", "learningResourceType");
 
-    mvc.perform(get(LABEL_CONTROLLER_BASE_PATH + "/en").param("vocab", "audience"))
+    mvc.perform(get(LABEL_CONTROLLER_BASE_PATH + "/en").param("field", "audience"))
+      .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+      .andExpect(jsonPath("$").isEmpty());
+  }
+
+  @Test
+  void testRetrieveGroupExisting() throws Exception {
+    labelService.createOrUpdate("en", "key1", "value1", "audience");
+    labelService.createOrUpdate("en", "key2", "value2", "learningResourceType");
+
+    mvc.perform(get("/api/deprecated/label/en").param("vocab", "audience"))
+      .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+      .andExpect(jsonPath("$.key1").value("value1"));
+  }
+  @Test
+  void testRetrieveNonExistingGroup() throws Exception {
+    labelService.createOrUpdate("en", "key2", "value2", "learningResourceType");
+
+    mvc.perform(get("/api/deprecated/label/en").param("vocab", "audience"))
       .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
       .andExpect(jsonPath("$").isEmpty());
   }
