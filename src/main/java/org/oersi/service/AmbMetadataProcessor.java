@@ -30,10 +30,7 @@ import java.util.stream.Collectors;
 public class AmbMetadataProcessor implements MetadataCustomProcessor {
 
   private static final String FIELD_NAME_ABOUT = "about";
-  private static final String FIELD_NAME_AUDIENCE = "audience";
-  private static final String FIELD_NAME_CONDITIONS_OF_ACCESS = "conditionsOfAccess";
   private static final String FIELD_NAME_ENCODING = "encoding";
-  private static final String FIELD_NAME_LEARNING_RESOURCE_TYPE = "learningResourceType";
   private static final String FIELD_NAME_PREF_LABEL = "prefLabel";
 
 
@@ -166,15 +163,23 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
     }
   }
 
+  private List<String> getLabelledConceptFields() {
+    BackendConfig config = configService.getMetadataConfig();
+    if (config != null && config.getCustomConfig() != null) {
+      List<String> fields = MetadataHelper.parseList(config.getCustomConfig(), "labelledConceptFields", new TypeReference<>() {});
+      if (fields != null) {
+        return fields;
+      }
+    }
+    return new ArrayList<>();
+  }
+
   /**
    * Use the @{@link LabelService} to store all labels contained in this @{@link BackendMetadata}.
    * @param metadata metadata
    */
   private void storeLabels(final BackendMetadata metadata) {
-    storeLabels(metadata, FIELD_NAME_ABOUT);
-    storeLabels(metadata, FIELD_NAME_AUDIENCE);
-    storeLabels(metadata, FIELD_NAME_CONDITIONS_OF_ACCESS);
-    storeLabels(metadata, FIELD_NAME_LEARNING_RESOURCE_TYPE);
+    getLabelledConceptFields().forEach(field -> storeLabels(metadata, field));
   }
   private void storeLabels(final BackendMetadata metadata, final String fieldName) {
     Map<String, Object> data = metadata.getData();
@@ -242,10 +247,7 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
    * @param metadata set label at this data
    */
   public void addMissingLabels(BackendMetadata metadata) {
-    addMissingLabels(metadata, FIELD_NAME_ABOUT);
-    addMissingLabels(metadata, FIELD_NAME_AUDIENCE);
-    addMissingLabels(metadata, FIELD_NAME_CONDITIONS_OF_ACCESS);
-    addMissingLabels(metadata, FIELD_NAME_LEARNING_RESOURCE_TYPE);
+    getLabelledConceptFields().forEach(field -> addMissingLabels(metadata, field));
   }
 
   private void addMissingLabels(BackendMetadata metadata, String fieldName) {
