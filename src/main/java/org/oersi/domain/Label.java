@@ -10,7 +10,10 @@ public class Label {
 
   @Id
   private String id;
+  /** @deprecated replaced by field */
+  @Deprecated(forRemoval = true)
   private String groupId;
+  private String field;
   private String languageCode;
   private String labelKey;
   private String labelValue;

@@ -21,13 +21,26 @@ public class LabelController implements LabelControllerApi {
 
   private final @NonNull LabelService labelService;
 
+  /** @deprecated replaced by retrieveByLanguageAndField */
+  @Deprecated(forRemoval = true)
   @Override
-  public ResponseEntity<Object> retrieve(@PathVariable String language, @RequestParam(required = false) String vocab) {
+  public ResponseEntity<Object> retrieveByLanguageAndGroup(@PathVariable String language, @RequestParam(required = false) String vocab) {
     Map<String, String> result;
     if (StringUtils.isBlank(vocab)) {
       result = labelService.findByLanguage(language);
     } else {
       result = labelService.findByLanguageAndGroup(language, vocab);
+    }
+    return ResponseEntity.ok(result);
+  }
+
+  @Override
+  public ResponseEntity<Object> retrieveByLanguageAndField(@PathVariable String language, @RequestParam(required = false) String field) {
+    Map<String, String> result;
+    if (StringUtils.isBlank(field)) {
+      result = labelService.findByLanguage(language);
+    } else {
+      result = labelService.findByLanguageAndField(language, field);
     }
     return ResponseEntity.ok(result);
   }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.oersi.ElasticsearchServicesMock;
+import org.oersi.domain.BackendConfig;
 import org.oersi.domain.BackendMetadata;
 import org.oersi.repository.LabelRepository;
 import org.oersi.repository.MetadataRepository;
@@ -37,6 +38,8 @@ class MetadataServiceTest {
   private MetadataService service;
   @Autowired
   private MetadataRepository repository; // mock from ElasticsearchServicesMock
+  @MockBean
+  private ConfigService configService;
   @MockBean
   private LabelService labelService;
   @MockBean
@@ -293,6 +296,11 @@ class MetadataServiceTest {
     labelRepository.deleteAll();
     labelService.clearCache();
     BackendMetadata metadata = newMetadata();
+    BackendConfig config = new BackendConfig();
+    config.setCustomConfig(Map.of(
+      "labelledConceptFields", List.of("about", "audience", "conditionsOfAccess", "learningResourceType")
+    ));
+    when(configService.getMetadataConfig()).thenReturn(config);
     when(repository.findById(metadata.getId())).thenReturn(Optional.empty());
     service.createOrUpdate(metadata);
     verify(labelService, atLeastOnce()).createOrUpdate(anyString(), anyString(), anyString(), anyString());

@@ -1,6 +1,7 @@
 package org.oersi.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.oersi.ElasticsearchServicesMock;
 import org.oersi.domain.BackendConfig;
@@ -31,6 +32,8 @@ class AmbMetadataProcessorTest {
 
   @Autowired
   private AmbMetadataProcessor processor;
+  @Autowired
+  private ConfigService configService;
 
   @MockBean
   private LabelDefinitionService labelRepository;
@@ -38,6 +41,11 @@ class AmbMetadataProcessorTest {
   private VocabItemRepository vocabItemRepository; // mock from ElasticsearchServicesMock
   @Autowired
   private BackendConfigRepository configRepository; // mock from ElasticsearchServicesMock
+
+  @BeforeEach
+  void setup() {
+    configService.updateMetadataConfig(null);
+  }
 
   @Test
   void testAddParentItemsForHierarchicalVocab() {
@@ -127,6 +135,11 @@ class AmbMetadataProcessorTest {
 
   @Test
   void testUpdateMetadata() {
+    BackendConfig config = new BackendConfig();
+    config.setCustomConfig(Map.of(
+      "labelledConceptFields", List.of("about", "audience", "conditionsOfAccess", "learningResourceType")
+    ));
+    when(configRepository.findById("oersi_backend_config")).thenReturn(Optional.of(config));
     BackendMetadata data = MetadataHelper.toMetadata(
       new HashMap<>(Map.of(
         "id", "https://www.test.de",

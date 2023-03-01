@@ -212,18 +212,12 @@
 				<configuration>
 					<basedir>${project.basedir}/target/generated-sources/swagger/org/oersi</basedir>
 					<includes>
-						<include>dto/MetadataDto.java</include>
 						<include>dto/LocalizedStringDto.java</include>
 						<include>dto/OembedResponseDto.java</include>
 						<include>api/SearchControllerApi.java</include>
 						<include>api/MetadataControllerApi.java</include>
 					</includes>
 					<replacements>
-						<replacement>
-							<!-- cannot handle propertyname with "@" inside -> fix in generated file -->
-							<token>public List.Object. getAtContext</token>
-							<value>@JsonProperty("@context") public List&lt;Object&gt; getAtContext</value>
-						</replacement>
 						<replacement>
 							<!-- added missing localizedString example -->
 							<token>description = "A language-tagged string using JSON-LD</token>
