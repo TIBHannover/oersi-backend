@@ -79,6 +79,12 @@
     },
     "isAccessibleForFree": {
       "$ref": "isAccessibleForFree.json"
+    },
+    "caption": {
+      "$ref": "caption.json"
+    },
+    "duration": {
+      "$ref": "duration.json"
     }
   },
   "required": [

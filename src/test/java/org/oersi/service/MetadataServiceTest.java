@@ -156,6 +156,29 @@ class MetadataServiceTest {
   }
 
   @Test
+  void testCreateOrUpdateWithDurationAndCaption() {
+    BackendMetadata metadata = newMetadata();
+    metadata.getData().put("caption", List.of(Map.of(
+      "id", "https://example.org/subs-de.vtt",
+      "type", "MediaObject",
+      "encodingFormat", "text/vtt",
+      "inLanguage", "de"
+    )));
+    metadata.getData().put("duration", "PT47M58S");
+    MetadataService.MetadataUpdateResult result = service.createOrUpdate(metadata);
+    assertThat(result.getSuccess()).isTrue();
+    verify(repository, times(1)).saveAll(anyList());
+  }
+  @Test
+  void testCreateOrUpdateWithInvalidDuration() {
+    BackendMetadata metadata = newMetadata();
+    metadata.getData().put("duration", "invalid");
+    MetadataService.MetadataUpdateResult result = service.createOrUpdate(metadata);
+    assertThat(result.getSuccess()).isFalse();
+    verify(repository, times(0)).saveAll(anyList());
+  }
+
+  @Test
   void testCreateOrUpdateWithIncompleteLabel() {
     BackendMetadata metadata = newMetadata();
     metadata.getData().put(
