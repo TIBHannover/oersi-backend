@@ -35,6 +35,9 @@
     "image": {
       "$ref": "image.json"
     },
+    "trailer": {
+      "$ref": "trailer.json"
+    },
     "dateCreated": {
       "$ref": "dateCreated.json"
     },
