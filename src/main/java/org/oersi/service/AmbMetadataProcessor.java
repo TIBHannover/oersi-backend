@@ -9,6 +9,7 @@ import org.oersi.domain.BackendConfig;
 import org.oersi.domain.BackendMetadata;
 import org.oersi.domain.OembedInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 @PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@Qualifier("amb")
 public class AmbMetadataProcessor implements MetadataCustomProcessor {
 
   private static final String FIELD_NAME_ABOUT = "about";
