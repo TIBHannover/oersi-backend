@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(properties = {"metadata.custom.processor="})
 @Import(ElasticsearchServicesMock.class)
-public class NoCustomProcessorTest {
+class NoCustomProcessorTest {
 
     @Autowired
     private MetadataCustomProcessor metadataCustomProcessor;
