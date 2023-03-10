@@ -48,7 +48,9 @@ API definition in [src/main/resources/model/api.yaml](src/main/resources/model/a
     * default value for public address: **/resources/api/search/oer_data/**
     * example `curl -L oersi.org/resources/api/search/oer_data/_search`
 * **_MetadataController_**: CRUD-operations to the metadata **/api/metadata/**
-    * based on [src/main/resources/schemas/amb/schema.json](src/main/resources/schemas/amb/schema.json) ([conversion](https://gitlab.com/oersi/oersi-backend/-/issues/8#note_344342881))
+    * metadata schema is configurable via `metadata.schema.location` and `metadata.schema.resolution_scope` in _oersi.properties_
+        * default schema in [oersi-schema](https://gitlab.com/oersi/oersi-schema) ([conversion](https://gitlab.com/oersi/oersi-backend/-/issues/8#note_344342881))
+        * custom processor for amb-schema can be configured via `metadata.custom.processor=amb` in _oersi.properties_
     * bulk-update and -deletion via **/api/metadata/bulk**. Recommended bulk-update-size: 25
 * **_LabelController_**: Retrieve labels from the data **/api/label/**
     * Internal use - this is not part of the public API
