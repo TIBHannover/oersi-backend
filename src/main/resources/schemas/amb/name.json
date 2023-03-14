@@ -1,7 +1,0 @@
-{
-  "$id": "name.json",
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Title",
-  "description": "The title of the learning resource",
-  "type": "string"
-}

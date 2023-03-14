@@ -9,22 +9,26 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.oersi.domain.BackendMetadata;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Map;
 
 @Service
+@PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
 @Slf4j
 public class MetadataValidator {
 
   private final Schema baseSchema;
   private final Schema schema;
 
-  public MetadataValidator(@Value("classpath:schemas/amb/schema.json") Resource rawSchema, @Value("classpath:schemas/base/schema.json") Resource rawBaseSchema) throws IOException {
+  public MetadataValidator(@Value("${metadata.schema.location}") String schemaLocation, @Value("${metadata.schema.resolution_scope}") String schemaResolutionScope, @Value("classpath:schemas/base/schema.json") Resource rawBaseSchema, ResourceLoader resourceLoader) throws IOException {
+    Resource rawSchema = resourceLoader.getResource(schemaLocation);
     baseSchema  = loadSchema(rawBaseSchema, "classpath://schemas/base/");
-    schema = loadSchema(rawSchema, "classpath://schemas/amb/");
+    schema = loadSchema(rawSchema, schemaResolutionScope);
   }
 
   private Schema loadSchema(Resource rawSchema, String scope) throws IOException {
