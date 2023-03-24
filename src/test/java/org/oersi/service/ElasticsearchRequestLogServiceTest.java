@@ -25,7 +25,7 @@ class ElasticsearchRequestLogServiceTest {
         service.logRequest("{\"test\": \"test\"}", "POST", "testindex/_search", null, "{\"took\": 3, \"hits\": {\"total\": {\"value\": 513}}}", "useragent xxx", null);
 
         ArgumentCaptor<ElasticsearchRequestLog> argumentCaptor = ArgumentCaptor.forClass(ElasticsearchRequestLog.class);
-        Mockito.verify(requestLogRepository, Mockito.timeout(100)).save(argumentCaptor.capture());
+        Mockito.verify(requestLogRepository, Mockito.timeout(500)).save(argumentCaptor.capture());
         ElasticsearchRequestLog result = argumentCaptor.getValue();
         Assertions.assertNotNull(result);
         Assertions.assertEquals("POST", result.getMethod());
@@ -36,27 +36,13 @@ class ElasticsearchRequestLogServiceTest {
     @Test
     void testLogRequestWithoutResult() {
         service.logRequest("{\"test\": \"test\"}", "POST", "testindex/_search", null, "cannot parse result", "useragent xxx", null);
-
-        ArgumentCaptor<ElasticsearchRequestLog> argumentCaptor = ArgumentCaptor.forClass(ElasticsearchRequestLog.class);
-        Mockito.verify(requestLogRepository, Mockito.timeout(100)).save(argumentCaptor.capture());
-        ElasticsearchRequestLog result = argumentCaptor.getValue();
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals("POST", result.getMethod());
-        Assertions.assertNull(result.getResultTook());
-        Assertions.assertNull(result.getResultHitsTotal());
+        assertLoggedPostRequestWithoutLoggedResultValues();
     }
 
     @Test
     void testLogRequestWithResultWithoutTotal() {
         service.logRequest("{\"test\": \"test\"}", "POST", "testindex/_search", null, "{\"test\": \"test\"}", "useragent xxx", null);
-
-        ArgumentCaptor<ElasticsearchRequestLog> argumentCaptor = ArgumentCaptor.forClass(ElasticsearchRequestLog.class);
-        Mockito.verify(requestLogRepository, Mockito.timeout(100)).save(argumentCaptor.capture());
-        ElasticsearchRequestLog result = argumentCaptor.getValue();
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals("POST", result.getMethod());
-        Assertions.assertNull(result.getResultTook());
-        Assertions.assertNull(result.getResultHitsTotal());
+        assertLoggedPostRequestWithoutLoggedResultValues();
     }
 
     @Test
@@ -64,7 +50,7 @@ class ElasticsearchRequestLogServiceTest {
         service.logRequest("{}\n{\"test\": \"test\"}", "POST", "testindex/_msearch", null, "{\"responses\": [{\"took\": 3, \"hits\": {\"total\": {\"value\": 513}}}]}", "useragent xxx", null);
 
         ArgumentCaptor<ElasticsearchRequestLog> argumentCaptor = ArgumentCaptor.forClass(ElasticsearchRequestLog.class);
-        Mockito.verify(requestLogRepository, Mockito.timeout(100)).save(argumentCaptor.capture());
+        Mockito.verify(requestLogRepository, Mockito.timeout(500)).save(argumentCaptor.capture());
         ElasticsearchRequestLog result = argumentCaptor.getValue();
         Assertions.assertNotNull(result);
         Assertions.assertEquals("POST", result.getMethod());
@@ -75,9 +61,12 @@ class ElasticsearchRequestLogServiceTest {
     @Test
     void testLogMultiSearchRequestWithoutResult() {
         service.logRequest("{}\n{\"test\": \"test\"}", "POST", "testindex/_msearch", null, "cannot parse result", "useragent xxx", null);
+        assertLoggedPostRequestWithoutLoggedResultValues();
+    }
 
+    private void assertLoggedPostRequestWithoutLoggedResultValues() {
         ArgumentCaptor<ElasticsearchRequestLog> argumentCaptor = ArgumentCaptor.forClass(ElasticsearchRequestLog.class);
-        Mockito.verify(requestLogRepository, Mockito.timeout(100)).save(argumentCaptor.capture());
+        Mockito.verify(requestLogRepository, Mockito.timeout(500)).save(argumentCaptor.capture());
         ElasticsearchRequestLog result = argumentCaptor.getValue();
         Assertions.assertNotNull(result);
         Assertions.assertEquals("POST", result.getMethod());

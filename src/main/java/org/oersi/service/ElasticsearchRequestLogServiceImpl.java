@@ -62,7 +62,8 @@ public class ElasticsearchRequestLogServiceImpl implements ElasticsearchRequestL
             for (int i = 0; i < multiSearchRequests.size(); i++) {
                 ElasticsearchMultiSearchRequest multiSearchRequest = multiSearchRequests.get(i);
                 ElasticsearchResult elasticsearchResult = i < multiSearchResponses.size() ? multiSearchResponses.get(i) : null;
-                logSingleRequest(timestamp, multiSearchRequest.body, method, path, urlRequestQueryString, elasticsearchResult, userAgent, referer);
+                ElasticsearchRequestLog requestLog = initRequestLog(timestamp, multiSearchRequest.body, method, path, urlRequestQueryString, userAgent, referer);
+                logSingleRequest(requestLog, elasticsearchResult);
             }
         } else {
             ElasticsearchResult elasticsearchResult = null;
@@ -71,11 +72,12 @@ public class ElasticsearchRequestLogServiceImpl implements ElasticsearchRequestL
             } catch (JsonProcessingException e) {
                 log.debug("Cannot parse elasticsearch result");
             }
-            logSingleRequest(timestamp, body, method, path, urlRequestQueryString, elasticsearchResult, userAgent, referer);
+            ElasticsearchRequestLog requestLog = initRequestLog(timestamp, body, method, path, urlRequestQueryString, userAgent, referer);
+            logSingleRequest(requestLog, elasticsearchResult);
         }
     }
 
-    public void logSingleRequest(LocalDateTime timestamp, String body, String method, String path, String urlRequestQueryString, ElasticsearchResult elasticsearchResult, String userAgent, String referer) {
+    private ElasticsearchRequestLog initRequestLog(LocalDateTime timestamp, String body, String method, String path, String urlRequestQueryString, String userAgent, String referer) {
         ElasticsearchRequestLog requestLog = new ElasticsearchRequestLog();
         requestLog.setTimestamp(timestamp);
         requestLog.setMethod(method);
@@ -84,6 +86,10 @@ public class ElasticsearchRequestLogServiceImpl implements ElasticsearchRequestL
         requestLog.setBody(body);
         requestLog.setUserAgent(userAgent);
         requestLog.setReferer(referer);
+        return requestLog;
+    }
+
+    public void logSingleRequest(ElasticsearchRequestLog requestLog, ElasticsearchResult elasticsearchResult) {
         if (elasticsearchResult != null) {
             requestLog.setResultTook(elasticsearchResult.took);
             requestLog.setResultHitsTotal(Optional.ofNullable(elasticsearchResult.hits).map(o -> o.total).map(o -> o.value).orElse(null));
