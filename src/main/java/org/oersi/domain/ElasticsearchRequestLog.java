@@ -21,4 +21,6 @@ public class ElasticsearchRequestLog {
     private String body;
     private Long resultTook;
     private Integer resultHitsTotal;
+    private String userAgent;
+    private String referer;
 }

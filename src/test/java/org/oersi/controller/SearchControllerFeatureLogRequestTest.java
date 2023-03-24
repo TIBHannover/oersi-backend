@@ -49,9 +49,12 @@ class SearchControllerFeatureLogRequestTest {
             String.class)))
             .thenReturn(response);
 
-    mvc.perform(post(SearchController.BASE_PATH + testPath).content("{ \"test\":\"test\" }"))
+    mvc.perform(post(SearchController.BASE_PATH + testPath).content("{ \"test\":\"test\" }")
+                    .header("User-Agent", "agent abc")
+                    .header("referer", "https://example.org")
+            )
             .andExpect(status().is(response.getStatusCodeValue()));
-    verify(requestLogService, times(1)).logRequest(anyString(), anyString(), anyString(), anyString());
+    verify(requestLogService, times(1)).logRequest(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
   }
 
 }

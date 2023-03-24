@@ -42,11 +42,13 @@ public class ElasticsearchRequestLogServiceImpl implements ElasticsearchRequestL
 
     @Async
     @Override
-    public void logRequest(String body, String method, String path, String responseBody) {
+    public void logRequest(String body, String method, String path, String responseBody, String userAgent, String referer) {
         ElasticsearchRequestLog requestLog = new ElasticsearchRequestLog();
         requestLog.setMethod(method);
         requestLog.setPath(path);
         requestLog.setBody(body);
+        requestLog.setUserAgent(userAgent);
+        requestLog.setReferer(referer);
         try {
             var elasticsearchResult = objectMapper.readValue(responseBody, new TypeReference<ElasticsearchResult>() {});
             requestLog.setResultTook(elasticsearchResult.took);
