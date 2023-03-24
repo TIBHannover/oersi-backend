@@ -1,10 +1,6 @@
 package org.oersi;
 
-import org.oersi.repository.BackendConfigRepository;
-import org.oersi.repository.LabelDefinitionRepository;
-import org.oersi.repository.LabelRepository;
-import org.oersi.repository.MetadataRepository;
-import org.oersi.repository.VocabItemRepository;
+import org.oersi.repository.*;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
@@ -21,6 +17,8 @@ public class ElasticsearchServicesMock {
   private LabelRepository repository;
   @MockBean
   private LabelDefinitionRepository labelDefinitionRepository;
+  @MockBean
+  private ElasticsearchRequestLogRepository requestLogRepository;
   @MockBean
   private ElasticsearchOperations elasticsearchOperations;
   @MockBean

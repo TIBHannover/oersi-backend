@@ -10,6 +10,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.oersi.api.SearchControllerApi;
+import org.oersi.service.ElasticsearchRequestLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -64,6 +65,10 @@ public class SearchController implements SearchControllerApi {
 
   @Value("${elasticsearch.oersi_viewer_password}")
   private String elasticsearchPassword;
+  @Value("${feature.log_elasticsearch_requests}")
+  private boolean featureLogRequests;
+
+  private final @NonNull ElasticsearchRequestLogService requestLogService;
 
   /**
    * Perform the given GET-request on the configured elasticsearch instance with the configured
@@ -109,7 +114,11 @@ public class SearchController implements SearchControllerApi {
       HttpEntity<String> entity = new HttpEntity<>(body, headers);
       log.debug("process elasticsearch {}-request to {}", method, uri);
 
-      return restTemplate.exchange(uri, method, entity, String.class);
+      var result = restTemplate.exchange(uri, method, entity, String.class);
+      if (featureLogRequests) {
+        requestLogService.logRequest(body, method.name(), uri.getPath(), result.getBody());
+      }
+      return result;
     } catch (URISyntaxException e) {
       log.error("error while building the elasticsearch URI", e);
       return new ResponseEntity<>("invalid URI", HttpStatus.INTERNAL_SERVER_ERROR);
