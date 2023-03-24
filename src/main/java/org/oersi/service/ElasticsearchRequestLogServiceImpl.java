@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
@@ -25,11 +27,11 @@ public class ElasticsearchRequestLogServiceImpl implements ElasticsearchRequestL
         public static class ElasticsearchResultHits {
             @Data
             public static class ElasticsearchResultHitsTotal {
-                private int value;
+                private Integer value;
             }
             private ElasticsearchResultHitsTotal total;
         }
-        private long took;
+        private Long took;
         private ElasticsearchResultHits hits;
     }
 
@@ -48,7 +50,7 @@ public class ElasticsearchRequestLogServiceImpl implements ElasticsearchRequestL
         try {
             var elasticsearchResult = objectMapper.readValue(responseBody, new TypeReference<ElasticsearchResult>() {});
             requestLog.setResultTook(elasticsearchResult.took);
-            requestLog.setResultHitsTotal(elasticsearchResult.hits.total.value);
+            requestLog.setResultHitsTotal(Optional.ofNullable(elasticsearchResult.hits).map(o -> o.total).map(o -> o.value).orElse(null));
         } catch (JsonProcessingException e) {
             log.debug("Cannot parse elasticsearch result");
         }

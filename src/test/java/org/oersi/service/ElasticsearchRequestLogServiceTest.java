@@ -45,4 +45,17 @@ class ElasticsearchRequestLogServiceTest {
         Assertions.assertNull(result.getResultTook());
         Assertions.assertNull(result.getResultHitsTotal());
     }
+
+    @Test
+    void testLogRequestWithResultWithoutTotal() {
+        service.logRequest("{\"test\": \"test\"}", "POST", "testindex/_search", "{\"test\": \"test\"}");
+
+        ArgumentCaptor<ElasticsearchRequestLog> argumentCaptor = ArgumentCaptor.forClass(ElasticsearchRequestLog.class);
+        Mockito.verify(requestLogRepository, Mockito.timeout(100)).save(argumentCaptor.capture());
+        ElasticsearchRequestLog result = argumentCaptor.getValue();
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals("POST", result.getMethod());
+        Assertions.assertNull(result.getResultTook());
+        Assertions.assertNull(result.getResultHitsTotal());
+    }
 }
