@@ -116,7 +116,7 @@ public class SearchController implements SearchControllerApi {
 
       var result = restTemplate.exchange(uri, method, entity, String.class);
       if (featureLogRequests) {
-        requestLogService.logRequest(body, method.name(), uri.getPath(), result.getBody(), request.getHeader("user-agent"), request.getHeader("referer"));
+        requestLogService.logRequest(body, method.name(), uri.getPath(), uri.getQuery(), result.getBody(), request.getHeader("user-agent"), request.getHeader("referer"));
       }
       return result;
     } catch (URISyntaxException e) {

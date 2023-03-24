@@ -16,6 +16,7 @@ public class ElasticsearchRequestLog {
     private String id;
     private String method;
     private String path;
+    private String urlRequestQueryString;
     @Field(type= FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
     private LocalDateTime timestamp;
     private String body;

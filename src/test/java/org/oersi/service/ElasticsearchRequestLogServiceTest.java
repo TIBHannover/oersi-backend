@@ -22,7 +22,7 @@ class ElasticsearchRequestLogServiceTest {
 
     @Test
     void testLogRequest() {
-        service.logRequest("{\"test\": \"test\"}", "POST", "testindex/_search", "{\"took\": 3, \"hits\": {\"total\": {\"value\": 513}}}", "useragent xxx", null);
+        service.logRequest("{\"test\": \"test\"}", "POST", "testindex/_search", null, "{\"took\": 3, \"hits\": {\"total\": {\"value\": 513}}}", "useragent xxx", null);
 
         ArgumentCaptor<ElasticsearchRequestLog> argumentCaptor = ArgumentCaptor.forClass(ElasticsearchRequestLog.class);
         Mockito.verify(requestLogRepository, Mockito.timeout(100)).save(argumentCaptor.capture());
@@ -35,7 +35,7 @@ class ElasticsearchRequestLogServiceTest {
 
     @Test
     void testLogRequestWithoutResult() {
-        service.logRequest("{\"test\": \"test\"}", "POST", "testindex/_search", "cannot parse result", "useragent xxx", null);
+        service.logRequest("{\"test\": \"test\"}", "POST", "testindex/_search", null, "cannot parse result", "useragent xxx", null);
 
         ArgumentCaptor<ElasticsearchRequestLog> argumentCaptor = ArgumentCaptor.forClass(ElasticsearchRequestLog.class);
         Mockito.verify(requestLogRepository, Mockito.timeout(100)).save(argumentCaptor.capture());
@@ -48,7 +48,7 @@ class ElasticsearchRequestLogServiceTest {
 
     @Test
     void testLogRequestWithResultWithoutTotal() {
-        service.logRequest("{\"test\": \"test\"}", "POST", "testindex/_search", "{\"test\": \"test\"}", "useragent xxx", null);
+        service.logRequest("{\"test\": \"test\"}", "POST", "testindex/_search", null, "{\"test\": \"test\"}", "useragent xxx", null);
 
         ArgumentCaptor<ElasticsearchRequestLog> argumentCaptor = ArgumentCaptor.forClass(ElasticsearchRequestLog.class);
         Mockito.verify(requestLogRepository, Mockito.timeout(100)).save(argumentCaptor.capture());

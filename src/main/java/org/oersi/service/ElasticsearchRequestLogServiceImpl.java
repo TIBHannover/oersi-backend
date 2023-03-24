@@ -42,10 +42,11 @@ public class ElasticsearchRequestLogServiceImpl implements ElasticsearchRequestL
 
     @Async
     @Override
-    public void logRequest(String body, String method, String path, String responseBody, String userAgent, String referer) {
+    public void logRequest(String body, String method, String path, String urlRequestQueryString, String responseBody, String userAgent, String referer) {
         ElasticsearchRequestLog requestLog = new ElasticsearchRequestLog();
         requestLog.setMethod(method);
         requestLog.setPath(path);
+        requestLog.setUrlRequestQueryString(urlRequestQueryString);
         requestLog.setBody(body);
         requestLog.setUserAgent(userAgent);
         requestLog.setReferer(referer);

@@ -54,7 +54,7 @@ class SearchControllerFeatureLogRequestTest {
                     .header("referer", "https://example.org")
             )
             .andExpect(status().is(response.getStatusCodeValue()));
-    verify(requestLogService, times(1)).logRequest(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
+    verify(requestLogService, times(1)).logRequest(anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
   }
 
 }
