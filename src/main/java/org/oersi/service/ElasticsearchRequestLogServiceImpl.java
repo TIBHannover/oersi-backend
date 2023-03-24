@@ -14,6 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -34,6 +37,15 @@ public class ElasticsearchRequestLogServiceImpl implements ElasticsearchRequestL
         private Long took;
         private ElasticsearchResultHits hits;
     }
+    @Data
+    public static class ElasticsearchMultiSearchRequest {
+        private String header;
+        private String body;
+    }
+    @Data
+    public static class ElasticsearchMultiSearchResult {
+        private List<ElasticsearchResult> responses;
+    }
 
     private final @NonNull ElasticsearchRequestLogRepository requestLogRepository;
 
@@ -43,20 +55,64 @@ public class ElasticsearchRequestLogServiceImpl implements ElasticsearchRequestL
     @Async
     @Override
     public void logRequest(String body, String method, String path, String urlRequestQueryString, String responseBody, String userAgent, String referer) {
+        LocalDateTime timestamp = LocalDateTime.now();
+        if (isMultiSearchRequest(path)) {
+            List<ElasticsearchMultiSearchRequest> multiSearchRequests = parseMultiSearchRequest(body);
+            List<ElasticsearchResult> multiSearchResponses = parseMultiSearchResponseBody(responseBody);
+            for (int i = 0; i < multiSearchRequests.size(); i++) {
+                ElasticsearchMultiSearchRequest multiSearchRequest = multiSearchRequests.get(i);
+                ElasticsearchResult elasticsearchResult = i < multiSearchResponses.size() ? multiSearchResponses.get(i) : null;
+                logSingleRequest(timestamp, multiSearchRequest.body, method, path, urlRequestQueryString, elasticsearchResult, userAgent, referer);
+            }
+        } else {
+            ElasticsearchResult elasticsearchResult = null;
+            try {
+                elasticsearchResult = objectMapper.readValue(responseBody, new TypeReference<>() {});
+            } catch (JsonProcessingException e) {
+                log.debug("Cannot parse elasticsearch result");
+            }
+            logSingleRequest(timestamp, body, method, path, urlRequestQueryString, elasticsearchResult, userAgent, referer);
+        }
+    }
+
+    public void logSingleRequest(LocalDateTime timestamp, String body, String method, String path, String urlRequestQueryString, ElasticsearchResult elasticsearchResult, String userAgent, String referer) {
         ElasticsearchRequestLog requestLog = new ElasticsearchRequestLog();
+        requestLog.setTimestamp(timestamp);
         requestLog.setMethod(method);
         requestLog.setPath(path);
         requestLog.setUrlRequestQueryString(urlRequestQueryString);
         requestLog.setBody(body);
         requestLog.setUserAgent(userAgent);
         requestLog.setReferer(referer);
-        try {
-            var elasticsearchResult = objectMapper.readValue(responseBody, new TypeReference<ElasticsearchResult>() {});
+        if (elasticsearchResult != null) {
             requestLog.setResultTook(elasticsearchResult.took);
             requestLog.setResultHitsTotal(Optional.ofNullable(elasticsearchResult.hits).map(o -> o.total).map(o -> o.value).orElse(null));
-        } catch (JsonProcessingException e) {
-            log.debug("Cannot parse elasticsearch result");
         }
         requestLogRepository.save(requestLog);
+    }
+
+    private boolean isMultiSearchRequest(String path) {
+        return path.endsWith("/_msearch");
+    }
+
+    private List<ElasticsearchMultiSearchRequest> parseMultiSearchRequest(String body) {
+        List<ElasticsearchMultiSearchRequest> result = new ArrayList<>();
+        String[] lines = body.split("\\r?\\n");
+        for (int i = 0; (i + 1) < lines.length; i += 2) {
+            ElasticsearchMultiSearchRequest multiSearchRequest = new ElasticsearchMultiSearchRequest();
+            multiSearchRequest.setHeader(lines[i]);
+            multiSearchRequest.setBody(lines[i + 1]);
+            result.add(multiSearchRequest);
+        }
+        return result;
+    }
+
+    private List<ElasticsearchResult> parseMultiSearchResponseBody(String responseBody) {
+        try {
+            return objectMapper.readValue(responseBody, new TypeReference<ElasticsearchMultiSearchResult>() {}).getResponses();
+        } catch (JsonProcessingException e) {
+            log.debug("Cannot parse elasticsearch multi search result");
+            return new ArrayList<>();
+        }
     }
 }
