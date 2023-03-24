@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.oersi.domain.ElasticsearchRequestLog;
 import org.oersi.repository.ElasticsearchRequestLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -37,6 +38,7 @@ public class ElasticsearchRequestLogServiceImpl implements ElasticsearchRequestL
     private static final ObjectMapper objectMapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
+    @Async
     @Override
     public void logRequest(String body, String method, String path, String responseBody) {
         ElasticsearchRequestLog requestLog = new ElasticsearchRequestLog();
