@@ -7,17 +7,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
 @PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig {
 
   private static final String ROLE_MANAGE_OERMETADATA = "MANAGE_OERMETADATA";
 
@@ -27,8 +27,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   @Value("${oermetadata.manage.password}")
   private String oermetadataPassword;
 
-  @Override
-  protected void configure(final HttpSecurity http) throws Exception {
+  @Bean
+  public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
     http.cors().and().csrf().disable().authorizeRequests()
         .antMatchers(SearchController.BASE_PATH + "/**").permitAll()
         .and().httpBasic()
@@ -37,10 +37,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/api/metadata-config/**").hasRole(ROLE_MANAGE_OERMETADATA)
         .antMatchers("/api/labeldefinition/**").hasRole(ROLE_MANAGE_OERMETADATA)
         .antMatchers("/api/vocab/**").hasRole(ROLE_MANAGE_OERMETADATA);
+    return http.build();
   }
 
   @Bean
-  @Override
   public UserDetailsService userDetailsService() {
     UserDetails oerMetadataUser = User.withUsername(oermetadataUser)
         .passwordEncoder(PasswordEncoderFactories.createDelegatingPasswordEncoder()::encode)
