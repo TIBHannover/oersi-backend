@@ -63,7 +63,6 @@ public class MetadataServiceImpl implements MetadataService {
       MetadataUpdateResult result = new MetadataUpdateResult(metadata);
       BackendMetadata existingMetadata = findMatchingMetadata(metadata);
       if (existingMetadata != null) {
-        log.debug("existing data: {}", existingMetadata);
         metadata.getData().put(METADATA_PROPERTY_NAME_MAIN_ENTITY_OF_PAGE, mergeMainEntityOfPageList(existingMetadata, metadata));
       }
 
