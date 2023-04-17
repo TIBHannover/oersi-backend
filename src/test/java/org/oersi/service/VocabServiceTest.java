@@ -4,8 +4,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.oersi.ElasticsearchServicesMock;
-import org.oersi.domain.LabelDefinition;
-import org.oersi.repository.LabelDefinitionRepository;
+import org.oersi.domain.VocabItem;
+import org.oersi.repository.VocabItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -16,84 +16,60 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @Import(ElasticsearchServicesMock.class)
-class LabelDefinitionServiceTest {
+class VocabServiceTest {
 
   @Autowired
-  private LabelDefinitionService service;
+  private VocabService service;
   @Autowired
-  private LabelDefinitionRepository repository; // mock from ElasticsearchServicesMock
+  private VocabItemRepository repository; // mock from ElasticsearchServicesMock
   @MockBean
   private JavaMailSender mailSender;
 
   @BeforeEach
   void cleanup() {
-    ((LabelDefinitionServiceImpl)service).clearCache();
+    ((VocabServiceImpl)service).clearCache();
   }
 
   @AfterEach
   void tearDown() {
-    ((LabelDefinitionServiceImpl)service).clearCache();
+    ((VocabServiceImpl)service).clearCache();
   }
 
-  private LabelDefinition getTestData() {
-    LabelDefinition definition = new LabelDefinition();
-    definition.setIdentifier("XXX");
+  private VocabItem getTestData() {
+    VocabItem definition = new VocabItem();
+    definition.setVocabIdentifier("ABC");
+    definition.setItemKey("XXX");
     Map<String, String> localizedStrings = new HashMap<>();
     localizedStrings.put("de", "test1");
     localizedStrings.put("en", "test2");
-    definition.setLabel(localizedStrings);
+    definition.setPrefLabel(localizedStrings);
     return definition;
   }
 
   @Test
   void testCreateOrUpdateWithoutExistingData() {
-    List<LabelDefinition> data = List.of(getTestData());
+    List<VocabItem> data = List.of(getTestData());
     when(repository.findAll()).thenReturn(List.of());
-    service.createOrUpdate(data);
+    service.updateVocab("ABC", data);
     verify(repository, times(1)).saveAll(data);
   }
 
   @Test
   void testCreateOrUpdateWithExistingData() {
-    List<LabelDefinition> existing = List.of(getTestData());
+    List<VocabItem> existing = List.of(getTestData());
     when(repository.findAll()).thenReturn(existing);
-    List<LabelDefinition> data = new ArrayList<>();
+    List<VocabItem> data = new ArrayList<>();
     data.add(getTestData());
-    data.get(0).setIdentifier("ABC");
+    data.get(0).setItemKey("ABC");
     data.addAll(existing);
-    service.createOrUpdate(data);
+    service.updateVocab("ABC", data);
     verify(repository, times(1)).saveAll(data);
-  }
-
-
-  @Test
-  void testDelete() {
-    LabelDefinition data = getTestData();
-    service.delete(data);
-    verify(repository, times(1)).delete(data);
-  }
-
-  @Test
-  void testFindById() {
-    LabelDefinition data = getTestData();
-    when(repository.findById("1")).thenReturn(Optional.of(data));
-    LabelDefinition result = service.findById("1");
-    assertThat(result).isNotNull();
-  }
-
-  @Test
-  void testFindByIllegalId() {
-    LabelDefinition result = service.findById(null);
-    assertThat(result).isNull();
   }
 
   @Test
@@ -104,13 +80,13 @@ class LabelDefinitionServiceTest {
 
   @Test
   void testFindLocalizedLabelWithUndefinedLocalizedString() {
-    List<LabelDefinition> existing = List.of(getTestData());
-    existing.get(0).setLabel(new HashMap<>());
+    List<VocabItem> existing = List.of(getTestData());
+    existing.get(0).setPrefLabel(new HashMap<>());
     when(repository.findAll()).thenReturn(existing);
     Map<String, String> result = service.findLocalizedLabelByIdentifier("XXX");
     assertThat(result).isEmpty();
 
-    existing.get(0).setLabel(null);
+    existing.get(0).setPrefLabel(null);
     when(repository.findAll()).thenReturn(existing);
     result = service.findLocalizedLabelByIdentifier("XXX");
     assertThat(result).isEmpty();
@@ -118,7 +94,7 @@ class LabelDefinitionServiceTest {
 
   @Test
   void testFindLocalizedLabel() {
-    List<LabelDefinition> existing = List.of(getTestData());
+    List<VocabItem> existing = List.of(getTestData());
     when(repository.findAll()).thenReturn(existing);
     Map<String, String> result = service.findLocalizedLabelByIdentifier("XXX");
     assertThat(result).hasSize(2).containsKeys("de", "en");
@@ -128,17 +104,35 @@ class LabelDefinitionServiceTest {
 
   @Test
   void testFindLocalizedLabelAndUpdate() {
-    List<LabelDefinition> existing = List.of(getTestData());
+    List<VocabItem> existing = List.of(getTestData());
     when(repository.findAll()).thenReturn(existing);
     Map<String, String> result = service.findLocalizedLabelByIdentifier("XXX");
     assertThat(result).hasSize(2).containsKeys("de", "en").containsEntry("de", "test1");
 
-    List<LabelDefinition> newData = List.of(getTestData());
-    newData.get(0).setLabel(Map.of("de", "test3"));
-    service.createOrUpdate(newData);
+    List<VocabItem> newData = List.of(getTestData());
+    newData.get(0).setPrefLabel(Map.of("de", "test3"));
+    service.updateVocab(newData.get(0).getVocabIdentifier(), newData);
     when(repository.findAll()).thenReturn(newData);
     result = service.findLocalizedLabelByIdentifier("XXX"); // second time for cached result
     assertThat(result).hasSize(1).containsEntry("de", "test3");
+  }
+
+  @Test
+  void testGetParentMap() {
+    List<VocabItem> vocabItems = new ArrayList<>();
+    VocabItem item1 = new VocabItem();
+    item1.setParentKey("hochschulfaechersystematik");
+    item1.setItemKey("https://w3id.org/kim/hochschulfaechersystematik/n009");
+    item1.setParentKey("https://w3id.org/kim/hochschulfaechersystematik/n42");
+    vocabItems.add(item1);
+    VocabItem item2 = new VocabItem();
+    item2.setParentKey("hochschulfaechersystematik");
+    item2.setItemKey("https://w3id.org/kim/hochschulfaechersystematik/n42");
+    item2.setParentKey("https://w3id.org/kim/hochschulfaechersystematik/n4");
+    vocabItems.add(item2);
+    when(repository.findByVocabIdentifier("hochschulfaechersystematik")).thenReturn(vocabItems);
+    var result = service.getParentMap("hochschulfaechersystematik");
+    assertThat(result).hasSize(2);
   }
 
 }

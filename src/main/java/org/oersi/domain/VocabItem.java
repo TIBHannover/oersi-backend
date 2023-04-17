@@ -4,6 +4,8 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 
+import java.util.Map;
+
 @Data
 @Document(indexName = "oersi_backend_vocab_item")
 public class VocabItem {
@@ -13,5 +15,6 @@ public class VocabItem {
   private String vocabIdentifier;
   private String itemKey;
   private String parentKey;
+  private Map<String, String> prefLabel;
 
 }

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.oersi.ElasticsearchContainerTest;
+import org.oersi.dto.LocalizedStringDto;
 import org.oersi.dto.VocabBulkBodyDto;
 import org.oersi.dto.VocabItemDto;
 import org.oersi.repository.VocabItemRepository;
@@ -58,6 +59,8 @@ class VocabControllerTest extends ElasticsearchContainerTest {
     VocabItemDto item1 = new VocabItemDto();
     item1.setKey("key1");
     item1.setParentKey("key2");
+    item1.setPrefLabels(new LocalizedStringDto());
+    item1.getPrefLabels().put("en", "test");
     vocabItems.add(item1);
     body.setItems(vocabItems);
     mvc.perform(post(CONTROLLER_BASE_PATH + "/bulk")

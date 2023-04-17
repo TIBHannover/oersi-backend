@@ -35,13 +35,6 @@ paths:
   /api/contact:
     $ref: "contact.yaml#/~1api~1contact"
 
-  /api/labeldefinition:
-    $ref: "labeldefinition.yaml#/~1api~1labeldefinition"
-  /api/labeldefinition/bulk:
-    $ref: "labeldefinition.yaml#/~1api~1labeldefinition~1bulk"
-  /api/labeldefinition/{id}:
-    $ref: "labeldefinition.yaml#/~1api~1labeldefinition~1{id}"
-
   /api/metadata:
     $ref: "metadata.yaml#/~1api~1metadata"
   /api/metadata/bulk:

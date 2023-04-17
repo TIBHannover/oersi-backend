@@ -30,6 +30,7 @@ public class VocabController implements VocabControllerApi {
       item.setVocabIdentifier(body.getVocabIdentifier());
       item.setItemKey(itemDto.getKey());
       item.setParentKey(itemDto.getParentKey());
+      item.setPrefLabel(itemDto.getPrefLabels());
       items.add(item);
     }
     vocabService.updateVocab(body.getVocabIdentifier(), items);

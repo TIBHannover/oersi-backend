@@ -15,12 +15,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -37,7 +32,6 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
 
 
   private final @NonNull AmbOembedHelper ambOembedHelper;
-  private final @NonNull LabelDefinitionService labelDefinitionService;
   private final @NonNull VocabService vocabService;
   private final @NonNull LabelService labelService;
   private final @NonNull ConfigService configService;
@@ -290,7 +284,7 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
   }
 
   private Map<String, String> getDefaultLocalizedLabel(String identifier) {
-    return labelDefinitionService.findLocalizedLabelByIdentifier(identifier);
+    return vocabService.findLocalizedLabelByIdentifier(identifier);
   }
 
   protected void setFeatureAddMissingParentItems(boolean featureAddMissingParentItems) {
