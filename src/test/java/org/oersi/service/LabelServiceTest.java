@@ -3,37 +3,46 @@ package org.oersi.service;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.oersi.ElasticsearchServicesMock;
-import org.oersi.domain.Label;
-import org.oersi.repository.LabelRepository;
+import org.oersi.domain.BackendConfig;
+import org.oersi.domain.VocabItem;
+import org.oersi.repository.VocabItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.mail.javamail.JavaMailSender;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @Import(ElasticsearchServicesMock.class)
 class LabelServiceTest {
 
+  @MockBean
+  private ConfigService configService;
   @Autowired
   private LabelService service;
   @Autowired
-  private LabelRepository repository; // mock from ElasticsearchServicesMock
+  private VocabItemRepository repository; // mock from ElasticsearchServicesMock
   @MockBean
   private JavaMailSender mailSender;
 
   @BeforeEach
-  void cleanup() {
+  void setup() {
     service.clearCache();
+    BackendConfig initialConfig = new BackendConfig();
+    BackendConfig.FieldProperties aboutProperties = new BackendConfig.FieldProperties();
+    aboutProperties.setFieldName("about");
+    aboutProperties.setVocabIdentifier("about");
+    initialConfig.setFieldProperties(List.of(aboutProperties));
+    when(configService.getMetadataConfig()).thenReturn(initialConfig);
   }
 
   @AfterEach
@@ -41,91 +50,56 @@ class LabelServiceTest {
     service.clearCache();
   }
 
-  private Label newLabel() {
-    Label label = new Label();
-    label.setLabelKey("key");
-    label.setGroupId("subject");
-    label.setField("about");
-    label.setLabelValue("value");
-    label.setLanguageCode("en");
-    return label;
-  }
-
-  @Test
-  void testCreateOrUpdateWithoutExistingData() {
-    Label label = newLabel();
-    when(repository.findAll()).thenReturn(List.of());
-    when(repository.findByLanguageCodeAndLabelKey(label.getLanguageCode(), label.getLabelKey())).thenReturn(Optional.empty());
-    service.createOrUpdate(label.getLanguageCode(), label.getLabelKey(), label.getLabelValue(), label.getField());
-    ArgumentCaptor<Label> newLabel = ArgumentCaptor.forClass(Label.class);
-    verify(repository, times(1)).save(newLabel.capture());
-    assertThat(newLabel.getValue().getLabelKey()).isEqualTo(label.getLabelKey());
-    assertThat(newLabel.getValue().getLanguageCode()).isEqualTo(label.getLanguageCode());
-    assertThat(newLabel.getValue().getLabelValue()).isEqualTo(label.getLabelValue());
-    assertThat(newLabel.getValue().getField()).isEqualTo(label.getField());
-  }
-
-
-  @Test
-  void testCreateOrUpdateWithExistingDataFoundByIdWithoutChange() {
-    Label label = newLabel();
-    when(repository.findAll()).thenReturn(List.of(label));
-    service.createOrUpdate(label.getLanguageCode(), label.getLabelKey(), label.getLabelValue(), label.getField());
-    verify(repository, times(0)).save(label);
-  }
-
-  @Test
-  void testCreateOrUpdateWithExistingDataFoundByIdWithChangedValue() {
-    Label label = newLabel();
-    when(repository.findAll()).thenReturn(List.of(label));
-    when(repository.findByLanguageCodeAndLabelKey(label.getLanguageCode(), label.getLabelKey())).thenReturn(Optional.of(label));
-    service.createOrUpdate(label.getLanguageCode(), label.getLabelKey(), "changedValue", label.getField());
-    verify(repository, times(1)).save(label);
-  }
-
-  @Test
-  void testCreateOrUpdateWithExistingDataFoundByIdWithChangedGroup() {
-    Label label = newLabel();
-    when(repository.findAll()).thenReturn(List.of(label));
-    when(repository.findByLanguageCodeAndLabelKey(label.getLanguageCode(), label.getLabelKey())).thenReturn(Optional.of(label));
-    service.createOrUpdate(label.getLanguageCode(), label.getLabelKey(), label.getLabelValue(), "changedGroup");
-    verify(repository, times(1)).save(label);
+  private VocabItem newLabelVocabItem() {
+    VocabItem definition = new VocabItem();
+    definition.setVocabIdentifier("about");
+    definition.setItemKey("key");
+    Map<String, String> localizedStrings = new HashMap<>();
+    localizedStrings.put("en", "value");
+    definition.setPrefLabel(localizedStrings);
+    return definition;
   }
 
   @Test
   void testFindByLanguage() {
-    Label label = newLabel();
-    when(repository.findAll()).thenReturn(List.of(label));
-    Map<String, String> result = service.findByLanguage(label.getLanguageCode());
-    assertThat(result).isNotNull()
-      .containsEntry(label.getLabelKey(), label.getLabelValue());
-    result = service.findByLanguage(label.getLanguageCode());
-    assertThat(result).isNotNull()
-      .containsEntry(label.getLabelKey(), label.getLabelValue());
+    VocabItem item = newLabelVocabItem();
+    when(repository.findAll()).thenReturn(List.of(item));
+    Map<String, String> result = service.findByLanguage("en");
+    assertThat(result).isNotNull().containsExactlyEntriesOf(Map.of("key", "value"));
+    result = service.findByLanguage("en");
+    assertThat(result).isNotNull().containsExactlyEntriesOf(Map.of("key", "value"));
   }
 
   @Test
   void testFindByLanguageAndGroup() {
-    Label label = newLabel();
-    when(repository.findAll()).thenReturn(List.of(label));
-    Map<String, String> result = service.findByLanguageAndGroup(label.getLanguageCode(), label.getGroupId());
-    assertThat(result).isNotNull()
-      .containsEntry(label.getLabelKey(), label.getLabelValue());
-    result = service.findByLanguageAndGroup(label.getLanguageCode(), label.getGroupId());
-    assertThat(result).isNotNull()
-      .containsEntry(label.getLabelKey(), label.getLabelValue());
+    VocabItem item = newLabelVocabItem();
+    when(repository.findAll()).thenReturn(List.of(item));
+    Map<String, String> result = service.findByLanguageAndGroup("en", "subject");
+    assertThat(result).isNotNull().containsExactlyEntriesOf(Map.of("key", "value"));
+    result = service.findByLanguageAndGroup("en", "subject");
+    assertThat(result).isNotNull().containsExactlyEntriesOf(Map.of("key", "value"));
   }
 
   @Test
   void testFindByLanguageAndField() {
-    Label label = newLabel();
-    when(repository.findAll()).thenReturn(List.of(label));
-    Map<String, String> result = service.findByLanguageAndField(label.getLanguageCode(), label.getField());
-    assertThat(result).isNotNull()
-      .containsEntry(label.getLabelKey(), label.getLabelValue());
-    result = service.findByLanguageAndField(label.getLanguageCode(), label.getField());
-    assertThat(result).isNotNull()
-      .containsEntry(label.getLabelKey(), label.getLabelValue());
+    VocabItem item = newLabelVocabItem();
+    when(repository.findAll()).thenReturn(List.of(item));
+    Map<String, String> result = service.findByLanguageAndField("en", "about");
+    assertThat(result).isNotNull().containsExactlyEntriesOf(Map.of("key", "value"));
+    result = service.findByLanguageAndField("en", "about");
+    assertThat(result).isNotNull().containsExactlyEntriesOf(Map.of("key", "value"));
+  }
+
+  @Test
+  void testFindByLanguageAndFieldWithoutFieldVocabRelationship() {
+    reset(configService);
+    when(configService.getMetadataConfig()).thenReturn(null);
+    VocabItem item = newLabelVocabItem();
+    when(repository.findAll()).thenReturn(List.of(item));
+    Map<String, String> result = service.findByLanguageAndField("en", "about");
+    assertThat(result).isNotNull().isEmpty();
+    result = service.findByLanguageAndField("en", "about");
+    assertThat(result).isNotNull().isEmpty();
   }
 
 }

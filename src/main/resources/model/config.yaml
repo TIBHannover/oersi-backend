@@ -39,3 +39,16 @@ components:
           type: object
           additionalProperties:
             type: object
+        fieldProperties:
+          type: array
+          items:
+            type: "object"
+            properties:
+              fieldName:
+                type: "string"
+                description: "field name of this properties"
+                example: "about"
+              vocabIdentifier:
+                type: "string"
+                description: "if using a controlled vocabulary for this field, the identifier of this vocabulary"
+                example: "hochschulfaechersystematik"

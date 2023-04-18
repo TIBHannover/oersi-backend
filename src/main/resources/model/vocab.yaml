@@ -44,3 +44,8 @@ components:
         parentKey:
           type: string
           example: "https://w3id.org/kim/hochschulfaechersystematik/n37"
+        prefLabels:
+          example:
+            - 'de': 'Mathematik'
+              'en': 'Mathematics'
+          $ref: 'api.yaml#/components/schemas/LocalizedString'

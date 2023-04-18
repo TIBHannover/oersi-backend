@@ -15,4 +15,11 @@ public interface VocabService {
    */
   Map<String, String> getParentMap(String vocabIdentifier);
 
+  /**
+   * Retrieve the localized labels for the given identifier.
+   * @param identifier identifier to retrieve labels for
+   * @return labels
+   */
+  Map<String, String> findLocalizedLabelByIdentifier(String identifier);
+
 }

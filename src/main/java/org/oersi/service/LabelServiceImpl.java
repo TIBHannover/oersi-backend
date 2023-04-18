@@ -3,15 +3,14 @@ package org.oersi.service;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.oersi.domain.Label;
-import org.oersi.repository.LabelRepository;
+import org.oersi.domain.BackendConfig;
+import org.oersi.domain.VocabItem;
+import org.oersi.repository.VocabItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.StreamSupport;
 
 @Service
 @Slf4j
@@ -39,56 +38,40 @@ public class LabelServiceImpl implements LabelService {
     LABEL_GROUP_ID_SUBJECT, "about"
   );
 
-  private final @NonNull LabelRepository labelRepository;
+  private final @NonNull ConfigService configService;
+  private final @NonNull VocabItemRepository vocabItemRepository;
 
   private Map<String, Map<String, String>> labelByLanguage = null;
-  private Map<String, Map<String, Map<String, String>>> labelByLanguageAndField = null;
+  private Map<String, Map<String, Map<String, String>>> labelByLanguageAndVocab = null;
 
-  @Transactional
-  @Override
-  public Label createOrUpdate(String languageCode, String labelKey, String labelValue, String field) {
-    String currentValue = findByLanguageAndField(languageCode, field).get(labelKey);
-    if (StringUtils.equals(currentValue, labelValue)) {
-      return null;
-    }
-    Optional<Label> existing = labelRepository.findByLanguageCodeAndLabelKey(languageCode, labelKey);
-    Label label;
-    if (existing.isPresent()) {
-      label = existing.get();
-    } else {
-      label = new Label();
-      label.setLanguageCode(languageCode);
-      label.setLabelKey(labelKey);
-    }
-    label.setLabelValue(labelValue);
-    label.setField(field);
-    log.debug("Update label {}", label);
-    Label savedLabel;
-    synchronized (labelRepository) {
-      savedLabel = labelRepository.save(label);
-      clearCache();
-    }
-    return savedLabel;
-  }
-
-  private Map<String, Map<String, String>> initLabelByLanguageCache(Iterable<Label> labels) {
+  private Map<String, Map<String, String>> initLabelByLanguageCache(Iterable<VocabItem> vocabItems) {
     Map<String, Map<String, String>> result = Collections.synchronizedMap(new HashMap<>());
-    for (Label label : labels) {
-      Map<String, String> languageLabels = result.computeIfAbsent(label.getLanguageCode(), k -> Collections.synchronizedMap(new HashMap<>()));
-      languageLabels.put(label.getLabelKey(), label.getLabelValue());
+    for (VocabItem item : vocabItems) {
+      if (item.getPrefLabel() != null) {
+        item.getPrefLabel().keySet().forEach(lng ->  {
+          Map<String, String> languageLabels = result.computeIfAbsent(lng, k -> Collections.synchronizedMap(new HashMap<>()));
+          languageLabels.put(item.getItemKey(), item.getPrefLabel().get(lng));
+        });
+      }
     }
     labelByLanguage = result;
     return result;
   }
 
-  private Map<String, Map<String, Map<String, String>>> initLabelByLanguageAndFieldCache(Iterable<Label> labels) {
+
+
+  private Map<String, Map<String, Map<String, String>>> initLabelByLanguageAndVocabCache(Iterable<VocabItem> vocabItems) {
     Map<String, Map<String, Map<String, String>>> result = Collections.synchronizedMap(new HashMap<>());
-    for (Label label : labels) {
-      Map<String, Map<String, String>> languageLabels = result.computeIfAbsent(label.getLanguageCode(), k -> Collections.synchronizedMap(new HashMap<>()));
-      Map<String, String> fieldLabels = languageLabels.computeIfAbsent(label.getField(), k -> Collections.synchronizedMap(new HashMap<>()));
-      fieldLabels.put(label.getLabelKey(), label.getLabelValue());
+    for (VocabItem item : vocabItems) {
+      if (item.getPrefLabel() != null) {
+        item.getPrefLabel().keySet().forEach(lng -> {
+          Map<String, Map<String, String>> languageLabels = result.computeIfAbsent(lng, k -> Collections.synchronizedMap(new HashMap<>()));
+          Map<String, String> vocabLabels = languageLabels.computeIfAbsent(item.getVocabIdentifier(), k -> Collections.synchronizedMap(new HashMap<>()));
+          vocabLabels.put(item.getItemKey(), item.getPrefLabel().get(lng));
+        });
+      }
     }
-    labelByLanguageAndField = result;
+    labelByLanguageAndVocab = result;
     return result;
   }
 
@@ -96,22 +79,18 @@ public class LabelServiceImpl implements LabelService {
     Map<String, Map<String, String>> result = labelByLanguage;
     if (result == null) {
       log.debug("Init label cache (byLanguage)");
-      synchronized (labelRepository) {
-        Iterable<Label> labels = labelRepository.findAll();
-        result = initLabelByLanguageCache(labels);
-      }
+      Iterable<VocabItem> vocabItems = vocabItemRepository.findAll();
+      result = initLabelByLanguageCache(vocabItems);
     }
     return result;
   }
 
-  private Map<String, Map<String, Map<String, String>>> getLabelByLanguageAndFieldCache() {
-    Map<String, Map<String, Map<String, String>>> result = labelByLanguageAndField;
+  private Map<String, Map<String, Map<String, String>>> getLabelByLanguageAndVocabCache() {
+    Map<String, Map<String, Map<String, String>>> result = labelByLanguageAndVocab;
     if (result == null) {
       log.debug("Init label cache (byLanguageAndField)");
-      synchronized (labelRepository) {
-        Iterable<Label> labels = labelRepository.findAll();
-        result = initLabelByLanguageAndFieldCache(labels);
-      }
+      Iterable<VocabItem> vocabItems = vocabItemRepository.findAll();
+      result = initLabelByLanguageAndVocabCache(vocabItems);
     }
     return result;
   }
@@ -132,28 +111,30 @@ public class LabelServiceImpl implements LabelService {
   @Transactional(readOnly = true)
   @Override
   public Map<String, String> findByLanguageAndField(String languageCode, String field) {
-    return new HashMap<>(getLabelByLanguageAndFieldCache()
+    final String vocabId = getVocabIdForField(field);
+    if (vocabId == null) {
+      return new HashMap<>();
+    }
+    return new HashMap<>(getLabelByLanguageAndVocabCache()
       .computeIfAbsent(languageCode, k -> new HashMap<>())
-      .computeIfAbsent(field, k -> new HashMap<>()));
+      .computeIfAbsent(vocabId, k -> new HashMap<>()));
+  }
+
+  private String getVocabIdForField(String field) {
+    BackendConfig config = configService.getMetadataConfig();
+    if (field != null && config != null && config.getFieldProperties() != null) {
+      BackendConfig.FieldProperties fieldProperties = config.getFieldProperties().stream().filter(p -> field.equals(p.getFieldName())).findFirst().orElse(null);
+      if (fieldProperties != null) {
+        return fieldProperties.getVocabIdentifier();
+      }
+    }
+    return null;
   }
 
   @Override
   public void clearCache() {
     labelByLanguage = null;
-    labelByLanguageAndField = null;
-  }
-
-  @Transactional
-  @Override
-  public void init() {
-    synchronized (labelRepository) {
-      Iterable<Label> labels = labelRepository.findAll();
-      StreamSupport.stream(labels.spliterator(), false).filter(l -> l.getField() == null).forEach(l -> {
-        l.setField(GROUP_TO_FIELD_MAPPING.get(l.getGroupId()));
-        labelRepository.save(l);
-      });
-    }
-    getLabelByLanguageCache();
+    labelByLanguageAndVocab = null;
   }
 
 }

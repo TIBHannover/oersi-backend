@@ -7,15 +7,12 @@ import org.oersi.ElasticsearchServicesMock;
 import org.oersi.domain.BackendConfig;
 import org.oersi.domain.BackendMetadata;
 import org.oersi.domain.OembedInfo;
-import org.oersi.domain.VocabItem;
 import org.oersi.repository.BackendConfigRepository;
-import org.oersi.repository.VocabItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,9 +33,7 @@ class AmbMetadataProcessorTest {
   private ConfigService configService;
 
   @MockBean
-  private LabelDefinitionService labelRepository;
-  @Autowired
-  private VocabItemRepository vocabItemRepository; // mock from ElasticsearchServicesMock
+  private VocabService vocabService;
   @Autowired
   private BackendConfigRepository configRepository; // mock from ElasticsearchServicesMock
 
@@ -57,18 +52,10 @@ class AmbMetadataProcessorTest {
         )
       )
     ));
-    List<VocabItem> vocabItems = new ArrayList<>();
-    VocabItem item1 = new VocabItem();
-    item1.setParentKey("hochschulfaechersystematik");
-    item1.setItemKey("https://w3id.org/kim/hochschulfaechersystematik/n009");
-    item1.setParentKey("https://w3id.org/kim/hochschulfaechersystematik/n42");
-    vocabItems.add(item1);
-    VocabItem item2 = new VocabItem();
-    item2.setParentKey("hochschulfaechersystematik");
-    item2.setItemKey("https://w3id.org/kim/hochschulfaechersystematik/n42");
-    item2.setParentKey("https://w3id.org/kim/hochschulfaechersystematik/n4");
-    vocabItems.add(item2);
-    when(vocabItemRepository.findByVocabIdentifier("hochschulfaechersystematik")).thenReturn(vocabItems);
+    when(vocabService.getParentMap("hochschulfaechersystematik")).thenReturn(Map.of(
+            "https://w3id.org/kim/hochschulfaechersystematik/n009", "https://w3id.org/kim/hochschulfaechersystematik/n42",
+            "https://w3id.org/kim/hochschulfaechersystematik/n42", "https://w3id.org/kim/hochschulfaechersystematik/n4"
+            ));
 
     processor.setFeatureAddMissingParentItems(true);
     processor.process(data);
@@ -80,7 +67,7 @@ class AmbMetadataProcessorTest {
   @Test
   void testUnsetLabelDefinition() {
     Map<String, Object> testData = new HashMap<>(Map.of("id", TEST_IDENTIFIER));
-    when(labelRepository.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(null);
+    when(vocabService.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(null);
 
     processor.addMissingLabels(testData);
     assertThat(testData).doesNotContainKey("prefLabel");
@@ -98,7 +85,7 @@ class AmbMetadataProcessorTest {
     Map<String, Object> testData = new HashMap<>(Map.of(
       "id", TEST_IDENTIFIER
     ));
-    when(labelRepository.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
+    when(vocabService.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
     processor.addMissingLabels(testData);
     assertThat(testData.get("prefLabel")).isInstanceOf(Map.class);
     assertThat((Map<?, ?>) testData.get("prefLabel")).hasSize(3);
@@ -107,7 +94,7 @@ class AmbMetadataProcessorTest {
       "id", TEST_IDENTIFIER,
       "prefLabel", new HashMap<String, String>()
     ));
-    when(labelRepository.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
+    when(vocabService.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
     processor.addMissingLabels(testData);
     assertThat(testData.get("prefLabel")).isInstanceOf(Map.class);
     assertThat((Map<?, ?>) testData.get("prefLabel")).hasSize(3);
@@ -122,7 +109,7 @@ class AmbMetadataProcessorTest {
         "en", "test5"
       ))
     ));
-    when(labelRepository.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
+    when(vocabService.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
     processor.addMissingLabels(testData);
     assertThat(testData.get("prefLabel")).isInstanceOf(Map.class);
     Map<String, String> prefLabel = MetadataHelper.parse(testData, "prefLabel", new TypeReference<>(){});
@@ -148,7 +135,7 @@ class AmbMetadataProcessorTest {
         "conditionsOfAccess", List.of(new HashMap<>(Map.of("id", TEST_IDENTIFIER))),
         "learningResourceType", List.of(new HashMap<>(Map.of("id", TEST_IDENTIFIER)))
       )));
-    when(labelRepository.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
+    when(vocabService.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
     processor.addMissingLabels(data);
     List.of("about", "audience", "conditionsOfAccess", "learningResourceType").forEach(field -> {
       List<Map<String, Object>> labelledConcept = MetadataHelper.parseList(data.getData(), field, new TypeReference<>(){});
@@ -161,7 +148,7 @@ class AmbMetadataProcessorTest {
   @Test
   void testUpdateMetadataWithoutLabelFields() {
     Map<String, Object> testData = new HashMap<>(Map.of("id", TEST_IDENTIFIER));
-    when(labelRepository.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
+    when(vocabService.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
     processor.addMissingLabels(testData);
     List.of("about", "audience", "conditionsOfAccess", "learningResourceType").forEach(field -> assertThat(testData.get(field)).isNull());
   }

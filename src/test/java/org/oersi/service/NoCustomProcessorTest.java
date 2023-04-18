@@ -31,7 +31,6 @@ class NoCustomProcessorTest {
         OembedInfo oembedInfo = new OembedInfo();
         metadataCustomProcessor.process(data);
         oembedInfo = metadataCustomProcessor.processOembedInfo(oembedInfo, data);
-        metadataCustomProcessor.postProcess(data);
         assertThat(data.getData())
                 .isEqualTo(Map.of(
                                 "id", "https://www.test.de",
