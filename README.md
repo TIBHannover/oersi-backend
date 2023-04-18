@@ -52,9 +52,8 @@ API definition in [src/main/resources/model/api.yaml](src/main/resources/model/a
         * default schema in [oersi-schema](https://gitlab.com/oersi/oersi-schema) ([conversion](https://gitlab.com/oersi/oersi-backend/-/issues/8#note_344342881))
         * custom processor for amb-schema can be configured via `metadata.custom.processor=amb` in _oersi.properties_
     * bulk-update and -deletion via **/api/metadata/bulk**. Recommended bulk-update-size: 25
-* **_LabelController_**: Retrieve labels from the data **/api/label/**
-    * Internal use - this is not part of the public API
-    * In the data there are labels for some fields (for example `learningResourceType` or `about`) -> these labels can be accessed here directly
+* **_LabelController_**: Retrieve labels for controlled vocabularies **/api/label/**
+    * In the data there are some fields that use controlled vocabularies with labels (for example `learningResourceType` or `about`) -> these labels can be accessed here directly
     * Labels can be retrieved for a given language - and optionally for a given field/group.
     * Provides a Map **LabelKey** -> **LabelValue** as result in format Json
 * **_ContactController_**: Create contact requests **/api/contact/**

@@ -16,8 +16,6 @@ tags:
     description: EndPoint for Backend configuration
   - name: label-controller
     description: Endpoints for access to labels
-  - name: label-definition-controller
-    description: Endpoints for access to label definitions
   - name: metadata-controller
     description: Every EndPoint for Metadata Controller
   - name: oembed-Controller
