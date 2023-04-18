@@ -122,7 +122,7 @@ public class LabelServiceImpl implements LabelService {
 
   private String getVocabIdForField(String field) {
     BackendConfig config = configService.getMetadataConfig();
-    if (config != null && config.getFieldProperties() != null) {
+    if (field != null && config != null && config.getFieldProperties() != null) {
       BackendConfig.FieldProperties fieldProperties = config.getFieldProperties().stream().filter(p -> field.equals(p.getFieldName())).findFirst().orElse(null);
       if (fieldProperties != null) {
         return fieldProperties.getVocabIdentifier();
