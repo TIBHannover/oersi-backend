@@ -33,7 +33,6 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
 
   private final @NonNull AmbOembedHelper ambOembedHelper;
   private final @NonNull VocabService vocabService;
-  private final @NonNull LabelService labelService;
   private final @NonNull ConfigService configService;
 
   @Value("${feature.add_missing_labels}")
@@ -59,10 +58,7 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
     }
     fillInternalIndex(metadata);
   }
-  @Override
-  public void postProcess(BackendMetadata metadata) {
-    storeLabels(metadata);
-  }
+
   @Override
   public OembedInfo processOembedInfo(OembedInfo oembedInfo, BackendMetadata metadata) {
     return ambOembedHelper.processOembedInfo(oembedInfo, metadata);
@@ -168,38 +164,6 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
       }
     }
     return new ArrayList<>();
-  }
-
-  /**
-   * Use the @{@link LabelService} to store all labels contained in this @{@link BackendMetadata}.
-   * @param metadata metadata
-   */
-  private void storeLabels(final BackendMetadata metadata) {
-    getLabelledConceptFields().forEach(field -> storeLabels(metadata, field));
-  }
-  private void storeLabels(final BackendMetadata metadata, final String fieldName) {
-    Map<String, Object> data = metadata.getData();
-    if (data.get(fieldName) instanceof List) {
-      List<Map<String, Object>> labelledConceptList = MetadataHelper.parseList(data, fieldName, new TypeReference<>() {});
-      if (labelledConceptList != null) {
-        labelledConceptList.forEach(l -> storeLabels(l, fieldName));
-      }
-    } else {
-      Map<String, Object> labelledConcept = MetadataHelper.parse(data, fieldName, new TypeReference<>() {});
-      if (labelledConcept != null) {
-        storeLabels(labelledConcept, fieldName);
-      }
-    }
-  }
-  private void storeLabels(Map<String, Object> labelledConcept, final String fieldName) {
-    final String key = (String) labelledConcept.get("id");
-    final Map<String, String> prefLabel = MetadataHelper.parse(labelledConcept, FIELD_NAME_PREF_LABEL, new TypeReference<>() {});
-    if (key == null || prefLabel == null) {
-      return;
-    }
-    for (Map.Entry<String, String> entry : prefLabel.entrySet()) {
-      labelService.createOrUpdate(entry.getKey(), key, entry.getValue(), fieldName);
-    }
   }
 
   private Map<String, String> aboutParentMap = null;

@@ -4,9 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.oersi.ElasticsearchServicesMock;
-import org.oersi.domain.BackendConfig;
 import org.oersi.domain.BackendMetadata;
-import org.oersi.repository.LabelRepository;
 import org.oersi.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,21 +12,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.mail.javamail.JavaMailSender;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.anyList;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @Import(ElasticsearchServicesMock.class)
@@ -44,8 +33,6 @@ class MetadataServiceTest {
   private LabelService labelService;
   @MockBean
   private JavaMailSender mailSender;
-  @Autowired
-  private LabelRepository labelRepository;
 
   @BeforeEach
   public void setup() {
@@ -179,22 +166,6 @@ class MetadataServiceTest {
   }
 
   @Test
-  void testCreateOrUpdateWithIncompleteLabel() {
-    BackendMetadata metadata = newMetadata();
-    metadata.getData().put(
-      "learningResourceType", new ArrayList<>(List.of(
-        new HashMap<>(Map.of(
-          "id", "https://w3id.org/kim/hcrt/testType",
-          "prefLabel", new HashMap<>()
-        ))
-      ))
-    );
-    metadata.getData().put("audience", new ArrayList<>(List.of(new HashMap<>(Map.of()))));
-    service.createOrUpdate(metadata);
-    verify(labelService, times(0)).createOrUpdate(anyString(), anyString(), anyString(), anyString());
-  }
-
-  @Test
   void testCreateOrUpdateWithoutMainEntityOfPage() {
     BackendMetadata metadata = newMetadata();
     metadata.getData().remove("mainEntityOfPage");
@@ -311,22 +282,6 @@ class MetadataServiceTest {
     when(repository.findById(metadata.getId())).thenReturn(Optional.empty());
     result = service.findById(metadata.getId());
     assertThat(result).isNull();
-  }
-
-
-  @Test
-  void testStoreLabels() {
-    labelRepository.deleteAll();
-    labelService.clearCache();
-    BackendMetadata metadata = newMetadata();
-    BackendConfig config = new BackendConfig();
-    config.setCustomConfig(Map.of(
-      "labelledConceptFields", List.of("about", "audience", "conditionsOfAccess", "learningResourceType")
-    ));
-    when(configService.getMetadataConfig()).thenReturn(config);
-    when(repository.findById(metadata.getId())).thenReturn(Optional.empty());
-    service.createOrUpdate(metadata);
-    verify(labelService, atLeastOnce()).createOrUpdate(anyString(), anyString(), anyString(), anyString());
   }
 
 }

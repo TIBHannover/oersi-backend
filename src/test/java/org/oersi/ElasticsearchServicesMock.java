@@ -14,8 +14,6 @@ public class ElasticsearchServicesMock {
   @MockBean
   private VocabItemRepository vocabItemRepository;
   @MockBean
-  private LabelRepository repository;
-  @MockBean
   private ElasticsearchRequestLogRepository requestLogRepository;
   @MockBean
   private ElasticsearchOperations elasticsearchOperations;

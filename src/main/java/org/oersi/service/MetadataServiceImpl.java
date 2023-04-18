@@ -83,7 +83,6 @@ public class MetadataServiceImpl implements MetadataService {
       metadata.setOembedInfo(oembedInfo);
 
       metadata.setDateModified(LocalDateTime.now());
-      metadataCustomProcessor.postProcess(metadata);
 
       results.add(result);
     }

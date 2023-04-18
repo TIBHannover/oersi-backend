@@ -22,6 +22,7 @@ import java.util.Map;
 @Setter
 public class VocabServiceImpl implements VocabService {
 
+  private final @NonNull LabelService labelService;
   private final @NonNull VocabItemRepository vocabItemRepository;
 
   private Map<String, Map<String, String>> localizedLabelByIdentifier;
@@ -31,9 +32,10 @@ public class VocabServiceImpl implements VocabService {
   public Iterable<VocabItem> updateVocab(String vocabIdentifier, List<VocabItem> items) {
     List<VocabItem> existing = vocabItemRepository.findByVocabIdentifier(vocabIdentifier);
     synchronized (vocabItemRepository) {
-      clearCache();
       vocabItemRepository.deleteAll(existing);
-      return vocabItemRepository.saveAll(items);
+      var result = vocabItemRepository.saveAll(items);
+      clearCache();
+      return result;
     }
   }
 
@@ -82,6 +84,7 @@ public class VocabServiceImpl implements VocabService {
 
   public void clearCache() {
     localizedLabelByIdentifier = null;
+    labelService.clearCache();
   }
 
 }
