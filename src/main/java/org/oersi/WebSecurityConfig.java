@@ -30,7 +30,16 @@ public class WebSecurityConfig {
   public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
     http.cors().and().csrf().disable().authorizeHttpRequests()
         .requestMatchers(
-                "/api/search/**", "/api/label/**", "/api/deprecated/label/**", "/api/contact", "/api/oembed-json", "/api/oembed-xml"
+                "/api/search/**",
+                "/api/label/**",
+                "/api/deprecated/label/**",
+                "/api/contact",
+                "/api/oembed-json",
+                "/api/oembed-xml",
+                // swagger ui
+                "/swagger-ui.html",
+                "/swagger-ui/**",
+                "/api-docs/**"
         ).permitAll()
         .and().httpBasic()
         .and().authorizeHttpRequests()

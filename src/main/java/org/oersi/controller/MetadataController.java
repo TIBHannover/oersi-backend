@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.ValidationException;
+import jakarta.validation.ValidationException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
