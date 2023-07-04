@@ -1,6 +1,5 @@
 package org.oersi;
 
-import org.oersi.controller.SearchController;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,13 +28,15 @@ public class WebSecurityConfig {
 
   @Bean
   public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
-    http.cors().and().csrf().disable().authorizeRequests()
-        .antMatchers(SearchController.BASE_PATH + "/**").permitAll()
+    http.cors().and().csrf().disable().authorizeHttpRequests()
+        .requestMatchers(
+                "/api/search/**", "/api/label/**", "/api/deprecated/label/**", "/api/contact", "/api/oembed-json", "/api/oembed-xml"
+        ).permitAll()
         .and().httpBasic()
-        .and().authorizeRequests()
-        .antMatchers("/api/metadata/**").hasRole(ROLE_MANAGE_OERMETADATA)
-        .antMatchers("/api/metadata-config/**").hasRole(ROLE_MANAGE_OERMETADATA)
-        .antMatchers("/api/vocab/**").hasRole(ROLE_MANAGE_OERMETADATA);
+        .and().authorizeHttpRequests()
+        .requestMatchers("/api/metadata/**").hasRole(ROLE_MANAGE_OERMETADATA)
+        .requestMatchers("/api/metadata-config/**").hasRole(ROLE_MANAGE_OERMETADATA)
+        .requestMatchers("/api/vocab/**").hasRole(ROLE_MANAGE_OERMETADATA);
     return http.build();
   }
 
