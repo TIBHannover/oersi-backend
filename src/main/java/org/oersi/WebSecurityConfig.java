@@ -1,18 +1,20 @@
 package org.oersi;
 
-import org.oersi.controller.SearchController;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
@@ -29,13 +31,29 @@ public class WebSecurityConfig {
 
   @Bean
   public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
-    http.cors().and().csrf().disable().authorizeRequests()
-        .antMatchers(SearchController.BASE_PATH + "/**").permitAll()
-        .and().httpBasic()
-        .and().authorizeRequests()
-        .antMatchers("/api/metadata/**").hasRole(ROLE_MANAGE_OERMETADATA)
-        .antMatchers("/api/metadata-config/**").hasRole(ROLE_MANAGE_OERMETADATA)
-        .antMatchers("/api/vocab/**").hasRole(ROLE_MANAGE_OERMETADATA);
+    http
+        .cors(withDefaults())
+        .csrf(AbstractHttpConfigurer::disable)
+        .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers(
+                        "/api/search/**",
+                        "/api/label/**",
+                        "/api/deprecated/label/**",
+                        "/api/contact",
+                        "/api/oembed-json",
+                        "/api/oembed-xml",
+                        // swagger ui
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/api-docs/**"
+                ).permitAll()
+        )
+        .httpBasic(withDefaults())
+        .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/api/metadata/**").hasRole(ROLE_MANAGE_OERMETADATA)
+                .requestMatchers("/api/metadata-config/**").hasRole(ROLE_MANAGE_OERMETADATA)
+                .requestMatchers("/api/vocab/**").hasRole(ROLE_MANAGE_OERMETADATA)
+        );
     return http.build();
   }
 

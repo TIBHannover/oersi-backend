@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.7.10</version>
+		<version>3.1.1</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>org.oersi</groupId>
@@ -46,7 +46,7 @@
 		<dependency>
 			<groupId>jakarta.json</groupId>
 			<artifactId>jakarta.json-api</artifactId>
-			<version>2.1.1</version>
+			<version>2.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -78,7 +78,7 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.dataformat</groupId>
 			<artifactId>jackson-dataformat-xml</artifactId>
-			<version>2.14.2</version>
+			<version>2.15.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
@@ -132,8 +132,8 @@
 		<!--Add swagger Dependency -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
-			<artifactId>springdoc-openapi-ui</artifactId>
-			<version>1.6.15</version>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.1.0</version>
 		</dependency>
 
 		<dependency>
@@ -168,7 +168,7 @@
 			<plugin>
 				<groupId>io.swagger.codegen.v3</groupId>
 				<artifactId>swagger-codegen-maven-plugin</artifactId>
-				<version>3.0.36</version>
+				<version>3.0.46</version>
 				<executions>
 					<execution>
 						<id>generate-Api-V3</id>
@@ -179,12 +179,13 @@
 							<inputSpec>${project.basedir}/src/main/resources/model/api.yaml</inputSpec>
 							<language>spring</language>
 							<generateSupportingFiles>false</generateSupportingFiles>
-							<invokerPackage>entities</invokerPackage>
+							<invokerPackage>org.oersi</invokerPackage>
 							<apiPackage>org.oersi.api</apiPackage>
 							<modelPackage>org.oersi.dto</modelPackage>
 							<modelNameSuffix>Dto</modelNameSuffix>
 							<withXml>true</withXml>
 							<configOptions>
+								<jakarta>true</jakarta>
 								<sourceFolder>/</sourceFolder>
 								<java8>true</java8>
 								<interfaceOnly>true</interfaceOnly>
@@ -214,8 +215,7 @@
 					<includes>
 						<include>dto/LocalizedStringDto.java</include>
 						<include>dto/OembedResponseDto.java</include>
-						<include>api/SearchControllerApi.java</include>
-						<include>api/MetadataControllerApi.java</include>
+						<include>api/**.java</include>
 					</includes>
 					<replacements>
 						<replacement>
@@ -245,6 +245,10 @@
 						<replacement>
 							<token>LocalizedStringDto extends HashMap.String, String>  .</token>
 							<value>LocalizedStringDto extends HashMap&lt;String, String&gt;  {@com.fasterxml.jackson.annotation.JsonIgnore public boolean isEmpty() {return super.isEmpty();}</value>
+						</replacement>
+						<replacement>
+							<token>javax.servlet.http.HttpServletRequest</token>
+							<value>jakarta.servlet.http.HttpServletRequest</value>
 						</replacement>
 					</replacements>
 				</configuration>
