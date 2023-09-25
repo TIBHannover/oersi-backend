@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-@Document(indexName = "oersi_organization_info", dynamic = Dynamic.FALSE)
+@Document(indexName = "oersi_backend_organization_info", dynamic = Dynamic.FALSE)
 public class OrganizationInfo {
 
   @Id
