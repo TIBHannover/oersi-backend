@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.oersi.domain.BackendConfig;
 import org.oersi.domain.BackendMetadata;
 import org.oersi.domain.OembedInfo;
+import org.oersi.domain.OrganizationInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +35,7 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
   private final @NonNull AmbOembedHelper ambOembedHelper;
   private final @NonNull VocabService vocabService;
   private final @NonNull ConfigService configService;
+  private final @NonNull OrganizationInfoService organizationInfoService;
 
   @Value("${feature.add_missing_labels}")
   private boolean featureAddMissingLabels;
@@ -43,6 +45,9 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
 
   @Value("${feature.add_missing_parent_items_of_hierarchical_vocabs}")
   private boolean featureAddMissingParentItems;
+
+  @Value("${feature.amb.add_external_organization_info}")
+  private boolean featureAddExternalOrganizationInfo;
 
   @Override
   public void process(BackendMetadata metadata) {
@@ -82,20 +87,28 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
     if (creators == null) {
       creators = new ArrayList<>();
     }
-    List<Object> persons = creators.stream().filter(c -> "Person".equals(c.get("type"))).collect(Collectors.toList());
+    List<Map<String, Object>> persons = creators.stream().filter(c -> "Person".equals(c.get("type"))).toList();
     internalData.put("persons", persons);
 
-    List<Object> institutions = new ArrayList<>();
-    institutions.addAll(creators.stream().filter(c -> "Organization".equals(c.get("type"))).collect(Collectors.toList()));
+    List<Map<String, Object>> institutions = new ArrayList<>();
+    institutions.addAll(creators.stream().filter(c -> "Organization".equals(c.get("type"))).toList());
     institutions.addAll(creators.stream().filter(c -> c.get("affiliation") != null)
-      .map(c -> c.get("affiliation"))
-      .collect(Collectors.toList()));
-    List<Object> sourceOrganization = MetadataHelper.parseList(internalData, "sourceOrganization", new TypeReference<>() {});
+      .map(c -> MetadataHelper.parse(c, "affiliation", new TypeReference<Map<String, Object>>() {}))
+      .toList());
+    List<Map<String, Object>> sourceOrganization = MetadataHelper.parseList(internalData, "sourceOrganization", new TypeReference<>() {});
     if (sourceOrganization != null) {
       institutions.addAll(sourceOrganization);
     }
     List<Map<String, Object>> publishers = MetadataHelper.parseList(internalData, "publisher", new TypeReference<>() {});
     institutions.addAll(determineInstitutionsForWhitelistedPublisher(publishers));
+    if (featureAddExternalOrganizationInfo) {
+      for (Map<String, Object> institution: institutions) {
+        OrganizationInfo organizationInfo = organizationInfoService.getOrganizationInfo((String) institution.get("id"));
+        if (organizationInfo != null) {
+          institution.put("location", organizationInfo.getLocations());
+        }
+      }
+    }
     internalData.put("institutions", institutions);
 
     metadata.setAdditionalData(internalData);
@@ -253,6 +266,10 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
 
   protected void setFeatureAddMissingParentItems(boolean featureAddMissingParentItems) {
     this.featureAddMissingParentItems = featureAddMissingParentItems;
+  }
+
+  protected void setFeatureAddExternalOrganizationInfo(boolean featureAddExternalOrganizationInfo) {
+    this.featureAddExternalOrganizationInfo = featureAddExternalOrganizationInfo;
   }
 
 }

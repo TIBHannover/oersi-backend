@@ -3,10 +3,13 @@ package org.oersi.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.oersi.ElasticsearchServicesMock;
+import org.oersi.connector.RorConnector;
 import org.oersi.domain.BackendConfig;
 import org.oersi.domain.BackendMetadata;
 import org.oersi.domain.OembedInfo;
+import org.oersi.domain.OrganizationInfo;
 import org.oersi.repository.BackendConfigRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,6 +35,8 @@ class AmbMetadataProcessorTest {
   @Autowired
   private ConfigService configService;
 
+  @MockBean
+  private RorConnector rorConnector;
   @MockBean
   private VocabService vocabService;
   @Autowired
@@ -243,6 +248,56 @@ class AmbMetadataProcessorTest {
           Map.of("type", "Organization", "name", "XYZ-institute")
       )
     );
+  }
+
+  @Test
+  void testRorLocationData() {
+    OrganizationInfo resp = new OrganizationInfo();
+    resp.setOrganizationId("https://ror.org/04aj4c181");
+    var location = new OrganizationInfo.Location();
+    var address = new OrganizationInfo.Location.Address();
+    address.setAddressCountry("DE");
+    address.setAddressRegion("Lower Saxony");
+    location.setAddress(address);
+    resp.setLocations(List.of(location));
+    when(rorConnector.loadOrganizationInfo(Mockito.anyString())).thenReturn(null);
+    when(rorConnector.loadOrganizationInfo("https://ror.org/04aj4c181")).thenReturn(resp);
+    BackendMetadata data = MetadataHelper.toMetadata(
+            new HashMap<>(Map.of(
+                    "id", "https://www.test.de",
+                    "name", "test",
+                    "sourceOrganization", List.of(
+                            Map.of(
+                                    "type", "Organization",
+                                    "name", "an organization without id"
+                            ),
+                            Map.of(
+                                    "type", "Organization",
+                                    "name", "an organization without known id",
+                                    "id", "https://example.org/id"
+                            ),
+                            Map.of(
+                                    "type", "Organization",
+                                    "name", "organization with ror id",
+                                    "id", "https://ror.org/04aj4c181"
+                            )
+                    )
+            )));
+    processor.setFeatureAddExternalOrganizationInfo(true);
+    processor.process(data);
+    assertThat(
+            data.getAdditionalData()).isNotNull()
+            .containsEntry(
+                    "institutions", List.of(
+                            Map.of("type", "Organization", "name", "an organization without id"),
+                            Map.of("id", "https://example.org/id","type", "Organization", "name", "an organization without known id"),
+                            Map.of("id", "https://ror.org/04aj4c181",
+                                    "type", "Organization",
+                                    "name", "organization with ror id",
+                                    "location", List.of(location)
+                            )
+                    )
+            );
   }
 
   @Test
