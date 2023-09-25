@@ -12,6 +12,8 @@ public class ElasticsearchServicesMock {
   @MockBean
   private BackendConfigRepository configRepository;
   @MockBean
+  private OrganizationInfoRepository organizationInfoRepository;
+  @MockBean
   private VocabItemRepository vocabItemRepository;
   @MockBean
   private ElasticsearchRequestLogRepository requestLogRepository;
