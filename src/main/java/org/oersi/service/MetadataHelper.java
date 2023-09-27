@@ -40,4 +40,22 @@ public class MetadataHelper {
     return objectMapper.convertValue(value, typeRef);
   }
 
+  public interface ObjectModifier {
+    void modify(Map<String, Object> object);
+  }
+  public static void modifyObject(Map<String, Object> properties, String fieldName, ObjectModifier modifier) {
+    Map<String, Object> object = parse(properties, fieldName, new TypeReference<>() {});
+    if (object != null) {
+      modifier.modify(object);
+      properties.put(fieldName, object);
+    }
+  }
+  public static void modifyObjectList(Map<String, Object> properties, String fieldName, ObjectModifier modifier) {
+    List<Map<String, Object>> objects = parse(properties, fieldName, new TypeReference<>() {});
+    if (objects != null) {
+      objects.forEach(modifier::modify);
+      properties.put(fieldName, objects);
+    }
+  }
+
 }
