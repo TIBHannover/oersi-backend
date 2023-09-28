@@ -109,26 +109,44 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
         }
       }
     }
+    mapInstitutionNameToInternalName(institutions);
     internalData.put("institutions", institutions);
 
     metadata.setAdditionalData(internalData);
   }
 
   @Data
-  public static class WhitelistMapping {
-    private String name;
+  private static class InstitutionMapping {
     private String regex;
+    private Pattern regexPattern;
+    private String internalName;
+    private boolean copyFromPublisher;
+    private String defaultId;
   }
-
-  private List<WhitelistMapping> getPublisherToInstitutionWhitelistMapping() {
+  private interface InstitutionMappingProcessor {
+    void process(Map<String, Object> institution, InstitutionMapping mapping);
+  }
+  private List<InstitutionMapping> getInstitutionMapping() {
     BackendConfig config = configService.getMetadataConfig();
     if (config != null && config.getCustomConfig() != null) {
-      List<WhitelistMapping> publisherMappings = MetadataHelper.parseList(config.getCustomConfig(), "publisherToInstitutionWhitelist", new TypeReference<>() {});
-      if (publisherMappings != null) {
-        return publisherMappings;
+      List<InstitutionMapping> institutionMapping = MetadataHelper.parseList(config.getCustomConfig(), "institutionMapping", new TypeReference<>() {});
+      if (institutionMapping != null) {
+        institutionMapping.forEach(m -> m.setRegexPattern(Pattern.compile(m.regex)));
+        return institutionMapping;
       }
     }
     return new ArrayList<>();
+  }
+
+  private void processInstitutionMapping(List<InstitutionMapping> institutionMappings, List<Map<String, Object>> institutions, InstitutionMappingProcessor processor) {
+    if (institutions == null || institutions.isEmpty()) {
+      return;
+    }
+    final List<InstitutionMapping> finalInstitutionMappings = Objects.requireNonNullElseGet(institutionMappings, this::getInstitutionMapping);
+    institutions.forEach(institution -> finalInstitutionMappings.stream()
+            .filter(mapping -> mapping.regexPattern.matcher((String) institution.get("name")).matches())
+            .findFirst()
+            .ifPresent(institutionMapping -> processor.process(institution, institutionMapping)));
   }
 
   private List<Map<String, Object>> determineInstitutionsForWhitelistedPublisher(List<Map<String, Object>> publishers) {
@@ -136,21 +154,29 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
     if (publishers == null || publishers.isEmpty()) {
       return institutions;
     }
-    List<WhitelistMapping> publisherMappings = getPublisherToInstitutionWhitelistMapping();
-    publishers.forEach(publisher -> publisherMappings.forEach(mapping -> {
-      String publisherName = (String) publisher.get("name");
-      var pattern = Pattern.compile(mapping.getRegex());
-      var matcher = pattern.matcher(publisherName);
-      if (matcher.matches()) {
-        if (mapping.getName() != null) {
-          publisher.put("name", mapping.getName());
-        } else {
-          publisher.put("name", matcher.group(1));
-        }
-        institutions.add(publisher);
-      }
-    }));
+    List<InstitutionMapping> publisherMappings = getInstitutionMapping().stream().filter(m -> m.copyFromPublisher).toList();
+    processInstitutionMapping(publisherMappings, publishers, (institution, mapping) -> institutions.add(institution));
     return institutions;
+  }
+
+  private void mapInstitutionNameToInternalName(List<Map<String, Object>> institutions) {
+    processInstitutionMapping(null, institutions, (institution, mapping) -> {
+      var matcher = mapping.regexPattern.matcher((CharSequence) institution.get("name"));
+      if (matcher.matches()) {
+        if (mapping.getInternalName() != null) {
+          institution.put("name", mapping.getInternalName());
+        } else if (matcher.group(1) != null) {
+          institution.put("name", matcher.group(1));
+        }
+      }
+    });
+  }
+  private void addDefaultInstitutionId(List<InstitutionMapping> institutionMappings, List<Map<String, Object>> institutions) {
+    processInstitutionMapping(institutionMappings, institutions, (institution, mapping) -> {
+      if (institution.get("id") == null && mapping.defaultId != null) {
+        institution.put("id", mapping.defaultId);
+      }
+    });
   }
 
   private void addDefaultValues(final BackendMetadata metadata) {
@@ -161,11 +187,19 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
     if (metadata.get("isAccessibleForFree") == null) {
       metadata.getData().put("isAccessibleForFree", true);
     }
-    List<Map<String, Object>> encoding = MetadataHelper.parseList(metadata.getData(), FIELD_NAME_ENCODING, new TypeReference<>() {});
-    if (encoding != null) {
-      encoding.stream().filter(e -> e.get("type") == null).forEach(e -> e.put("type", "MediaObject"));
-      metadata.getData().put(FIELD_NAME_ENCODING, encoding);
-    }
+    MetadataHelper.modifyObjectList(metadata.getData(), FIELD_NAME_ENCODING, e -> e.putIfAbsent("type", "MediaObject"));
+    // default organization IDs
+    List<InstitutionMapping> institutionMappings = getInstitutionMapping();
+    List.of("creator", "sourceOrganization", "publisher").forEach(fieldName -> {
+      MetadataHelper.modifyObjectList(metadata.getData(), fieldName, institution -> {
+        if ("Organization".equals(institution.get("type"))) {
+          addDefaultInstitutionId(institutionMappings, List.of(institution));
+        }
+        if (institution.get("affiliation") != null) {
+          MetadataHelper.modifyObject(institution, "affiliation", affiliation -> addDefaultInstitutionId(institutionMappings, List.of(affiliation)));
+        }
+      });
+    });
   }
 
   private List<String> getLabelledConceptFields() {

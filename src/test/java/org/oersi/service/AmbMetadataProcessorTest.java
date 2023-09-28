@@ -214,9 +214,10 @@ class AmbMetadataProcessorTest {
   void testPublisherToInstitutionWhitelistMapping() {
     BackendConfig config = new BackendConfig();
     config.setCustomConfig(Map.of(
-      "publisherToInstitutionWhitelist", List.of(
-        Map.of("regex", ".*(ABC-institution).*"),
-        Map.of("regex", ".*(XxxYyyZzz-institute of technology).*", "name", "XYZ-institute")
+      "institutionMapping", List.of(
+              Map.of("regex", "(.*not whitelisted.*)", "copyFromPublisher", "false"),
+              Map.of("regex", ".*(ABC-institution).*", "copyFromPublisher", "true"),
+              Map.of("regex", ".*(XxxYyyZzz-institute of technology).*", "internalName", "XYZ-institute", "copyFromPublisher", "true")
       )
     ));
     when(configRepository.findById("oersi_backend_config")).thenReturn(Optional.of(config));
@@ -248,6 +249,65 @@ class AmbMetadataProcessorTest {
           Map.of("type", "Organization", "name", "XYZ-institute")
       )
     );
+  }
+
+  @Test
+  void testInstitutionDefaultIdMapping() {
+    BackendConfig config = new BackendConfig();
+    config.setCustomConfig(Map.of(
+            "institutionMapping", List.of(
+                    Map.of("regex", ".*(ABC-institution).*", "copyFromPublisher", "true", "defaultId", "https://ror.org/id1"),
+                    Map.of("regex", ".*(XYZ-institute).*", "internalName", "XYZ-institute", "copyFromPublisher", "true", "defaultId", "https://ror.org/id2")
+            )
+    ));
+    when(configRepository.findById("oersi_backend_config")).thenReturn(Optional.of(config));
+    BackendMetadata data = MetadataHelper.toMetadata(
+            new HashMap<>(Map.of(
+                    "id", "https://www.test.de",
+                    "name", "test",
+                    "creator", List.of(
+                            Map.of(
+                                    "type", "Organization",
+                                    "name", "an organization without id"
+                            ),
+                            Map.of(
+                                    "type", "Organization",
+                                    "name", "ABC-institution"
+                            ),
+                            Map.of(
+                                    "type", "Person",
+                                    "name", "Mustermensch",
+                                    "affiliation", Map.of(
+                                            "type", "Organization",
+                                            "name", "ABC-institution"
+                                    )
+                            ),
+                            Map.of(
+                                    "type", "Organization",
+                                    "name", "XYZ-institute",
+                                    "id", "https://example.org/someid"
+                            )
+                    )
+            )));
+    processor.process(data);
+    assertThat(
+            data.getData()).isNotNull()
+            .containsEntry(
+                    "creator", List.of(
+                            Map.of("type", "Organization", "name", "an organization without id"),
+                            Map.of("type", "Organization", "name", "ABC-institution", "id", "https://ror.org/id1"),
+                            Map.of(
+                                    "type", "Person",
+                                    "name", "Mustermensch",
+                                    "affiliation", Map.of(
+                                            "type", "Organization",
+                                            "name", "ABC-institution",
+                                            "id", "https://ror.org/id1"
+                                    )
+                            ),
+                            Map.of("type", "Organization", "name", "XYZ-institute", "id", "https://example.org/someid")
+                    )
+            );
   }
 
   @Test
