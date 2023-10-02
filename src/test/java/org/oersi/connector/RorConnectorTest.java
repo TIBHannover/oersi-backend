@@ -72,6 +72,18 @@ class RorConnectorTest {
   }
 
   @Test
+  void testLoadOrganizationInfoWithoutLatLon() {
+    RorConnector.RorOrganization testData = getTestData();
+    testData.getAddresses().get(0).setLat(null);
+    testData.getAddresses().get(0).setLng(null);
+    mockResponse(testData);
+
+    OrganizationInfo info = rorConnector.loadOrganizationInfo("https://ror.org/04aj4c181");
+    assertThat(info).isNotNull();
+    assertThat(info.getLocations()).hasSize(1);
+  }
+
+  @Test
   void testInvalidUrl() {
     var result = rorConnector.loadOrganizationInfo("https://example.org/something");
     assertThat(result).isNull();
