@@ -51,7 +51,9 @@ public class RorConnector implements OrganizationInfoConnector {
     List<OrganizationInfo.Location> locations = new ArrayList<>();
     for (RorOrganization.Address address : rorOrganization.addresses) {
       OrganizationInfo.Location location = new OrganizationInfo.Location();
-      location.setGeo(new GeoPoint(address.lat, address.lng));
+      if (address.lat != null && address.lng != null) {
+        location.setGeo(new GeoPoint(address.lat, address.lng));
+      }
       OrganizationInfo.Location.Address locationAddress = new OrganizationInfo.Location.Address();
       locationAddress.setAddressCountry(rorOrganization.country.countryCode);
       locationAddress.setAddressLocality(address.city);
