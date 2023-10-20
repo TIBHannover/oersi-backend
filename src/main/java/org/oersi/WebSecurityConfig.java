@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -36,23 +37,23 @@ public class WebSecurityConfig {
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(
-                        "/api/search/**",
-                        "/api/label/**",
-                        "/api/deprecated/label/**",
-                        "/api/contact",
-                        "/api/oembed-json",
-                        "/api/oembed-xml",
+                        AntPathRequestMatcher.antMatcher("/api/search/**"),
+                        AntPathRequestMatcher.antMatcher("/api/label/**"),
+                        AntPathRequestMatcher.antMatcher("/api/deprecated/label/**"),
+                        AntPathRequestMatcher.antMatcher("/api/contact"),
+                        AntPathRequestMatcher.antMatcher("/api/oembed-json"),
+                        AntPathRequestMatcher.antMatcher("/api/oembed-xml"),
                         // swagger ui
-                        "/swagger-ui.html",
-                        "/swagger-ui/**",
-                        "/api-docs/**"
+                        AntPathRequestMatcher.antMatcher("/swagger-ui.html"),
+                        AntPathRequestMatcher.antMatcher("/swagger-ui/**"),
+                        AntPathRequestMatcher.antMatcher("/api-docs/**")
                 ).permitAll()
         )
         .httpBasic(withDefaults())
         .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/api/metadata/**").hasRole(ROLE_MANAGE_OERMETADATA)
-                .requestMatchers("/api/metadata-config/**").hasRole(ROLE_MANAGE_OERMETADATA)
-                .requestMatchers("/api/vocab/**").hasRole(ROLE_MANAGE_OERMETADATA)
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/metadata/**")).hasRole(ROLE_MANAGE_OERMETADATA)
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/metadata-config/**")).hasRole(ROLE_MANAGE_OERMETADATA)
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/vocab/**")).hasRole(ROLE_MANAGE_OERMETADATA)
         );
     return http.build();
   }
