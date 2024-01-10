@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,7 +87,7 @@ public class MetadataServiceImpl implements MetadataService {
 
       results.add(result);
     }
-    List<BackendMetadata> dataToUpdate = results.stream().filter(MetadataUpdateResult::getSuccess).map(MetadataUpdateResult::getMetadata).collect(Collectors.toList());
+    List<BackendMetadata> dataToUpdate = results.stream().filter(MetadataUpdateResult::getSuccess).map(MetadataUpdateResult::getMetadata).toList();
     if (!dataToUpdate.isEmpty()) {
       metadataRepository.saveAll(dataToUpdate);
       publicMetadataIndexService.updatePublicIndices(dataToUpdate);
@@ -125,8 +126,8 @@ public class MetadataServiceImpl implements MetadataService {
       .collect(Collectors.toSet());
     List<Map<String, Object>> keepEntries = existingMainEntityOfPage.stream()
       .filter(m -> !newIds.contains(m.get("id")))
-      .collect(Collectors.toList());
-    return Stream.concat(newMainEntityOfPage.stream(), keepEntries.stream()).collect(Collectors.toList());
+      .toList();
+    return Stream.concat(newMainEntityOfPage.stream(), keepEntries.stream()).toList();
   }
 
   /**
@@ -245,7 +246,7 @@ public class MetadataServiceImpl implements MetadataService {
   private Document getMapping() {
     Document mapping;
     try {
-      mapping = Document.parse(IOUtils.toString(indexMapping.getInputStream()));
+      mapping = Document.parse(IOUtils.toString(indexMapping.getInputStream(), Charset.defaultCharset()));
     } catch (IOException e) {
       throw new IllegalStateException("index mapping cannot be loaded");
     }
