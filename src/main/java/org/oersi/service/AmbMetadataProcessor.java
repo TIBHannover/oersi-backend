@@ -55,6 +55,7 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
     if (featureAddMissingMetadataInfos) {
       addMissingInfos(metadata);
     }
+    replaceMultipleRootSubjectsByInterdisciplinaryItem(metadata);
     if (featureAddMissingParentItems) {
       addMissingParentItemsForHierarchicalVocab(metadata);
     }
@@ -219,6 +220,26 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
       aboutParentMap = vocabService.getParentMap("hochschulfaechersystematik");
     }
     return aboutParentMap;
+  }
+  protected void resetAboutParentMap() {
+    aboutParentMap = null;
+  }
+
+  private void replaceMultipleRootSubjectsByInterdisciplinaryItem(BackendMetadata data) {
+    List<Map<String, Object>> about = MetadataHelper.parseList(data.getData(), FIELD_NAME_ABOUT, new TypeReference<>() {});
+    if (about != null) {
+      Set<String> ids = about.stream().map(e -> (String) e.get("id")).collect(Collectors.toSet());
+      if (ids.size() >= 3) {
+        Map<String, String> parentMap = getAboutParentMap();
+        for (String id : ids) {
+          if (parentMap.get(id) != null) {
+            return;
+          }
+        }
+        about = List.of(Map.of("id", "https://w3id.org/kim/hochschulfaechersystematik/n0"));
+        data.getData().put(FIELD_NAME_ABOUT, about);
+      }
+    }
   }
 
   private void addMissingParentItemsForHierarchicalVocab(BackendMetadata data) {

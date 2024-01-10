@@ -45,6 +45,7 @@ class AmbMetadataProcessorTest {
   @BeforeEach
   void setup() {
     configService.updateMetadataConfig(null);
+    processor.resetAboutParentMap();
   }
 
   @Test
@@ -67,6 +68,53 @@ class AmbMetadataProcessorTest {
 
     assertThat(data.get("about")).isInstanceOf(List.class);
     assertThat((List<?>) data.get("about")).hasSize(3);
+  }
+
+  @Test
+  void testAboutWithMultipleParentSubjects() {
+    BackendMetadata data = MetadataHelper.toMetadata(
+            new HashMap<>(Map.of(
+                    "id", "https://www.test.de",
+                    "about", List.of(
+                            Map.of("id", "https://w3id.org/kim/hochschulfaechersystematik/n4"),
+                            Map.of("id", "https://w3id.org/kim/hochschulfaechersystematik/n6"),
+                            Map.of("id", "https://w3id.org/kim/hochschulfaechersystematik/n9")
+                    )
+            )
+            ));
+    when(vocabService.getParentMap("hochschulfaechersystematik")).thenReturn(Map.of(
+            "https://w3id.org/kim/hochschulfaechersystematik/n42", "https://w3id.org/kim/hochschulfaechersystematik/n4"
+    ));
+
+    processor.setFeatureAddMissingParentItems(true);
+    processor.process(data);
+
+    assertThat(data.get("about")).isInstanceOf(List.class);
+    assertThat((List<?>) data.get("about")).hasSize(1);
+  }
+
+  @Test
+  void testAboutWithMultipleParentSubjectsButAlsoWithChildSubjects() {
+    BackendMetadata data = MetadataHelper.toMetadata(
+            new HashMap<>(Map.of(
+                    "id", "https://www.test.de",
+                    "about", List.of(
+                            Map.of("id", "https://w3id.org/kim/hochschulfaechersystematik/n4"),
+                            Map.of("id", "https://w3id.org/kim/hochschulfaechersystematik/n42"),
+                            Map.of("id", "https://w3id.org/kim/hochschulfaechersystematik/n6"),
+                            Map.of("id", "https://w3id.org/kim/hochschulfaechersystematik/n9")
+                    )
+            )
+            ));
+    when(vocabService.getParentMap("hochschulfaechersystematik")).thenReturn(Map.of(
+            "https://w3id.org/kim/hochschulfaechersystematik/n42", "https://w3id.org/kim/hochschulfaechersystematik/n4"
+    ));
+
+    processor.setFeatureAddMissingParentItems(true);
+    processor.process(data);
+
+    assertThat(data.get("about")).isInstanceOf(List.class);
+    assertThat((List<?>) data.get("about")).hasSize(4);
   }
 
   @Test
