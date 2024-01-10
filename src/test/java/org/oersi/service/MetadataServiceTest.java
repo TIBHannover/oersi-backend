@@ -40,7 +40,7 @@ class MetadataServiceTest {
 
   private BackendMetadata newMetadata() {
     return MetadataHelper.toMetadata(new HashMap<>(Map.ofEntries(
-      Map.entry("@context", List.of("https://w3id.org/kim/amb/draft/context.jsonld", Map.of("@language", "de"))),
+      Map.entry("@context", List.of("https://w3id.org/kim/amb/context.jsonld", Map.of("@language", "de"))),
       Map.entry("id", "https://www.test.de"),
       Map.entry("name", "Test Title"),
       Map.entry("description", "test description"),
