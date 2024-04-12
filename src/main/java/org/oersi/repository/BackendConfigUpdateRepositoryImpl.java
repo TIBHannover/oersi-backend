@@ -1,5 +1,6 @@
 package org.oersi.repository;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NonNull;
@@ -20,8 +21,14 @@ import java.util.Map;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class BackendConfigUpdateRepositoryImpl implements BackendConfigUpdateRepository {
 
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = getObjectMapper();
   private final @NonNull ElasticsearchOperations elasticsearchOperations;
+
+  private static ObjectMapper getObjectMapper() {
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    return objectMapper;
+  }
 
   @Override
   public BackendConfig createOrUpdate(BackendConfig o) {
