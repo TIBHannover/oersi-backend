@@ -32,7 +32,7 @@ public class MetadataAutoUpdater {
     AutoUpdateInfo info = new AutoUpdateInfo();
     for (AutoUpdateProperties.Entry definition : autoUpdateProperties.getDefinitions()) {
       var pattern = Pattern.compile(definition.getRegex());
-      var id = metadataFieldService.getIdentifier(data);
+      var id = metadataFieldService.getIdentifier(data.getData());
       var matcher = pattern.matcher(id);
       if (matcher.matches()) {
         info.setEmbedUrl(getEmbedUrl(id, definition, matcher));

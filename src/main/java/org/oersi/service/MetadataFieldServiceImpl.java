@@ -48,8 +48,8 @@ public class MetadataFieldServiceImpl implements MetadataFieldService {
   }
 
   @Override
-  public String getIdentifier(BackendMetadata metadata) {
-    return getIdentifier(metadata.getData(), baseFieldConfig.getResourceIdentifier());
+  public String getIdentifier(Map<String, Object> properties) {
+    return getIdentifier(properties, baseFieldConfig.getResourceIdentifier());
   }
 
   private static String getIdentifier(Map<String, Object> properties, String resourceIdentifierField) {

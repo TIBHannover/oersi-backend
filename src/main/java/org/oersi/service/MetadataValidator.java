@@ -1,6 +1,8 @@
 package org.oersi.service;
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaClient;
@@ -22,13 +24,13 @@ import java.util.Map;
 @Slf4j
 public class MetadataValidator {
 
-  private final Schema baseSchema;
+  private final @NonNull MetadataFieldService metadataFieldService;
   private final Schema schema;
 
-  public MetadataValidator(@Value("${metadata.schema.location}") String schemaLocation, @Value("${metadata.schema.resolution_scope}") String schemaResolutionScope, @Value("classpath:schemas/base/schema.json") Resource rawBaseSchema, ResourceLoader resourceLoader) throws IOException {
+  public MetadataValidator(MetadataFieldService metadataFieldService, @Value("${metadata.schema.location}") String schemaLocation, @Value("${metadata.schema.resolution_scope}") String schemaResolutionScope, ResourceLoader resourceLoader) throws IOException {
     Resource rawSchema = resourceLoader.getResource(schemaLocation);
-    baseSchema  = loadSchema(rawBaseSchema, "classpath://schemas/base/");
     schema = loadSchema(rawSchema, schemaResolutionScope);
+    this.metadataFieldService = metadataFieldService;
   }
 
   private Schema loadSchema(Resource rawSchema, String scope) throws IOException {
@@ -45,7 +47,15 @@ public class MetadataValidator {
   }
 
   public ValidatorResult validateBaseFields(Map<String, Object> data) {
-    return validate(baseSchema, data);
+    ValidatorResult result = new ValidatorResult();
+    try {
+      if (StringUtils.isEmpty(metadataFieldService.getIdentifier(data))) {
+        result.addViolation("resource identifier is missing");
+      }
+    } catch (IllegalArgumentException e) {
+      result.addViolation(e.getMessage());
+    }
+    return result;
   }
 
   private ValidatorResult validate(Schema s, Map<String, Object> data) {

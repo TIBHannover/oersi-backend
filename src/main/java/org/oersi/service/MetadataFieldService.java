@@ -16,7 +16,7 @@ public interface MetadataFieldService {
     Object value;
   }
   BackendMetadata toMetadata(Map<String, Object> properties);
-  String getIdentifier(BackendMetadata metadata);
+  String getIdentifier(Map<String, Object> properties);
   Document getBackendMetadataMapping();
   String getNamedMetadataSourceQueryField(String queryName);
   String getMetadataSourceIdentifierField();
