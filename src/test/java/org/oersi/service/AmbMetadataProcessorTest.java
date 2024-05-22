@@ -50,14 +50,14 @@ class AmbMetadataProcessorTest {
 
   @Test
   void testAddParentItemsForHierarchicalVocab() {
-    BackendMetadata data = MetadataHelper.toMetadata(
+    BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
       new HashMap<>(Map.of(
         "id", "https://www.test.de",
         "about", List.of(
           Map.of("id", "https://w3id.org/kim/hochschulfaechersystematik/n009")
         )
       )
-    ));
+    ), "id");
     when(vocabService.getParentMap("hochschulfaechersystematik")).thenReturn(Map.of(
             "https://w3id.org/kim/hochschulfaechersystematik/n009", "https://w3id.org/kim/hochschulfaechersystematik/n42",
             "https://w3id.org/kim/hochschulfaechersystematik/n42", "https://w3id.org/kim/hochschulfaechersystematik/n4"
@@ -72,7 +72,7 @@ class AmbMetadataProcessorTest {
 
   @Test
   void testAboutWithMultipleParentSubjects() {
-    BackendMetadata data = MetadataHelper.toMetadata(
+    BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
             new HashMap<>(Map.of(
                     "id", "https://www.test.de",
                     "about", List.of(
@@ -81,7 +81,7 @@ class AmbMetadataProcessorTest {
                             Map.of("id", "https://w3id.org/kim/hochschulfaechersystematik/n9")
                     )
             )
-            ));
+            ), "id");
     when(vocabService.getParentMap("hochschulfaechersystematik")).thenReturn(Map.of(
             "https://w3id.org/kim/hochschulfaechersystematik/n42", "https://w3id.org/kim/hochschulfaechersystematik/n4"
     ));
@@ -95,7 +95,7 @@ class AmbMetadataProcessorTest {
 
   @Test
   void testAboutWithMultipleParentSubjectsButAlsoWithChildSubjects() {
-    BackendMetadata data = MetadataHelper.toMetadata(
+    BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
             new HashMap<>(Map.of(
                     "id", "https://www.test.de",
                     "about", List.of(
@@ -105,7 +105,7 @@ class AmbMetadataProcessorTest {
                             Map.of("id", "https://w3id.org/kim/hochschulfaechersystematik/n9")
                     )
             )
-            ));
+            ), "id");
     when(vocabService.getParentMap("hochschulfaechersystematik")).thenReturn(Map.of(
             "https://w3id.org/kim/hochschulfaechersystematik/n42", "https://w3id.org/kim/hochschulfaechersystematik/n4"
     ));
@@ -180,14 +180,14 @@ class AmbMetadataProcessorTest {
       "labelledConceptFields", List.of("about", "audience", "conditionsOfAccess", "learningResourceType")
     ));
     when(configRepository.findById("oersi_backend_config")).thenReturn(Optional.of(config));
-    BackendMetadata data = MetadataHelper.toMetadata(
+    BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
       new HashMap<>(Map.of(
         "id", "https://www.test.de",
         "about", List.of(new HashMap<>(Map.of("id", TEST_IDENTIFIER))),
         "audience", List.of(new HashMap<>(Map.of("id", TEST_IDENTIFIER))),
         "conditionsOfAccess", List.of(new HashMap<>(Map.of("id", TEST_IDENTIFIER))),
         "learningResourceType", List.of(new HashMap<>(Map.of("id", TEST_IDENTIFIER)))
-      )));
+      )), "id");
     when(vocabService.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
     processor.addMissingLabels(data);
     List.of("about", "audience", "conditionsOfAccess", "learningResourceType").forEach(field -> {
@@ -208,7 +208,7 @@ class AmbMetadataProcessorTest {
 
   @Test
   void testOembedInfo() {
-    BackendMetadata data = MetadataHelper.toMetadata(
+    BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
       Map.of(
         "id", "https://www.test.de",
         "name", "test",
@@ -228,7 +228,7 @@ class AmbMetadataProcessorTest {
           "type", "MediaObject",
           "embedUrl", "https://example.org/embed/#/123"
         )))
-      ));
+      ), "id");
     OembedInfo oembedInfo = new OembedInfo();
     processor.processOembedInfo(oembedInfo, data);
     assertThat(oembedInfo.getTitle()).isEqualTo(data.getData().get("name"));
@@ -239,7 +239,7 @@ class AmbMetadataProcessorTest {
 
   @Test
   void testCreatorToPersonsMapping() {
-    BackendMetadata data = MetadataHelper.toMetadata(
+    BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
       new HashMap<>(Map.of(
         "id", "https://www.test.de",
         "name", "test",
@@ -254,7 +254,7 @@ class AmbMetadataProcessorTest {
             "id", "https://example.org/ror"
           )
         )
-      )));
+      )), "id");
     processor.process(data);
     assertThat(data.getAdditionalData()).isNotNull().containsEntry("persons", List.of(Map.of("type", "Person", "name", "GivenName FamilyName")));
   }
@@ -269,7 +269,7 @@ class AmbMetadataProcessorTest {
       )
     ));
     when(configRepository.findById("oersi_backend_config")).thenReturn(Optional.of(config));
-    BackendMetadata data = MetadataHelper.toMetadata(
+    BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
       new HashMap<>(Map.of(
         "id", "https://www.test.de",
         "name", "test",
@@ -287,7 +287,7 @@ class AmbMetadataProcessorTest {
             "name", "XxxYyyZzz-institute of technology"
           )
         )
-      )));
+      )), "id");
     processor.process(data);
     assertThat(
       data.getAdditionalData()).isNotNull()
@@ -309,7 +309,7 @@ class AmbMetadataProcessorTest {
             )
     ));
     when(configRepository.findById("oersi_backend_config")).thenReturn(Optional.of(config));
-    BackendMetadata data = MetadataHelper.toMetadata(
+    BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
             new HashMap<>(Map.of(
                     "id", "https://www.test.de",
                     "name", "test",
@@ -336,7 +336,7 @@ class AmbMetadataProcessorTest {
                                     "id", "https://example.org/someid"
                             )
                     )
-            )));
+            )), "id");
     processor.process(data);
     assertThat(
             data.getData()).isNotNull()
@@ -370,7 +370,7 @@ class AmbMetadataProcessorTest {
     resp.setLocations(List.of(location));
     when(rorConnector.loadOrganizationInfo(Mockito.anyString())).thenReturn(null);
     when(rorConnector.loadOrganizationInfo("https://ror.org/04aj4c181")).thenReturn(resp);
-    BackendMetadata data = MetadataHelper.toMetadata(
+    BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
             new HashMap<>(Map.of(
                     "id", "https://www.test.de",
                     "name", "test",
@@ -390,7 +390,7 @@ class AmbMetadataProcessorTest {
                                     "id", "https://ror.org/04aj4c181"
                             )
                     )
-            )));
+            )), "id");
     processor.setFeatureAddExternalOrganizationInfo(true);
     processor.process(data);
     assertThat(
@@ -410,7 +410,7 @@ class AmbMetadataProcessorTest {
 
   @Test
   void testEncodingDefaultValueForType() {
-    BackendMetadata data = MetadataHelper.toMetadata(
+    BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
       new HashMap<>(Map.of(
         "id", "https://www.test.de",
         "name", "test",
@@ -422,7 +422,7 @@ class AmbMetadataProcessorTest {
             "embedUrl", "https://example.org/embed/123"
           )
         )
-      )));
+      )), "id");
     processor.process(data);
     assertThat(data.getData()).isNotNull()
       .containsEntry("encoding", List.of(

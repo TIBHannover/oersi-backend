@@ -22,12 +22,12 @@ class NoCustomProcessorTest {
 
     @Test
     void testNoCustomProcessor() {
-        BackendMetadata data = MetadataHelper.toMetadata(
+        BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
                 new HashMap<>(Map.of(
                         "id", "https://www.test.de",
                         "name", "test"
                 )
-                ));
+                ), "id");
         OembedInfo oembedInfo = new OembedInfo();
         metadataCustomProcessor.process(data);
         oembedInfo = metadataCustomProcessor.processOembedInfo(oembedInfo, data);

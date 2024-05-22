@@ -26,12 +26,13 @@ import java.util.regex.Pattern;
 public class MetadataAutoUpdater {
 
   private final @NonNull AutoUpdateProperties autoUpdateProperties;
+  private final @NonNull MetadataFieldService metadataFieldService;
 
   public void initAutoUpdateInfo(BackendMetadata data) {
     AutoUpdateInfo info = new AutoUpdateInfo();
     for (AutoUpdateProperties.Entry definition : autoUpdateProperties.getDefinitions()) {
       var pattern = Pattern.compile(definition.getRegex());
-      var id = (String) data.getData().get("id");
+      var id = metadataFieldService.getIdentifier(data);
       var matcher = pattern.matcher(id);
       if (matcher.matches()) {
         info.setEmbedUrl(getEmbedUrl(id, definition, matcher));

@@ -39,7 +39,7 @@ class MetadataServiceTest {
   }
 
   private BackendMetadata newMetadata() {
-    return MetadataHelper.toMetadata(new HashMap<>(Map.ofEntries(
+    return MetadataFieldServiceImpl.toMetadata(new HashMap<>(Map.ofEntries(
       Map.entry("@context", List.of("https://w3id.org/kim/amb/context.jsonld", Map.of("@language", "de"))),
       Map.entry("id", "https://www.test.de"),
       Map.entry("name", "Test Title"),
@@ -75,7 +75,7 @@ class MetadataServiceTest {
           "provider", Map.of("id", "http://example.url/provider/testprovider", "name", "provider name")
         )
       )))
-    )));
+    )), "id");
   }
 
   private Map<String, Object> buildMainEntityOfPage(String id, String provider) {
@@ -95,12 +95,12 @@ class MetadataServiceTest {
   @Test
   void testCreateOrUpdateWithMinimalData() {
     BackendMetadata dummy = newMetadata();
-    BackendMetadata metadata = MetadataHelper.toMetadata(new HashMap<>(Map.of(
+    BackendMetadata metadata = MetadataFieldServiceImpl.toMetadata(new HashMap<>(Map.of(
       "@context", dummy.getData().get("@context"),
       "id", dummy.getData().get("id"),
       "name", dummy.getData().get("name"),
       "mainEntityOfPage", dummy.getData().get("mainEntityOfPage")
-    )));
+    )), "id");
     service.createOrUpdate(metadata);
     verify(repository, times(1)).saveAll(anyList());
   }

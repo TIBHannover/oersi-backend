@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -50,7 +49,7 @@ public class PublicMetadataIndexServiceImpl implements PublicMetadataIndexServic
     IndexCoordinates metadataIndexCoordinates = getPublicMetadataIndexCoordinates();
     if (metadataIndexCoordinates != null) {
       List<UpdateQuery> updates = backendMetadata.stream()
-        .map(m -> getUpdateQuery(m.getId(), m.getData())).filter(Objects::nonNull).collect(Collectors.toList());
+        .map(m -> getUpdateQuery(m.getId(), m.getData())).filter(Objects::nonNull).toList();
       if (!updates.isEmpty()) {
         elasticsearchOperations.bulkUpdate(updates, metadataIndexCoordinates);
         elasticsearchOperations.indexOps(metadataIndexCoordinates).refresh();
@@ -59,7 +58,7 @@ public class PublicMetadataIndexServiceImpl implements PublicMetadataIndexServic
     IndexCoordinates additionalMetadataIndexCoordinates = getPublicAdditionalMetadataIndexCoordinates();
     if (additionalMetadataIndexCoordinates != null) {
       List<UpdateQuery> updatesInternal = backendMetadata.stream()
-        .map(m -> getUpdateQuery(m.getId(), m.getAdditionalData())).filter(Objects::nonNull).collect(Collectors.toList());
+        .map(m -> getUpdateQuery(m.getId(), m.getAdditionalData())).filter(Objects::nonNull).toList();
       if (!updatesInternal.isEmpty()) {
         elasticsearchOperations.bulkUpdate(updatesInternal, additionalMetadataIndexCoordinates);
         elasticsearchOperations.indexOps(additionalMetadataIndexCoordinates).refresh();
@@ -84,7 +83,7 @@ public class PublicMetadataIndexServiceImpl implements PublicMetadataIndexServic
   @Transactional
   @Override
   public void delete(List<BackendMetadata> backendMetadata) {
-    List<String> ids = backendMetadata.stream().map(BackendMetadata::getId).collect(Collectors.toList());
+    List<String> ids = backendMetadata.stream().map(BackendMetadata::getId).toList();
     delete(getPublicMetadataIndexCoordinates(), ids);
     delete(getPublicAdditionalMetadataIndexCoordinates(), ids);
   }

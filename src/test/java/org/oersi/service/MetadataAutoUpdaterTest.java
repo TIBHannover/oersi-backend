@@ -20,7 +20,7 @@ class MetadataAutoUpdaterTest {
 
   @Test
   void testProviderInfos() {
-    BackendMetadata data = MetadataHelper.toMetadata(Map.of("id", "https://av.tib.eu/media/12345"));
+    BackendMetadata data = MetadataFieldServiceImpl.toMetadata(Map.of("id", "https://av.tib.eu/media/12345"), "id");
 
     metadataAutoUpdater.initAutoUpdateInfo(data);
     assertThat(data.getAutoUpdateInfo().getProviderName()).isEqualTo("TIB AV-Portal");
@@ -29,7 +29,7 @@ class MetadataAutoUpdaterTest {
 
   @Test
   void testEmbedUrl() {
-    BackendMetadata data = MetadataHelper.toMetadata(Map.of("id", "https://av.tib.eu/media/12345"));
+    BackendMetadata data = MetadataFieldServiceImpl.toMetadata(Map.of("id", "https://av.tib.eu/media/12345"), "id");
 
     metadataAutoUpdater.initAutoUpdateInfo(data);
     assertThat(data.getAutoUpdateInfo().getEmbedUrl()).isEqualTo("https://av.tib.eu/player/12345");

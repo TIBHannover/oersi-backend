@@ -34,5 +34,8 @@ public class BackendMetadata {
   public Object get(String fieldName) {
     return data.get(fieldName);
   }
+  public static String mapToElasticsearchPath(String fieldPath) {
+    return "data." + fieldPath;
+  }
 
 }

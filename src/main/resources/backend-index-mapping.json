@@ -9,24 +9,6 @@
     "dateModified": {
       "type": "date",
       "format": "date_hour_minute_second"
-    },
-    "data": {
-      "properties": {
-        "mainEntityOfPage": {
-          "properties": {
-            "id": {
-              "type": "keyword"
-            },
-            "provider": {
-              "properties": {
-                "name": {
-                  "type": "keyword"
-                }
-              }
-            }
-          }
-        }
-      }
     }
   }
 }
