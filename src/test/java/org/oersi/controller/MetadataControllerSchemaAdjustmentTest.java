@@ -80,7 +80,7 @@ class MetadataControllerSchemaAdjustmentTest extends ElasticsearchContainerTest 
   private BackendMetadata createTestMetadata() {
     BackendMetadata data = getTestMetadata();
     BackendMetadata clone = MetadataFieldServiceImpl.toMetadata(data.getData(), "url");
-    clone.setAdditionalData(clone.getData());
+    clone.setExtendedData(clone.getData());
     publicMetadataIndexService.updatePublicIndices(List.of(clone));
     return repository.save(data);
   }

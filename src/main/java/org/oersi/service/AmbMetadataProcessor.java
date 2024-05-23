@@ -113,7 +113,7 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
     mapInstitutionNameToInternalName(institutions);
     internalData.put("institutions", institutions);
 
-    metadata.setAdditionalData(internalData);
+    metadata.setExtendedData(internalData);
   }
 
   @Data

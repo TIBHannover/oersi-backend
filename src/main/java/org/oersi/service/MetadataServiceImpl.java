@@ -208,7 +208,7 @@ public class MetadataServiceImpl implements MetadataService {
 
   private void updateMetadataSourceItems(BackendMetadata metadata, List<MetadataFieldService.MetadataSourceItem> metadataSourceItems) {
     metadataFieldService.updateMetadataSource(metadata.getData(), metadataSourceItems);
-    metadataFieldService.updateMetadataSource(metadata.getAdditionalData(), metadataSourceItems);
+    metadataFieldService.updateMetadataSource(metadata.getExtendedData(), metadataSourceItems);
     metadata.setDateModified(LocalDateTime.now());
   }
 

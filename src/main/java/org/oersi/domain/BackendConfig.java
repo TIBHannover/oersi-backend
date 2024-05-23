@@ -22,7 +22,7 @@ public class BackendConfig {
   private String id = "oersi_backend_config";
 
   private String metadataIndexName = null;
-  private String additionalMetadataIndexName = null;
+  private String extendedMetadataIndexName = null;
   private Map<String, Object> customConfig;
   private List<FieldProperties> fieldProperties;
 

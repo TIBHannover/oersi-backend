@@ -256,7 +256,7 @@ class AmbMetadataProcessorTest {
         )
       )), "id");
     processor.process(data);
-    assertThat(data.getAdditionalData()).isNotNull().containsEntry("persons", List.of(Map.of("type", "Person", "name", "GivenName FamilyName")));
+    assertThat(data.getExtendedData()).isNotNull().containsEntry("persons", List.of(Map.of("type", "Person", "name", "GivenName FamilyName")));
   }
   @Test
   void testPublisherToInstitutionWhitelistMapping() {
@@ -290,7 +290,7 @@ class AmbMetadataProcessorTest {
       )), "id");
     processor.process(data);
     assertThat(
-      data.getAdditionalData()).isNotNull()
+      data.getExtendedData()).isNotNull()
       .containsEntry(
         "institutions", List.of(
           Map.of("type", "Organization", "name", "ABC-institution"),
@@ -394,7 +394,7 @@ class AmbMetadataProcessorTest {
     processor.setFeatureAddExternalOrganizationInfo(true);
     processor.process(data);
     assertThat(
-            data.getAdditionalData()).isNotNull()
+            data.getExtendedData()).isNotNull()
             .containsEntry(
                     "institutions", List.of(
                             Map.of("type", "Organization", "name", "an organization without id"),

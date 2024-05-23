@@ -34,10 +34,10 @@ public class PublicMetadataIndexServiceImpl implements PublicMetadataIndexServic
     }
     return null;
   }
-  private IndexCoordinates getPublicAdditionalMetadataIndexCoordinates() {
+  private IndexCoordinates getPublicExtendedMetadataIndexCoordinates() {
     BackendConfig metadataConfig = configService.getMetadataConfig();
-    if (metadataConfig != null && !StringUtils.isEmpty(metadataConfig.getAdditionalMetadataIndexName())) {
-      return IndexCoordinates.of(metadataConfig.getAdditionalMetadataIndexName());
+    if (metadataConfig != null && !StringUtils.isEmpty(metadataConfig.getExtendedMetadataIndexName())) {
+      return IndexCoordinates.of(metadataConfig.getExtendedMetadataIndexName());
     }
     return null;
   }
@@ -55,13 +55,13 @@ public class PublicMetadataIndexServiceImpl implements PublicMetadataIndexServic
         elasticsearchOperations.indexOps(metadataIndexCoordinates).refresh();
       }
     }
-    IndexCoordinates additionalMetadataIndexCoordinates = getPublicAdditionalMetadataIndexCoordinates();
-    if (additionalMetadataIndexCoordinates != null) {
+    IndexCoordinates extendedMetadataIndexCoordinates = getPublicExtendedMetadataIndexCoordinates();
+    if (extendedMetadataIndexCoordinates != null) {
       List<UpdateQuery> updatesInternal = backendMetadata.stream()
-        .map(m -> getUpdateQuery(m.getId(), m.getAdditionalData())).filter(Objects::nonNull).toList();
+        .map(m -> getUpdateQuery(m.getId(), m.getExtendedData())).filter(Objects::nonNull).toList();
       if (!updatesInternal.isEmpty()) {
-        elasticsearchOperations.bulkUpdate(updatesInternal, additionalMetadataIndexCoordinates);
-        elasticsearchOperations.indexOps(additionalMetadataIndexCoordinates).refresh();
+        elasticsearchOperations.bulkUpdate(updatesInternal, extendedMetadataIndexCoordinates);
+        elasticsearchOperations.indexOps(extendedMetadataIndexCoordinates).refresh();
       }
     }
   }
@@ -77,7 +77,7 @@ public class PublicMetadataIndexServiceImpl implements PublicMetadataIndexServic
   @Override
   public void deleteAll() {
     recreateIndex(getPublicMetadataIndexCoordinates());
-    recreateIndex(getPublicAdditionalMetadataIndexCoordinates());
+    recreateIndex(getPublicExtendedMetadataIndexCoordinates());
   }
 
   @Transactional
@@ -85,7 +85,7 @@ public class PublicMetadataIndexServiceImpl implements PublicMetadataIndexServic
   public void delete(List<BackendMetadata> backendMetadata) {
     List<String> ids = backendMetadata.stream().map(BackendMetadata::getId).toList();
     delete(getPublicMetadataIndexCoordinates(), ids);
-    delete(getPublicAdditionalMetadataIndexCoordinates(), ids);
+    delete(getPublicExtendedMetadataIndexCoordinates(), ids);
   }
 
   private void delete(IndexCoordinates coordinates, List<String> ids) {

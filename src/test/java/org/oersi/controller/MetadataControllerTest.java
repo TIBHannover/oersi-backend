@@ -93,22 +93,22 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
   private BackendConfig setupPublicIndices() {
     BackendConfig initialConfig = new BackendConfig();
     initialConfig.setMetadataIndexName("oer_data_123");
-    initialConfig.setAdditionalMetadataIndexName("oer_data_additional_123");
+    initialConfig.setExtendedMetadataIndexName("oer_data_extended_123");
     configRepository.save(initialConfig);
     Document mapping = Document.parse("{\"dynamic\": \"false\"}");
     IndexOperations indexOperations = elasticsearchOperations.indexOps(IndexCoordinates.of(initialConfig.getMetadataIndexName()));
     var request = PutIndexTemplateRequest.builder().withName(initialConfig.getMetadataIndexName()).withIndexPatterns(initialConfig.getMetadataIndexName()).withMapping(mapping).build();
     indexOperations.putIndexTemplate(request);
-    IndexOperations additionalIndexOperations = elasticsearchOperations.indexOps(IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName()));
-    request = PutIndexTemplateRequest.builder().withName(initialConfig.getAdditionalMetadataIndexName()).withIndexPatterns(initialConfig.getAdditionalMetadataIndexName()).withMapping(mapping).build();
-    additionalIndexOperations.putIndexTemplate(request);
+    IndexOperations extendedIndexOperations = elasticsearchOperations.indexOps(IndexCoordinates.of(initialConfig.getExtendedMetadataIndexName()));
+    request = PutIndexTemplateRequest.builder().withName(initialConfig.getExtendedMetadataIndexName()).withIndexPatterns(initialConfig.getExtendedMetadataIndexName()).withMapping(mapping).build();
+    extendedIndexOperations.putIndexTemplate(request);
     return initialConfig;
   }
 
   private BackendMetadata createTestMetadata() {
     BackendMetadata data = getTestMetadata();
     BackendMetadata clone = MetadataFieldServiceImpl.toMetadata(data.getData(), "id");
-    clone.setAdditionalData(clone.getData());
+    clone.setExtendedData(clone.getData());
     publicMetadataIndexService.updatePublicIndices(List.of(clone));
     return repository.save(data);
   }
@@ -259,7 +259,7 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
         .content(asJson(metadata))).andExpect(status().isOk());
 
     assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
-    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getExtendedMetadataIndexName())));
   }
 
   @Test
@@ -479,13 +479,13 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
     BackendConfig initialConfig = setupPublicIndices();
     BackendMetadata existingMetadata = createTestMetadata();
     assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
-    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getExtendedMetadataIndexName())));
 
     mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/" + existingMetadata.getId())
       .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
 
     assertEquals(0, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
-    assertEquals(0, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+    assertEquals(0, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getExtendedMetadataIndexName())));
   }
 
   @Test
@@ -503,7 +503,7 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
     BackendConfig initialConfig = setupPublicIndices();
     createTestMetadata();
     assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
-    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getExtendedMetadataIndexName())));
 
     mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH)
       .contentType(MediaType.APPLICATION_JSON).param("update-public", "true"))
@@ -511,7 +511,7 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
 
     Assertions.assertEquals(0, repository.count());
     assertEquals(0, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
-    assertEquals(0, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+    assertEquals(0, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getExtendedMetadataIndexName())));
   }
 
   @Test
@@ -519,7 +519,7 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
     BackendConfig initialConfig = setupPublicIndices();
     createTestMetadata();
     assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
-    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getExtendedMetadataIndexName())));
 
     mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH)
         .contentType(MediaType.APPLICATION_JSON).param("update-public", "false"))
@@ -527,7 +527,7 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
 
     Assertions.assertEquals(0, repository.count());
     assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
-    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getExtendedMetadataIndexName())));
   }
   @Test
   void testDeleteByProviderName() throws Exception {

@@ -40,7 +40,7 @@ class ConfigControllerTest extends ElasticsearchContainerTest {
   void createConfig() throws Exception {
     ConfigDto config = new ConfigDto();
     config.setMetadataIndexName("index1");
-    config.setAdditionalMetadataIndexName("index2");
+    config.setExtendedMetadataIndexName("index2");
     mvc.perform(post(CONTROLLER_BASE_PATH)
       .contentType(MediaType.APPLICATION_JSON)
       .content(asJson(config))).andExpect(status().isOk());
@@ -52,12 +52,12 @@ class ConfigControllerTest extends ElasticsearchContainerTest {
   void updateConfig() throws Exception {
     BackendConfig initialConfig = new BackendConfig();
     initialConfig.setMetadataIndexName("old1");
-    initialConfig.setAdditionalMetadataIndexName("old2");
+    initialConfig.setExtendedMetadataIndexName("old2");
     configRepository.save(initialConfig);
 
     ConfigDto config = new ConfigDto();
     config.setMetadataIndexName("index1");
-    config.setAdditionalMetadataIndexName("index2");
+    config.setExtendedMetadataIndexName("index2");
     mvc.perform(post(CONTROLLER_BASE_PATH)
       .contentType(MediaType.APPLICATION_JSON)
       .content(asJson(config))).andExpect(status().isOk());
@@ -66,7 +66,7 @@ class ConfigControllerTest extends ElasticsearchContainerTest {
     BackendConfig oersiBackendConfig = configRepository.findById("oersi_backend_config").orElse(null);
     assertNotNull(oersiBackendConfig);
     assertEquals(config.getMetadataIndexName(), oersiBackendConfig.getMetadataIndexName());
-    assertEquals(config.getAdditionalMetadataIndexName(), oersiBackendConfig.getAdditionalMetadataIndexName());
+    assertEquals(config.getExtendedMetadataIndexName(), oersiBackendConfig.getExtendedMetadataIndexName());
   }
 
 }
