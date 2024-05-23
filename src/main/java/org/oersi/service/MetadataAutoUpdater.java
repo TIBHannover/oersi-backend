@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
  * Helper class that sets missing infos at {@link org.oersi.domain.BackendMetadata}
  */
 @Service
-@PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
+@PropertySource(value = "file:${envConfigDir:envConf/default/}search_index.properties")
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @Setter

@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.Map;
 
 @Service
-@PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
+@PropertySource(value = "file:${envConfigDir:envConf/default/}search_index.properties")
 @Slf4j
 public class MetadataValidator {
 

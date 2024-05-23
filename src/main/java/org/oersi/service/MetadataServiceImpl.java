@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
-@PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
+@PropertySource(value = "file:${envConfigDir:envConf/default/}search_index.properties")
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class MetadataServiceImpl implements MetadataService {

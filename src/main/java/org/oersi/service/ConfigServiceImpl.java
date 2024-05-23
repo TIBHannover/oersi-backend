@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
+@PropertySource(value = "file:${envConfigDir:envConf/default/}search_index.properties")
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ConfigServiceImpl implements ConfigService {

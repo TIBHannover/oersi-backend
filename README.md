@@ -1,14 +1,14 @@
 # OER Search Index Backend
 
-Backend / API of the OER Search Index for internal use. Provides access to the oer index data. Read data without authentification. Crud-operations to oer metadata authenticated.
+Backend / API of the Search Index for internal use. Provides access to the metadata index. Read data without authentification. Crud-operations to metadata authenticated.
 
-The (backend) API is not part of the oersi public API. It is designed to be consumed by the other oersi components (etl, frontend,...) or by a custom component (like a custom frontend).
+The (backend) API is not part of the public API. It is designed to be consumed by the other search index components (etl, frontend,...) or by a custom component (like a custom frontend).
 
 ## Configuration
 
 * Set up the configuration directory
     * _logback.xml_ - Logging-configuration
-    * _oersi.properties_ - configuration of the application
+    * _search_index.properties_ - configuration of the application
     * see example in _envConf/default_
 
 * set configuration directory with _envConfigDir=PATH_
@@ -32,10 +32,16 @@ docker run -it --rm --name elasticsearch -p 9200:9200 -e "ES_JAVA_OPTS=-Xms2g -X
 
 ## Supported Metadata Schema
 
-The schema that is supported by the backend have to include the following required properties:
-* `id` - unique identification of the resource
-* `mainEntityOfPage.id` - identification of the source metadata
-* `mainEntityOfPage.provider.name` - the name of the provider of the source metadata
+You need to specify the base schema fields of your schema in _search_index.properties_.
+* `base-field-config.resourceIdentifier` - (required) the field containing the unique identification of the resource
+* `base-field-config.metadataSource` - (optional) subfields define the usage of the source metadata information. If absent, no features (like deletions) via source-metadata-id is available.
+* `base-field-config.metadataSource.field` - the field containing the metadata source information
+* `base-field-config.metadataSource.useMultipleItems` - (true/false) contains the specified field a single value or multiple values
+* `base-field-config.metadataSource.isObject` - (true/false) contains the specified field an object or (a) string value(s)
+* `base-field-config.metadataSource.objectIdentifier` - the identifier of the object item (isObject=true). base is the object item field. Only required for isObject=true, otherwise the raw value is used as identifier.
+* `base-field-config.metadataSource.queries` - define a list of named queries to be able to access object resources by a metadataSource search
+* `base-field-config.metadataSource.queries.name` - the name of the query
+* `base-field-config.metadataSource.queries.field` - the search field of the query
 
 ## Rest API
 
@@ -43,14 +49,14 @@ API definition in [src/main/resources/model/api.yaml](src/main/resources/model/a
 
 #### Endpoints
 * **_SearchController_**: Read-Access to the index data **/api/search/**
-    * Sets a user that has read-only access to the elasticsearch index **oer_data** and execute the request in elasticsearch (GET, POST).
+    * Sets a user that has read-only access to the elasticsearch metadata index and execute the request in elasticsearch (GET, POST).
     * Use directly the elasticsearch API - see [Elasticsearch Search API](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-search.html) and [Elasticsearch Query DSL](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-script-query.html)
     * default value for public address: **/resources/api/search/oer_data/**
     * example `curl -L oersi.org/resources/api/search/oer_data/_search`
 * **_MetadataController_**: CRUD-operations to the metadata **/api/metadata/**
-    * metadata schema is configurable via `metadata.schema.location` and `metadata.schema.resolution_scope` in _oersi.properties_
+    * metadata schema is configurable via `metadata.schema.location` and `metadata.schema.resolution_scope` in _search_index.properties_
         * default schema in [oersi-schema](https://gitlab.com/oersi/oersi-schema) ([conversion](https://gitlab.com/oersi/oersi-backend/-/issues/8#note_344342881))
-        * custom processor for amb-schema can be configured via `metadata.custom.processor=amb` in _oersi.properties_
+        * custom processor for amb-schema can be configured via `metadata.custom.processor=amb` in _search_index.properties_
     * bulk-update and -deletion via **/api/metadata/bulk**. Recommended bulk-update-size: 25
 * **_LabelController_**: Retrieve labels for controlled vocabularies **/api/label/**
     * In the data there are some fields that use controlled vocabularies with labels (for example `learningResourceType` or `about`) -> these labels can be accessed here directly
@@ -58,8 +64,8 @@ API definition in [src/main/resources/model/api.yaml](src/main/resources/model/a
     * Provides a Map **LabelKey** -> **LabelValue** as result in format Json
 * **_ContactController_**: Create contact requests **/api/contact/**
     * Internal use - this is not part of the public API
-    * User messages can be sent via Mail to the support address of the oersi instance
-        * Configure `spring.mail`-Properties and `oersi.support.mail` for this in _oersi.properties_
+    * User messages can be sent via Mail to the support address of the search index instance
+        * Configure `spring.mail`-Properties and `oersi.support.mail` for this in _search_index.properties_
 * **_oEmbedController_**: Provide an [oEmbed](https://oembed.com/) API **/api/oembed-json** and **/api/oembed-xml**
     * supports only types `video` and `link` at the moment
     * thumbnails are available whenever the `image` at the resource is available and the dimension match
@@ -71,7 +77,7 @@ API definition in [src/main/resources/model/api.yaml](src/main/resources/model/a
 
 #### Interactive documentation
 * An interactive documentation of the API can be found at ``http://<YOUR-HOST>:8080/oersi/swagger-ui.html`` (adjust tomcat port, application name if the standard values were not used)
-    * You need to have access to the internal oersi system. The interactive swagger documentation is not available in the web.
+    * You need to have access to the internal search index system. The interactive swagger documentation is not available in the web.
     * use [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) for an application started locally with ``mvn spring-boot:run``
 
 #### OpenAPI (Swagger) Configuration
@@ -89,12 +95,12 @@ API definition in [src/main/resources/model/api.yaml](src/main/resources/model/a
 #### Auto Update missing infos
 
 * Activate via feature-toggle `feature.add_missing_metadata_infos`. 
-* If active, set embed url during the metadata creation/update. Only missing data will be set. Update by rules that apply if the id matches a regex: Is configured in the _oersi.properties_ -> **autoupdate**-properties
+* If active, set embed url during the metadata creation/update. Only missing data will be set. Update by rules that apply if the id matches a regex: Is configured in the _search_index.properties_ -> **autoupdate**-properties
 
 ## Technologies
 
 * **springboot** - The backend is a springboot application, provided as war file
-* **spring-security** - Secure write-operations to oer index data
+* **spring-security** - Secure write-operations to index data
 * **project lombok** - Automatically generate code like getter, setter, equals, hashcode,...
      * Set up your IDE: [https://projectlombok.org/setup/overview](https://projectlombok.org/setup/overview)
 * **modelmapper** - Automatic mapping between DTOs and Entities

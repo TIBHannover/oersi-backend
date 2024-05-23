@@ -31,7 +31,7 @@ import java.util.Set;
 import static org.oersi.domain.BackendMetadata.mapToElasticsearchPath;
 
 @Service
-@PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
+@PropertySource(value = "file:${envConfigDir:envConf/default/}search_index.properties")
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class MetadataFieldServiceImpl implements MetadataFieldService {

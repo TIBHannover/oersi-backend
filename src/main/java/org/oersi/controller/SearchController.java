@@ -36,7 +36,7 @@ import org.springframework.web.servlet.HandlerMapping;
  */
 @CrossOrigin
 @RestController
-@PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
+@PropertySource(value = "file:${envConfigDir:envConf/default/}search_index.properties")
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class SearchController implements SearchControllerApi {

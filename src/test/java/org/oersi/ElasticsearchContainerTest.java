@@ -51,7 +51,7 @@ public abstract class ElasticsearchContainerTest {
     );
 
   @TestConfiguration
-  @PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
+  @PropertySource(value = "file:${envConfigDir:envConf/default/}search_index.properties")
   public static class ElasticsearchBackendConfig extends ElasticsearchConfiguration {
 
     @Value("${elasticsearch.oersi_backend_manager_username}")

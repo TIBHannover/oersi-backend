@@ -285,7 +285,7 @@ components:
       properties:
         queryName:
           type: string
-          description: name of the query (as defined in oersi.properties)
+          description: name of the query (as defined in search_index.properties)
           example: providerName
         queryParam:
           type: string

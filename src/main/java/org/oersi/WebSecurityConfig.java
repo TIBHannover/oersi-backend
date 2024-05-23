@@ -19,7 +19,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
-@PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
+@PropertySource(value = "file:${envConfigDir:envConf/default/}search_index.properties")
 public class WebSecurityConfig {
 
   private static final String ROLE_MANAGE_OERMETADATA = "MANAGE_OERMETADATA";
