@@ -24,7 +24,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.data.elasticsearch.core.document.Document;
-import org.springframework.data.elasticsearch.core.index.PutTemplateRequest;
+import org.springframework.data.elasticsearch.core.index.PutIndexTemplateRequest;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -97,11 +97,11 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
     configRepository.save(initialConfig);
     Document mapping = Document.parse("{\"dynamic\": \"false\"}");
     IndexOperations indexOperations = elasticsearchOperations.indexOps(IndexCoordinates.of(initialConfig.getMetadataIndexName()));
-    var request = PutTemplateRequest.builder(initialConfig.getMetadataIndexName(), initialConfig.getMetadataIndexName()).withMappings(mapping).build();
-    indexOperations.putTemplate(request);
+    var request = PutIndexTemplateRequest.builder().withName(initialConfig.getMetadataIndexName()).withIndexPatterns(initialConfig.getMetadataIndexName()).withMapping(mapping).build();
+    indexOperations.putIndexTemplate(request);
     IndexOperations additionalIndexOperations = elasticsearchOperations.indexOps(IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName()));
-    request = PutTemplateRequest.builder(initialConfig.getAdditionalMetadataIndexName(), initialConfig.getAdditionalMetadataIndexName()).withMappings(mapping).build();
-    additionalIndexOperations.putTemplate(request);
+    request = PutIndexTemplateRequest.builder().withName(initialConfig.getAdditionalMetadataIndexName()).withIndexPatterns(initialConfig.getAdditionalMetadataIndexName()).withMapping(mapping).build();
+    additionalIndexOperations.putIndexTemplate(request);
     return initialConfig;
   }
 
