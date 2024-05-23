@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "schema.json",
+  "description": "This is a generic JSON schema for just describing the mandatory fields that are necessary for all possible schemas",
+  "type": "object",
+  "properties": {
+    "url": {
+      "type": "string"
+    },
+    "info": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "required": [
+    "url"
+  ]
+}
