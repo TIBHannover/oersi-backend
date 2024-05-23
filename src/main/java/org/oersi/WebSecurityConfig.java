@@ -22,13 +22,13 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @PropertySource(value = "file:${envConfigDir:envConf/default/}search_index.properties")
 public class WebSecurityConfig {
 
-  private static final String ROLE_MANAGE_OERMETADATA = "MANAGE_OERMETADATA";
+  private static final String ROLE_MANAGE_METADATA = "MANAGE_OERMETADATA";
 
-  @Value("${oermetadata.manage.user}")
-  private String oermetadataUser;
+  @Value("${metadata.manage.user}")
+  private String metadataManageUser;
 
-  @Value("${oermetadata.manage.password}")
-  private String oermetadataPassword;
+  @Value("${metadata.manage.password}")
+  private String metadataManagePassword;
 
   @Bean
   public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
@@ -51,22 +51,22 @@ public class WebSecurityConfig {
         )
         .httpBasic(withDefaults())
         .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/metadata/**")).hasRole(ROLE_MANAGE_OERMETADATA)
-                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/metadata-config/**")).hasRole(ROLE_MANAGE_OERMETADATA)
-                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/vocab/**")).hasRole(ROLE_MANAGE_OERMETADATA)
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/metadata/**")).hasRole(ROLE_MANAGE_METADATA)
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/metadata-config/**")).hasRole(ROLE_MANAGE_METADATA)
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/vocab/**")).hasRole(ROLE_MANAGE_METADATA)
         );
     return http.build();
   }
 
   @Bean
   public UserDetailsService userDetailsService() {
-    UserDetails oerMetadataUser = User.withUsername(oermetadataUser)
+    UserDetails metadataManageUser = User.withUsername(this.metadataManageUser)
         .passwordEncoder(PasswordEncoderFactories.createDelegatingPasswordEncoder()::encode)
-        .password(oermetadataPassword)
-        .roles(ROLE_MANAGE_OERMETADATA).build();
+        .password(metadataManagePassword)
+        .roles(ROLE_MANAGE_METADATA).build();
 
     InMemoryUserDetailsManager userDetailsManager = new InMemoryUserDetailsManager();
-    userDetailsManager.createUser(oerMetadataUser);
+    userDetailsManager.createUser(metadataManageUser);
     return userDetailsManager;
   }
 

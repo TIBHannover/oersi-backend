@@ -65,7 +65,7 @@ API definition in [src/main/resources/model/api.yaml](src/main/resources/model/a
 * **_ContactController_**: Create contact requests **/api/contact/**
     * Internal use - this is not part of the public API
     * User messages can be sent via Mail to the support address of the search index instance
-        * Configure `spring.mail`-Properties and `oersi.support.mail` for this in _search_index.properties_
+        * Configure `spring.mail`-Properties and `search_index.support.mail` for this in _search_index.properties_
 * **_oEmbedController_**: Provide an [oEmbed](https://oembed.com/) API **/api/oembed-json** and **/api/oembed-xml**
     * supports only types `video` and `link` at the moment
     * thumbnails are available whenever the `image` at the resource is available and the dimension match

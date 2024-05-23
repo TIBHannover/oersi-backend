@@ -60,10 +60,10 @@ public class SearchController implements SearchControllerApi {
   @Value("${elasticsearch.basepath}")
   private String elasticsearchBasePath;
 
-  @Value("${elasticsearch.oersi_viewer_username}")
+  @Value("${elasticsearch.index_viewer_username}")
   private String elasticsearchUser;
 
-  @Value("${elasticsearch.oersi_viewer_password}")
+  @Value("${elasticsearch.index_viewer_password}")
   private String elasticsearchPassword;
   @Value("${feature.log_elasticsearch_requests}")
   private boolean featureLogRequests;

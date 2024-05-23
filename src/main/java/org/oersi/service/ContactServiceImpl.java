@@ -18,7 +18,7 @@ public class ContactServiceImpl implements ContactService {
 
   private final @NonNull JavaMailSender mailSender;
 
-  @Value("${oersi.support.mail}")
+  @Value("${search_index.support.mail}")
   private String supportMail;
 
   @Override
