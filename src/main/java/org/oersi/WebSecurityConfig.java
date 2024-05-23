@@ -22,7 +22,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @PropertySource(value = "file:${envConfigDir:envConf/default/}search_index.properties")
 public class WebSecurityConfig {
 
-  private static final String ROLE_MANAGE_METADATA = "MANAGE_OERMETADATA";
+  private static final String ROLE_MANAGE_METADATA = "MANAGE_METADATA";
 
   @Value("${metadata.manage.user}")
   private String metadataManageUser;

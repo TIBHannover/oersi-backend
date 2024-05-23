@@ -46,7 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "base-field-config.metadataSource.useMultipleItems=false", "base-field-config.metadataSource.isObject=true",
         "base-field-config.metadataSource.queries[0].name=sourceName", "base-field-config.metadataSource.queries[0].field=name"
 })
-@WithMockUser(roles = {"MANAGE_OERMETADATA"})
+@WithMockUser(roles = {"MANAGE_METADATA"})
 class MetadataControllerSchemaAdjustmentTest extends ElasticsearchContainerTest {
 
   /** base path of the {@link MetadataController} */
