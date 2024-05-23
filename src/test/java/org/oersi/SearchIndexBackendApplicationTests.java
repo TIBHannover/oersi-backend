@@ -8,7 +8,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 
 @SpringBootTest
 @Import(ElasticsearchServicesMock.class)
-class OersiBackendApplicationTests {
+class SearchIndexBackendApplicationTests {
 
 	@MockBean
 	private JavaMailSender mailSender;

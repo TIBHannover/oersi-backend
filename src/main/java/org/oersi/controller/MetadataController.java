@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Controller that handles crud requests to the OER index.
+ * Controller that handles crud requests to the search index.
  */
 @RestController
 @Slf4j

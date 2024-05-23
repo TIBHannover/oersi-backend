@@ -13,7 +13,7 @@
 	<version>0.8.0-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<name>oersi-backend</name>
-	<description>API / Backend for the OER Search Index</description>
+	<description>API / Backend for the Search Index</description>
 
 	<properties>
 		<java.version>17</java.version>

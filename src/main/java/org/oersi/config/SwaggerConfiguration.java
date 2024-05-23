@@ -38,8 +38,4 @@ public class SwaggerConfiguration {
     return new OpenAPI().info(apiInfo());
   }
 
-//  @Bean
-//  public GroupedOpenApi groupedOpenApi() {
-//    return GroupedOpenApi.builder().group("api").pathsToMatch("/api/**").packagesToScan("org.oersi").build();
-//  }
 }

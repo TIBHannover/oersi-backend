@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
-  title: OER Search Index REST API
-  description: This is the Swagger Documentation of the OER Search Index REST API.
+  title: Search Index REST API
+  description: This is the Swagger Documentation of the Search Index REST API.
   license:
     name: MIT License
     url: https://opensource.org/licenses/MIT

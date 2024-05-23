@@ -9,10 +9,10 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableAsync
 @SpringBootApplication
 @EnableConfigurationProperties({AutoUpdateProperties.class, BaseFieldConfig.class})
-public class OersiBackendApplication {
+public class SearchIndexBackendApplication {
 
   public static void main(final String[] args) {
-    SpringApplication.run(OersiBackendApplication.class, args);
+    SpringApplication.run(SearchIndexBackendApplication.class, args);
   }
 
 }

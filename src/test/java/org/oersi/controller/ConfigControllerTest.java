@@ -63,10 +63,10 @@ class ConfigControllerTest extends ElasticsearchContainerTest {
       .content(asJson(config))).andExpect(status().isOk());
 
     assertEquals(1, configRepository.count());
-    BackendConfig oersiBackendConfig = configRepository.findById("oersi_backend_config").orElse(null);
-    assertNotNull(oersiBackendConfig);
-    assertEquals(config.getMetadataIndexName(), oersiBackendConfig.getMetadataIndexName());
-    assertEquals(config.getExtendedMetadataIndexName(), oersiBackendConfig.getExtendedMetadataIndexName());
+    BackendConfig backendConfig = configRepository.findById("oersi_backend_config").orElse(null);
+    assertNotNull(backendConfig);
+    assertEquals(config.getMetadataIndexName(), backendConfig.getMetadataIndexName());
+    assertEquals(config.getExtendedMetadataIndexName(), backendConfig.getExtendedMetadataIndexName());
   }
 
 }

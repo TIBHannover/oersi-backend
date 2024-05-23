@@ -1,4 +1,4 @@
-# OER Search Index Backend
+# Search Index Backend
 
 Backend / API of the Search Index for internal use. Provides access to the metadata index. Read data without authentification. Crud-operations to metadata authenticated.
 
