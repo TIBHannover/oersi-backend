@@ -37,7 +37,7 @@ public class ConfigServiceImpl implements ConfigService {
   }
 
   private void loadConfigFromRepo() {
-    currentConfig = backendConfigRepository.findById("oersi_backend_config").orElse(null);
+    currentConfig = backendConfigRepository.findById("search_index_backend_config").orElse(null);
   }
 
 }

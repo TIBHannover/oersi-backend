@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @Data
-@Document(indexName = "oersi_backend_metadata", dynamic = Dynamic.FALSE)
+@Document(indexName = "search_index_backend_metadata", dynamic = Dynamic.FALSE)
 public class BackendMetadata {
 
   @Id

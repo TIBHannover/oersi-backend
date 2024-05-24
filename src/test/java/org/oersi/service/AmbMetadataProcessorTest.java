@@ -179,7 +179,7 @@ class AmbMetadataProcessorTest {
     config.setCustomConfig(Map.of(
       "labelledConceptFields", List.of("about", "audience", "conditionsOfAccess", "learningResourceType")
     ));
-    when(configRepository.findById("oersi_backend_config")).thenReturn(Optional.of(config));
+    when(configRepository.findById("search_index_backend_config")).thenReturn(Optional.of(config));
     BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
       new HashMap<>(Map.of(
         "id", "https://www.test.de",
@@ -268,7 +268,7 @@ class AmbMetadataProcessorTest {
               Map.of("regex", ".*(XxxYyyZzz-institute of technology).*", "internalName", "XYZ-institute", "copyFromPublisher", "true")
       )
     ));
-    when(configRepository.findById("oersi_backend_config")).thenReturn(Optional.of(config));
+    when(configRepository.findById("search_index_backend_config")).thenReturn(Optional.of(config));
     BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
       new HashMap<>(Map.of(
         "id", "https://www.test.de",
@@ -308,7 +308,7 @@ class AmbMetadataProcessorTest {
                     Map.of("regex", ".*(XYZ-institute).*", "internalName", "XYZ-institute", "copyFromPublisher", "true", "defaultId", "https://ror.org/id2")
             )
     ));
-    when(configRepository.findById("oersi_backend_config")).thenReturn(Optional.of(config));
+    when(configRepository.findById("search_index_backend_config")).thenReturn(Optional.of(config));
     BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
             new HashMap<>(Map.of(
                     "id", "https://www.test.de",

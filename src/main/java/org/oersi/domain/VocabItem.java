@@ -7,7 +7,7 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import java.util.Map;
 
 @Data
-@Document(indexName = "oersi_backend_vocab_item")
+@Document(indexName = "search_index_backend_vocab_item")
 public class VocabItem {
 
   @Id
