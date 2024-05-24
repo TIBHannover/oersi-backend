@@ -76,7 +76,7 @@ API definition in [src/main/resources/model/api.yaml](src/main/resources/model/a
     * example `curl -L oersi.org/resources/api/oembed-json?url=https%3A%2F%2Foersi.org%2Fresources%2FaHR0cHM6Ly9heGVsLWtsaW5nZXIuZ2l0bGFiLmlvL2dpdGxhYi1mb3ItZG9jdW1lbnRzL2luZGV4Lmh0bWw%3D`
 
 #### Interactive documentation
-* An interactive documentation of the API can be found at ``http://<YOUR-HOST>:8080/oersi/swagger-ui.html`` (adjust tomcat port, application name if the standard values were not used)
+* An interactive documentation of the API can be found at ``http://<YOUR-HOST>:8080/search-index-backend/swagger-ui.html`` (adjust tomcat port, application name if the standard values were not used)
     * You need to have access to the internal search index system. The interactive swagger documentation is not available in the web.
     * use [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) for an application started locally with ``mvn spring-boot:run``
 
