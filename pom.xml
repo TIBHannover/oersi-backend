@@ -9,10 +9,10 @@
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>org.oersi</groupId>
-	<artifactId>oersi-backend</artifactId>
+	<artifactId>search-index-backend</artifactId>
 	<version>0.8.0-SNAPSHOT</version>
 	<packaging>war</packaging>
-	<name>oersi-backend</name>
+	<name>search-index-backend</name>
 	<description>API / Backend for the Search Index</description>
 
 	<properties>
