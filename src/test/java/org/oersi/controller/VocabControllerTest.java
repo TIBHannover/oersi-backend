@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
-@WithMockUser(roles = {"MANAGE_OERMETADATA"})
+@WithMockUser(roles = {"MANAGE_METADATA"})
 class VocabControllerTest extends ElasticsearchContainerTest {
 
   private static final String CONTROLLER_BASE_PATH = "/api/vocab";

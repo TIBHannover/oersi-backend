@@ -92,13 +92,13 @@
       "403":
         description: Forbidden
         content: {}
-/api/metadata/mainentityofpage:
+/api/metadata/source:
   delete:
     tags:
       - metadata-controller
-    summary: Bulk delete mainEntityOfPage in metadata
-    description: Delete the mainEntityOfPage-entry in the metadata identified by the given provider name. If mainEntityOfPage is empty afterwards, also delete the metadata itself.
-    operationId: deleteManyMainEntityOfPage
+    summary: Bulk delete source information in metadata
+    description: Delete the source-information-entry (or -entries) in the metadata identified by the given parameters. If list of all source-information is empty afterwards, also delete the metadata itself.
+    operationId: deleteManySourceInformation
     parameters:
       - name: update-public
         in: query
@@ -110,7 +110,7 @@
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/MetadataMainEntityOfPageBulkDelete"
+            $ref: "#/components/schemas/MetadataSourceBulkDelete"
       required: true
     responses:
       "200":
@@ -125,17 +125,17 @@
       "403":
         description: Forbidden
         content: {}
-/api/metadata/mainentityofpage/{id}:
+/api/metadata/source/{id}:
   delete:
     tags:
       - metadata-controller
-    summary: Delete metadata by mainEntityOfPage.id
-    description: Delete the mainEntityOfPage-entry in the metadata identified by the given id. If mainEntityOfPage is empty afterwards, also delete the metadata itself.
-    operationId: deleteMainEntityOfPage
+    summary: Delete metadata by source identifier
+    description: Delete the source-information-entry in the metadata identified by the given id. If list of all source-information is empty afterwards, also delete the metadata itself.
+    operationId: deleteSourceInformation
     parameters:
       - name: id
         in: path
-        description: base64 encoded ID of the metadata.mainEntityOfPage that needs to be deleted
+        description: base64 encoded ID of the source-information that needs to be deleted
         required: true
         style: simple
         explode: false
@@ -280,12 +280,16 @@
         content: {}
 components:
   schemas:
-    MetadataMainEntityOfPageBulkDelete:
+    MetadataSourceBulkDelete:
       type: object
       properties:
-        providerName:
+        queryName:
           type: string
-          description: name of the provider whose metadata should be deleted
+          description: name of the query (as defined in search_index.properties)
+          example: providerName
+        queryParam:
+          type: string
+          description: param for the search query that identifies the metadataSource that should be deleted
           example: twillo
     MetadataBulkUpdateResponse:
       required:

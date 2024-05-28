@@ -35,8 +35,6 @@ public interface MetadataService {
    */
   BackendMetadata findById(String id);
 
-  List<BackendMetadata> findByMainEntityOfPageId(final String mainEntityOfPageId);
-
   /**
    * Delete the given {@link BackendMetadata}.
    *
@@ -50,17 +48,17 @@ public interface MetadataService {
   void deleteAll(boolean updatePublicIndices);
 
   /**
-   * Delete the mainEntityOfPage that match the given provider name. Also delete the related {@link BackendMetadata} if the mainEntityOfPage-List is empty afterwards.
+   * Delete the source information that match the given search parameter. Also delete the related {@link BackendMetadata} if the source-information-List is empty afterwards.
    *
-   * @param providerName provider name
+   * @param searchParams search parameter
    */
-  void deleteMainEntityOfPageByProviderName(String providerName, boolean updatePublicIndices);
+  boolean deleteSourceEntriesByNamedQuery(String queryName, String queryParam, boolean updatePublicIndices);
 
   /**
-   * Delete the mainEntityOfPage identified by the given id. Also delete the related {@link BackendMetadata} if the mainEntityOfPage-List is empty afterwards.
-   * @param mainEntityOfPageId identifier of the MainEntityOfPage
+   * Delete the source information identified by the given id. Also delete the related {@link BackendMetadata} if the source-information-List is empty afterwards.
+   * @param sourceEntryId identifier of the source information
    */
-  boolean deleteMainEntityOfPageByIdentifier(String mainEntityOfPageId, boolean updatePublicIndices);
+  boolean deleteSourceEntryByIdentifier(String sourceEntryId, boolean updatePublicIndices);
 
   /**
    * Initializes the elasticsearch mapping for the {@link BackendMetadata} index.

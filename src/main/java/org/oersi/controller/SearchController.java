@@ -28,15 +28,15 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.HandlerMapping;
 
 /**
- * Controller that handles search requests to the OER index.
+ * Controller that handles search requests to the search index.
  * <p>
  * The request will be forwarded to the configured elasticsearch instance with the
- * oer-readonly-user.
+ * readonly-user.
  * </p>
  */
 @CrossOrigin
 @RestController
-@PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
+@PropertySource(value = "file:${envConfigDir:envConf/default/}search_index.properties")
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class SearchController implements SearchControllerApi {
@@ -60,10 +60,10 @@ public class SearchController implements SearchControllerApi {
   @Value("${elasticsearch.basepath}")
   private String elasticsearchBasePath;
 
-  @Value("${elasticsearch.oersi_viewer_username}")
+  @Value("${elasticsearch.index_viewer_username}")
   private String elasticsearchUser;
 
-  @Value("${elasticsearch.oersi_viewer_password}")
+  @Value("${elasticsearch.index_viewer_password}")
   private String elasticsearchPassword;
   @Value("${feature.log_elasticsearch_requests}")
   private boolean featureLogRequests;
@@ -72,7 +72,7 @@ public class SearchController implements SearchControllerApi {
 
   /**
    * Perform the given GET-request on the configured elasticsearch instance with the configured
-   * oer-readonly-user.
+   * readonly-user.
    *
    * @param body body of the request
    * @return response from elasticsearch.
@@ -84,7 +84,7 @@ public class SearchController implements SearchControllerApi {
 
   /**
    * Perform the given POST-request on the configured elasticsearch instance with the configured
-   * oer-readonly-user.
+   * readonly-user.
    *
    * @param body body of the request
    * @return response from elasticsearch.
@@ -96,7 +96,7 @@ public class SearchController implements SearchControllerApi {
 
   /**
    * Perform the given DELETE-request on the configured elasticsearch instance with the configured
-   * oer-readonly-user.
+   * readonly-user.
    *
    * @param body body of the request
    * @return response from elasticsearch.
@@ -150,11 +150,11 @@ public class SearchController implements SearchControllerApi {
   private HttpHeaders buildElasticsearchHeaders() {
     HttpHeaders headers = new HttpHeaders();
     headers.add("Content-Type", "application/json");
-    headers.add("Authorization", "Basic " + getOerViewerBase64Credentials());
+    headers.add("Authorization", "Basic " + getViewerBase64Credentials());
     return headers;
   }
 
-  private String getOerViewerBase64Credentials() {
+  private String getViewerBase64Credentials() {
     String plainCred = elasticsearchUser + ":" + elasticsearchPassword;
     byte[] plainCredBytes = plainCred.getBytes();
     return Base64.getEncoder().encodeToString(plainCredBytes);

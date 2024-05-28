@@ -11,14 +11,14 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 @Service
-@PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
+@PropertySource(value = "file:${envConfigDir:envConf/default/}search_index.properties")
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ContactServiceImpl implements ContactService {
 
   private final @NonNull JavaMailSender mailSender;
 
-  @Value("${oersi.support.mail}")
+  @Value("${search_index.support.mail}")
   private String supportMail;
 
   @Override

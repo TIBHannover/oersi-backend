@@ -8,7 +8,7 @@ import org.springframework.data.elasticsearch.client.ClientConfiguration;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfiguration;
 
 @Configuration
-@PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
+@PropertySource(value = "file:${envConfigDir:envConf/default/}search_index.properties")
 public class ElasticsearchBackendConfig extends ElasticsearchConfiguration {
 
   @Value("${elasticsearch.host}")
@@ -17,10 +17,10 @@ public class ElasticsearchBackendConfig extends ElasticsearchConfiguration {
   @Value("${elasticsearch.port}")
   private int elasticsearchPort;
 
-  @Value("${elasticsearch.oersi_backend_manager_username}")
+  @Value("${elasticsearch.search_index_backend_manager_username}")
   private String backendManagerUsername;
 
-  @Value("${elasticsearch.oersi_backend_manager_password}")
+  @Value("${elasticsearch.search_index_backend_manager_password}")
   private String backendManagerPassword;
 
   @Override

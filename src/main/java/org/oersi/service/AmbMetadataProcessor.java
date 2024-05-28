@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
-@PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
+@PropertySource(value = "file:${envConfigDir:envConf/default/}search_index.properties")
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @Qualifier("amb")
@@ -113,7 +113,7 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
     mapInstitutionNameToInternalName(institutions);
     internalData.put("institutions", institutions);
 
-    metadata.setAdditionalData(internalData);
+    metadata.setExtendedData(internalData);
   }
 
   @Data

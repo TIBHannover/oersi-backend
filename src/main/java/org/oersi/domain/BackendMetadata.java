@@ -14,14 +14,14 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @Data
-@Document(indexName = "oersi_backend_metadata", dynamic = Dynamic.FALSE)
+@Document(indexName = "search_index_backend_metadata", dynamic = Dynamic.FALSE)
 public class BackendMetadata {
 
   @Id
   private String id;
 
   private Map<String, Object> data;
-  private Map<String, Object> additionalData;
+  private Map<String, Object> extendedData;
 
   private OembedInfo oembedInfo;
 
@@ -33,6 +33,9 @@ public class BackendMetadata {
 
   public Object get(String fieldName) {
     return data.get(fieldName);
+  }
+  public static String mapToElasticsearchPath(String fieldPath) {
+    return "data." + fieldPath;
   }
 
 }

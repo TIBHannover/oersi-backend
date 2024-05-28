@@ -1,17 +1,14 @@
 package org.oersi.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.oersi.domain.BackendMetadata;
 import org.oersi.domain.OembedInfo;
 import org.oersi.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.io.Resource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
@@ -22,23 +19,18 @@ import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
-@PropertySource(value = "file:${envConfigDir:envConf/default/}oersi.properties")
+@PropertySource(value = "file:${envConfigDir:envConf/default/}search_index.properties")
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class MetadataServiceImpl implements MetadataService {
-
-  private static final String METADATA_PROPERTY_NAME_MAIN_ENTITY_OF_PAGE = "mainEntityOfPage";
 
   private final @NonNull MetadataRepository metadataRepository;
   private final @NonNull PublicMetadataIndexService publicMetadataIndexService;
@@ -46,9 +38,7 @@ public class MetadataServiceImpl implements MetadataService {
   private final @NonNull MetadataAutoUpdater metadataAutoUpdater;
   private final @NonNull ElasticsearchOperations elasticsearchOperations;
   private final @NonNull MetadataValidator metadataValidator;
-
-  @Value("classpath:backend-index-mapping.json")
-  private Resource indexMapping;
+  private final @NonNull MetadataFieldService metadataFieldService;
 
   @Transactional
   @Override
@@ -64,7 +54,7 @@ public class MetadataServiceImpl implements MetadataService {
       MetadataUpdateResult result = new MetadataUpdateResult(metadata);
       BackendMetadata existingMetadata = findMatchingMetadata(metadata);
       if (existingMetadata != null) {
-        metadata.getData().put(METADATA_PROPERTY_NAME_MAIN_ENTITY_OF_PAGE, mergeMainEntityOfPageList(existingMetadata, metadata));
+        metadataFieldService.updateMetadataSource(metadata.getData(), mergeMetadataSources(existingMetadata, metadata));
       }
 
       metadataAutoUpdater.initAutoUpdateInfo(metadata);
@@ -106,28 +96,29 @@ public class MetadataServiceImpl implements MetadataService {
 
 
   /**
-   * Merge existing mainEntityOfPage list and new mainEntityOfPage list. Entries in new list will override existing ones (based on
+   * Merge existing MetadataSource list and new MetadataSource list. Entries in new list will override existing ones (based on
    * identifier).
    *
-   * @param existingMetadata existing metadata which contains mainEntityOfPage list
-   * @param newMetadata      new metadata which contains mainEntityOfPage list
-   * @return merged mainEntityOfPage list
+   * @param existingMetadata existing metadata which contains MetadataSource
+   * @param newMetadata      new metadata which contains MetadataSource
+   * @return merged MetadataSource list
    */
-  private List<Map<String, Object>> mergeMainEntityOfPageList(final BackendMetadata existingMetadata, final BackendMetadata newMetadata) {
-    List<Map<String, Object>> existingMainEntityOfPage = MetadataHelper.parseList(existingMetadata.getData(), METADATA_PROPERTY_NAME_MAIN_ENTITY_OF_PAGE, new TypeReference<>() {});
-    List<Map<String, Object>> newMainEntityOfPage = MetadataHelper.parseList(newMetadata.getData(), METADATA_PROPERTY_NAME_MAIN_ENTITY_OF_PAGE, new TypeReference<>() {});
-    if (existingMainEntityOfPage == null) {
-      return newMainEntityOfPage;
-    } else if (newMainEntityOfPage == null) {
-      return existingMainEntityOfPage;
+  private List<MetadataFieldService.MetadataSourceItem> mergeMetadataSources(final BackendMetadata existingMetadata, final BackendMetadata newMetadata) {
+    List<MetadataFieldService.MetadataSourceItem> existingMetadataSources = metadataFieldService.getMetadataSourceItems(existingMetadata.getData());
+    List<MetadataFieldService.MetadataSourceItem> newMetadataSources = metadataFieldService.getMetadataSourceItems(newMetadata.getData());
+    if (existingMetadataSources == null) {
+      return newMetadataSources;
+    } else if (newMetadataSources == null) {
+      return existingMetadataSources;
     }
-    Set<Object> newIds = newMainEntityOfPage.stream()
-      .map(m -> m.get("id"))
+    Set<Object> newIds = newMetadataSources.stream()
+      .map(metadataFieldService::getIdentifier)
+      .filter(m -> !StringUtils.isEmpty(m))
       .collect(Collectors.toSet());
-    List<Map<String, Object>> keepEntries = existingMainEntityOfPage.stream()
-      .filter(m -> !newIds.contains(m.get("id")))
+    List<MetadataFieldService.MetadataSourceItem> keepEntries = existingMetadataSources.stream()
+      .filter(m -> !newIds.contains(metadataFieldService.getIdentifier(m)))
       .toList();
-    return Stream.concat(newMainEntityOfPage.stream(), keepEntries.stream()).toList();
+    return Stream.concat(newMetadataSources.stream(), keepEntries.stream()).toList();
   }
 
   /**
@@ -138,12 +129,6 @@ public class MetadataServiceImpl implements MetadataService {
    */
   private BackendMetadata findMatchingMetadata(final BackendMetadata metadata) {
     return metadataRepository.findById(metadata.getId()).orElse(null);
-  }
-
-  @Transactional(readOnly = true)
-  @Override
-  public List<BackendMetadata> findByMainEntityOfPageId(final String mainEntityOfPageId) {
-    return metadataRepository.findByMainEntityOfPageId(mainEntityOfPageId);
   }
 
   @Override
@@ -163,7 +148,7 @@ public class MetadataServiceImpl implements MetadataService {
   @Override
   public void deleteAll(boolean updatePublicIndices) {
     log.info("delete all metadata");
-    Document mapping = getMapping();
+    Document mapping = metadataFieldService.getBackendMetadataMapping();
     IndexOperations indexOperations = elasticsearchOperations.indexOps(BackendMetadata.class);
     indexOperations.delete();
     indexOperations.create(indexOperations.createSettings(), mapping);
@@ -175,82 +160,65 @@ public class MetadataServiceImpl implements MetadataService {
 
   @Transactional
   @Override
-  public void deleteMainEntityOfPageByProviderName(String providerName, boolean updatePublicIndices) {
-    log.info("delete mainEntityOfPage in metadata for provider {}", providerName);
-    final int pageSize = 100;
-    Query searchQuery = NativeQuery.builder()
-      .withQuery(q -> q.match(m -> m.field("data.mainEntityOfPage.provider.name").query(providerName)))
-      .withPageable(PageRequest.of(0, pageSize))
-      .build();
-    SearchHitsIterator<BackendMetadata> stream = elasticsearchOperations.searchForStream(searchQuery, BackendMetadata.class);
-    while (stream.hasNext()) {
-      BackendMetadata data = stream.next().getContent();
-      List<Map<String, Object>> mainEntityOfPage = MetadataHelper.parseList(data.getData(), METADATA_PROPERTY_NAME_MAIN_ENTITY_OF_PAGE, new TypeReference<>() {});
-      mainEntityOfPage.removeIf(m -> {
-        Map<String, Object> provider = MetadataHelper.parse(m, "provider", new TypeReference<>() {});
-        return provider != null && providerName.equals(provider.get("name"));
-      });
-      if (mainEntityOfPage.isEmpty()) {
-        delete(data, updatePublicIndices);
-      } else {
-        updateMainEntityOfPage(data, mainEntityOfPage);
-        metadataRepository.save(data);
-        publicMetadataIndexService.updatePublicIndices(List.of(data));
-      }
-    }
-    stream.close();
+  public boolean deleteSourceEntriesByNamedQuery(String queryName, String queryParam, boolean updatePublicIndices) {
+    String queryField = metadataFieldService.getNamedMetadataSourceQueryField(queryName);
+    return deleteSourceEntries(queryField, queryParam, updatePublicIndices);
   }
 
   @Transactional
   @Override
-  public boolean deleteMainEntityOfPageByIdentifier(String mainEntityOfPageId, boolean updatePublicIndices) {
-    List<BackendMetadata> metadata = findByMainEntityOfPageId(mainEntityOfPageId);
-    if (metadata.isEmpty()) {
+  public boolean deleteSourceEntryByIdentifier(String sourceInfoIdentifier, boolean updatePublicIndices) {
+    String identifierField = metadataFieldService.getMetadataSourceIdentifierField();
+    return deleteSourceEntries(identifierField, sourceInfoIdentifier, updatePublicIndices);
+  }
+
+  private boolean deleteSourceEntries(String queryField, String queryValue, boolean updatePublicIndices) {
+    log.debug("delete source entries in metadata for params {}, {}", queryField, queryValue);
+    final int pageSize = 100;
+    if (StringUtils.isEmpty(queryField)) {
+      log.debug("query field is empty");
       return false;
     }
-    List<BackendMetadata> metadataToDelete = new ArrayList<>();
-    metadata.forEach(data -> {
-      List<Map<String, Object>> mainEntityOfPage = MetadataHelper.parseList(data.getData(), METADATA_PROPERTY_NAME_MAIN_ENTITY_OF_PAGE, new TypeReference<>() {});
-      mainEntityOfPage.removeIf(m -> m.get("id").equals(mainEntityOfPageId));
-      if (mainEntityOfPage.isEmpty()) {
-        metadataToDelete.add(data);
-      } else {
-        updateMainEntityOfPage(data, mainEntityOfPage);
+    Query searchQuery = NativeQuery.builder()
+            .withQuery(q -> q.match(m -> m.field(BackendMetadata.mapToElasticsearchPath(queryField)).query(queryValue)))
+            .withPageable(PageRequest.of(0, pageSize))
+            .build();
+    try (SearchHitsIterator<BackendMetadata> stream = elasticsearchOperations.searchForStream(searchQuery, BackendMetadata.class)) {
+      if (!stream.hasNext()) {
+        return false;
       }
-    });
-    metadataRepository.saveAll(metadata);
-    publicMetadataIndexService.updatePublicIndices(metadata);
-    if (!metadataToDelete.isEmpty()) {
-      delete(metadataToDelete, updatePublicIndices);
+      while (stream.hasNext()) {
+        BackendMetadata data = stream.next().getContent();
+        List<MetadataFieldService.MetadataSourceItem> metadataSourceItems = metadataFieldService.getMetadataSourceItems(data.getData());
+        if (metadataSourceItems.isEmpty()) {
+          continue;
+        }
+        metadataSourceItems = metadataSourceItems.stream().filter(e -> !metadataFieldService.getValues(e, queryField).contains(queryValue)).toList();
+        if (metadataSourceItems.isEmpty()) {
+          delete(data, updatePublicIndices);
+        } else {
+          updateMetadataSourceItems(data, metadataSourceItems);
+          metadataRepository.save(data);
+          publicMetadataIndexService.updatePublicIndices(List.of(data));
+        }
+      }
     }
     return true;
   }
 
-  private void updateMainEntityOfPage(BackendMetadata metadata, List<Map<String, Object>> mainEntityOfPage) {
-    metadata.getData().put(METADATA_PROPERTY_NAME_MAIN_ENTITY_OF_PAGE, mainEntityOfPage);
-    if (metadata.getAdditionalData() != null && metadata.getAdditionalData().get(METADATA_PROPERTY_NAME_MAIN_ENTITY_OF_PAGE) != null) {
-      metadata.getAdditionalData().put(METADATA_PROPERTY_NAME_MAIN_ENTITY_OF_PAGE, mainEntityOfPage);
-    }
+  private void updateMetadataSourceItems(BackendMetadata metadata, List<MetadataFieldService.MetadataSourceItem> metadataSourceItems) {
+    metadataFieldService.updateMetadataSource(metadata.getData(), metadataSourceItems);
+    metadataFieldService.updateMetadataSource(metadata.getExtendedData(), metadataSourceItems);
     metadata.setDateModified(LocalDateTime.now());
   }
 
   @Transactional
   @Override
   public void initIndexMapping() {
-    Document mapping = getMapping();
+    Document mapping = metadataFieldService.getBackendMetadataMapping();
     IndexOperations indexOperations = elasticsearchOperations.indexOps(BackendMetadata.class);
     indexOperations.putMapping(mapping);
     indexOperations.refresh();
-  }
-
-  private Document getMapping() {
-    Document mapping;
-    try {
-      mapping = Document.parse(IOUtils.toString(indexMapping.getInputStream(), Charset.defaultCharset()));
-    } catch (IOException e) {
-      throw new IllegalStateException("index mapping cannot be loaded");
-    }
-    return mapping;
   }
 
 }

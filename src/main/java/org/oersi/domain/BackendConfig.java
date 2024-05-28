@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-@Document(indexName = "oersi_backend_config", dynamic = Dynamic.FALSE)
+@Document(indexName = "search_index_backend_config", dynamic = Dynamic.FALSE)
 public class BackendConfig {
 
   @Data
@@ -19,10 +19,10 @@ public class BackendConfig {
   }
 
   @Id
-  private String id = "oersi_backend_config";
+  private String id = "search_index_backend_config";
 
   private String metadataIndexName = null;
-  private String additionalMetadataIndexName = null;
+  private String extendedMetadataIndexName = null;
   private Map<String, Object> customConfig;
   private List<FieldProperties> fieldProperties;
 

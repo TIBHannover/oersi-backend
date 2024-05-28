@@ -15,16 +15,16 @@ import org.oersi.domain.BackendConfig;
 import org.oersi.domain.BackendMetadata;
 import org.oersi.repository.BackendConfigRepository;
 import org.oersi.repository.MetadataRepository;
+import org.oersi.service.MetadataFieldServiceImpl;
 import org.oersi.service.MetadataHelper;
 import org.oersi.service.PublicMetadataIndexService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.data.elasticsearch.core.document.Document;
-import org.springframework.data.elasticsearch.core.index.PutTemplateRequest;
+import org.springframework.data.elasticsearch.core.index.PutIndexTemplateRequest;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -55,7 +55,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Test of {@link MetadataController}.
  */
 @AutoConfigureMockMvc
-@WithMockUser(roles = {"MANAGE_OERMETADATA"})
+@WithMockUser(roles = {"MANAGE_METADATA"})
 class MetadataControllerTest extends ElasticsearchContainerTest {
 
   /** base path of the {@link MetadataController} */
@@ -93,28 +93,28 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
   private BackendConfig setupPublicIndices() {
     BackendConfig initialConfig = new BackendConfig();
     initialConfig.setMetadataIndexName("oer_data_123");
-    initialConfig.setAdditionalMetadataIndexName("oer_data_additional_123");
+    initialConfig.setExtendedMetadataIndexName("oer_data_extended_123");
     configRepository.save(initialConfig);
     Document mapping = Document.parse("{\"dynamic\": \"false\"}");
     IndexOperations indexOperations = elasticsearchOperations.indexOps(IndexCoordinates.of(initialConfig.getMetadataIndexName()));
-    var request = PutTemplateRequest.builder(initialConfig.getMetadataIndexName(), initialConfig.getMetadataIndexName()).withMappings(mapping).build();
-    indexOperations.putTemplate(request);
-    IndexOperations additionalIndexOperations = elasticsearchOperations.indexOps(IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName()));
-    request = PutTemplateRequest.builder(initialConfig.getAdditionalMetadataIndexName(), initialConfig.getAdditionalMetadataIndexName()).withMappings(mapping).build();
-    additionalIndexOperations.putTemplate(request);
+    var request = PutIndexTemplateRequest.builder().withName(initialConfig.getMetadataIndexName()).withIndexPatterns(initialConfig.getMetadataIndexName()).withMapping(mapping).build();
+    indexOperations.putIndexTemplate(request);
+    IndexOperations extendedIndexOperations = elasticsearchOperations.indexOps(IndexCoordinates.of(initialConfig.getExtendedMetadataIndexName()));
+    request = PutIndexTemplateRequest.builder().withName(initialConfig.getExtendedMetadataIndexName()).withIndexPatterns(initialConfig.getExtendedMetadataIndexName()).withMapping(mapping).build();
+    extendedIndexOperations.putIndexTemplate(request);
     return initialConfig;
   }
 
   private BackendMetadata createTestMetadata() {
     BackendMetadata data = getTestMetadata();
-    BackendMetadata clone = MetadataHelper.toMetadata(data.getData());
-    clone.setAdditionalData(clone.getData());
+    BackendMetadata clone = MetadataFieldServiceImpl.toMetadata(data.getData(), "id");
+    clone.setExtendedData(clone.getData());
     publicMetadataIndexService.updatePublicIndices(List.of(clone));
     return repository.save(data);
   }
 
   private BackendMetadata getTestMetadata() {
-    return MetadataHelper.toMetadata(new HashMap<>(Map.ofEntries(
+    return MetadataFieldServiceImpl.toMetadata(new HashMap<>(Map.ofEntries(
       Map.entry("@context", List.of("https://w3id.org/kim/amb/context.jsonld", Map.of("@language", "de"))),
       Map.entry("type", new ArrayList<>(List.of("Course", "LearningResource"))),
       Map.entry("id", "https://example.org"),
@@ -189,7 +189,7 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
       Map.entry("competencyRequired", List.of(Map.of("id", "https://example.org/competencies/2", "prefLabel", Map.of("de", "Deutsch", "en", "English")))),
       Map.entry("educationalLevel", List.of(Map.of("id", "https://w3id.org/kim/educationalLevel/level_A", "prefLabel", Map.of("de", "Deutsch", "en", "English")))),
       Map.entry("teaches", List.of(Map.of("id", "https://example.org/teaches/1", "prefLabel", Map.of("de", "Deutsch", "en", "English"))))
-    )));
+    )), "id");
   }
 
   private Map<String, Object> getTestMetadataDto() {
@@ -259,7 +259,7 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
         .content(asJson(metadata))).andExpect(status().isOk());
 
     assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
-    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getExtendedMetadataIndexName())));
   }
 
   @Test
@@ -401,7 +401,7 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
       .content(asJson(metadata)))
-      .andExpect(result -> Assertions.assertTrue(result.getResolvedException() instanceof IllegalArgumentException));
+      .andExpect(result -> Assertions.assertInstanceOf(IllegalArgumentException.class, result.getResolvedException()));
   }
 
   @Test
@@ -414,7 +414,7 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
 
     mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
       .content(asJson(metadata)))
-      .andExpect(result -> Assertions.assertTrue(result.getResolvedException() instanceof IllegalArgumentException));
+      .andExpect(result -> Assertions.assertInstanceOf(IllegalArgumentException.class, result.getResolvedException()));
   }
 
   @Test
@@ -479,13 +479,13 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
     BackendConfig initialConfig = setupPublicIndices();
     BackendMetadata existingMetadata = createTestMetadata();
     assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
-    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getExtendedMetadataIndexName())));
 
     mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/" + existingMetadata.getId())
       .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
 
     assertEquals(0, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
-    assertEquals(0, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+    assertEquals(0, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getExtendedMetadataIndexName())));
   }
 
   @Test
@@ -503,7 +503,7 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
     BackendConfig initialConfig = setupPublicIndices();
     createTestMetadata();
     assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
-    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getExtendedMetadataIndexName())));
 
     mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH)
       .contentType(MediaType.APPLICATION_JSON).param("update-public", "true"))
@@ -511,7 +511,7 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
 
     Assertions.assertEquals(0, repository.count());
     assertEquals(0, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
-    assertEquals(0, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+    assertEquals(0, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getExtendedMetadataIndexName())));
   }
 
   @Test
@@ -519,7 +519,7 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
     BackendConfig initialConfig = setupPublicIndices();
     createTestMetadata();
     assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
-    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getExtendedMetadataIndexName())));
 
     mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH)
         .contentType(MediaType.APPLICATION_JSON).param("update-public", "false"))
@@ -527,14 +527,14 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
 
     Assertions.assertEquals(0, repository.count());
     assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getMetadataIndexName())));
-    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getAdditionalMetadataIndexName())));
+    assertEquals(1, elasticsearchOperations.count(elasticsearchOperations.matchAllQuery(), IndexCoordinates.of(initialConfig.getExtendedMetadataIndexName())));
   }
   @Test
   void testDeleteByProviderName() throws Exception {
     createTestMetadata();
 
-    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/mainentityofpage")
-      .contentType(MediaType.APPLICATION_JSON).content("{\"providerName\": \"testname\"}"))
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/source")
+      .contentType(MediaType.APPLICATION_JSON).content("{\"queryName\": \"providerName\", \"queryParam\": \"testname\"}"))
       .andExpect(status().isOk());
 
     Assertions.assertEquals(0, repository.count());
@@ -552,11 +552,16 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
     metadata.getData().put("mainEntityOfPage", mainEntityOfPage);
     repository.save(metadata);
 
-    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/mainentityofpage")
-        .contentType(MediaType.APPLICATION_JSON).content("{\"providerName\": \"testname\"}"))
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/source")
+        .contentType(MediaType.APPLICATION_JSON).content("{\"queryName\": \"providerName\", \"queryParam\": \"testname\"}"))
       .andExpect(status().isOk());
 
     Assertions.assertEquals(1, repository.count());
+    List<Map<String, Object>> resultMainEntityOfPage = MetadataHelper.parseList(repository.findAll().iterator().next().getData(), "mainEntityOfPage", new TypeReference<>() {});
+    Assertions.assertEquals(List.of(Map.of(
+            "id", "https://example2.org/desc/123",
+            "provider", Map.of("id", "https://example.org/provider/testprovider2", "name", "testname2")
+    )), resultMainEntityOfPage);
   }
 
   @Test
@@ -595,7 +600,7 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
     List<Map<String, Object>> mainEntityOfPage = MetadataHelper.parseList(metadata.getData(), "mainEntityOfPage", new TypeReference<>() {});
     assertNotNull(mainEntityOfPage);
     String encodedIdentifier = Base64.getUrlEncoder().encodeToString(((String) mainEntityOfPage.get(0).get("id")).getBytes(StandardCharsets.UTF_8));
-    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/mainentityofpage/" + encodedIdentifier))
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/source/" + encodedIdentifier))
       .andExpect(status().isOk());
     Assertions.assertEquals(0, repository.count());
   }
@@ -605,7 +610,7 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
     List<Map<String, Object>> mainEntityOfPage = MetadataHelper.parseList(getTestMetadataDto(), "mainEntityOfPage", new TypeReference<>() {});
     assertNotNull(mainEntityOfPage);
     String encodedIdentifier = Base64.getUrlEncoder().encodeToString(((String) mainEntityOfPage.get(0).get("id")).getBytes(StandardCharsets.UTF_8));
-    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/mainentityofpage/" + encodedIdentifier))
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/source/" + encodedIdentifier))
       .andExpect(status().isNotFound());
   }
 
@@ -622,7 +627,7 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
     repository.save(metadata);
 
     String encodedIdentifier = Base64.getUrlEncoder().encodeToString(((String) mainEntityOfPage.get(0).get("id")).getBytes(StandardCharsets.UTF_8));
-    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/mainentityofpage/" + encodedIdentifier))
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/source/" + encodedIdentifier))
       .andExpect(status().isOk());
     Assertions.assertEquals(1, repository.count());
   }
@@ -630,7 +635,7 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
   @Test
   void testDeleteMainEntityOfPageInvalidRequest() throws Exception {
     String encodedIdentifier = Base64.getUrlEncoder().encodeToString("invalid invalid".getBytes(StandardCharsets.UTF_8));
-    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/mainentityofpage/" + encodedIdentifier))
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/source/" + encodedIdentifier))
       .andExpect(status().isBadRequest());
   }
 }

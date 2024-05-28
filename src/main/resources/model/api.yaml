@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
-  title: OER Search Index REST API
-  description: This is the Swagger Documentation of the OER Search Index REST API.
+  title: Search Index REST API
+  description: This is the Swagger Documentation of the Search Index REST API.
   license:
     name: MIT License
     url: https://opensource.org/licenses/MIT
@@ -37,10 +37,10 @@ paths:
     $ref: "metadata.yaml#/~1api~1metadata"
   /api/metadata/bulk:
     $ref: "metadata.yaml#/~1api~1metadata~1bulk"
-  /api/metadata/mainentityofpage:
-    $ref: "metadata.yaml#/~1api~1metadata~1mainentityofpage"
-  /api/metadata/mainentityofpage/{id}:
-    $ref: "metadata.yaml#/~1api~1metadata~1mainentityofpage~1{id}"
+  /api/metadata/source:
+    $ref: "metadata.yaml#/~1api~1metadata~1source"
+  /api/metadata/source/{id}:
+    $ref: "metadata.yaml#/~1api~1metadata~1source~1{id}"
   /api/metadata/{id}:
     $ref: "metadata.yaml#/~1api~1metadata~1{id}"
 

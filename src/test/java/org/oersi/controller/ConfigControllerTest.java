@@ -19,7 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
-@WithMockUser(roles = {"MANAGE_OERMETADATA"})
+@WithMockUser(roles = {"MANAGE_METADATA"})
 class ConfigControllerTest extends ElasticsearchContainerTest {
 
   private static final String CONTROLLER_BASE_PATH = "/api/metadata-config";
@@ -40,7 +40,7 @@ class ConfigControllerTest extends ElasticsearchContainerTest {
   void createConfig() throws Exception {
     ConfigDto config = new ConfigDto();
     config.setMetadataIndexName("index1");
-    config.setAdditionalMetadataIndexName("index2");
+    config.setExtendedMetadataIndexName("index2");
     mvc.perform(post(CONTROLLER_BASE_PATH)
       .contentType(MediaType.APPLICATION_JSON)
       .content(asJson(config))).andExpect(status().isOk());
@@ -52,21 +52,21 @@ class ConfigControllerTest extends ElasticsearchContainerTest {
   void updateConfig() throws Exception {
     BackendConfig initialConfig = new BackendConfig();
     initialConfig.setMetadataIndexName("old1");
-    initialConfig.setAdditionalMetadataIndexName("old2");
+    initialConfig.setExtendedMetadataIndexName("old2");
     configRepository.save(initialConfig);
 
     ConfigDto config = new ConfigDto();
     config.setMetadataIndexName("index1");
-    config.setAdditionalMetadataIndexName("index2");
+    config.setExtendedMetadataIndexName("index2");
     mvc.perform(post(CONTROLLER_BASE_PATH)
       .contentType(MediaType.APPLICATION_JSON)
       .content(asJson(config))).andExpect(status().isOk());
 
     assertEquals(1, configRepository.count());
-    BackendConfig oersiBackendConfig = configRepository.findById("oersi_backend_config").orElse(null);
-    assertNotNull(oersiBackendConfig);
-    assertEquals(config.getMetadataIndexName(), oersiBackendConfig.getMetadataIndexName());
-    assertEquals(config.getAdditionalMetadataIndexName(), oersiBackendConfig.getAdditionalMetadataIndexName());
+    BackendConfig backendConfig = configRepository.findById("search_index_backend_config").orElse(null);
+    assertNotNull(backendConfig);
+    assertEquals(config.getMetadataIndexName(), backendConfig.getMetadataIndexName());
+    assertEquals(config.getExtendedMetadataIndexName(), backendConfig.getExtendedMetadataIndexName());
   }
 
 }

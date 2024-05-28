@@ -1,7 +1,0 @@
-{
-  "$id": "id.json",
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "identifier",
-  "description": "The identifier of the resource",
-  "type": "string"
-}

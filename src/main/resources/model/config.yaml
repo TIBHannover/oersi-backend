@@ -31,10 +31,10 @@ components:
       properties:
         metadataIndexName:
           type: "string"
-          description: "name of the oer-metadata index"
-        additionalMetadataIndexName:
+          description: "name of the metadata index"
+        extendedMetadataIndexName:
           type: "string"
-          description: "name of the internal oer-metadata index"
+          description: "name of the internal metadata index"
         customConfig:
           type: object
           additionalProperties:

@@ -1,5 +1,6 @@
 package org.oersi.controller;
 
+import jakarta.validation.ValidationException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,9 +10,9 @@ import org.oersi.api.MetadataControllerApi;
 import org.oersi.domain.BackendMetadata;
 import org.oersi.dto.MetadataBulkUpdateResponseDto;
 import org.oersi.dto.MetadataBulkUpdateResponseMessagesDto;
-import org.oersi.dto.MetadataMainEntityOfPageBulkDeleteDto;
+import org.oersi.dto.MetadataSourceBulkDeleteDto;
+import org.oersi.service.MetadataFieldService;
 import org.oersi.service.MetadataService;
-import org.oersi.service.MetadataHelper;
 import org.oersi.service.MetadataValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,15 +21,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.validation.ValidationException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
- * Controller that handles crud requests to the OER index.
+ * Controller that handles crud requests to the search index.
  */
 @RestController
 @Slf4j
@@ -36,6 +35,7 @@ import java.util.stream.Collectors;
 public class MetadataController implements MetadataControllerApi {
 
   private final @NonNull MetadataService metadataService;
+  private final @NonNull MetadataFieldService metadataFieldService;
   private final @NonNull MetadataValidator metadataValidator;
 
   /**
@@ -76,7 +76,7 @@ public class MetadataController implements MetadataControllerApi {
     if (!metadataValidator.validateBaseFields(body).isValid()) {
       return ResponseEntity.badRequest().build();
     }
-    BackendMetadata metadata = MetadataHelper.toMetadata(body);
+    BackendMetadata metadata = metadataFieldService.toMetadata(body);
     MetadataService.MetadataUpdateResult result = metadataService.createOrUpdate(metadata);
     if (Boolean.FALSE.equals(result.getSuccess())) {
       throw new IllegalArgumentException(String.join(", ", result.getMessages()));
@@ -96,9 +96,9 @@ public class MetadataController implements MetadataControllerApi {
     if (records.stream().anyMatch(r -> !metadataValidator.validateBaseFields(r).isValid())) {
       return ResponseEntity.badRequest().build();
     }
-    List<BackendMetadata> backendMetadata = records.stream().map(MetadataHelper::toMetadata).collect(Collectors.toList());
+    List<BackendMetadata> backendMetadata = records.stream().map(metadataFieldService::toMetadata).toList();
     List<MetadataService.MetadataUpdateResult> results = metadataService.createOrUpdate(backendMetadata);
-    List<MetadataService.MetadataUpdateResult> failures = results.stream().filter(r -> !r.getSuccess()).collect(Collectors.toList());
+    List<MetadataService.MetadataUpdateResult> failures = results.stream().filter(r -> !r.getSuccess()).toList();
     MetadataBulkUpdateResponseDto response = new MetadataBulkUpdateResponseDto();
     response.setSuccess(results.size() - failures.size());
     response.setFailed(failures.size());
@@ -107,7 +107,7 @@ public class MetadataController implements MetadataControllerApi {
       responseMessagesDto.setRecordId(r.getMetadata().getId());
       responseMessagesDto.setMessages(r.getMessages());
       return responseMessagesDto;
-    }).collect(Collectors.toList()));
+    }).toList());
     log.info("Created/Updated {} records. Success: {}, failures: {}", results.size(), response.getSuccess(), response.getFailed());
     return ResponseEntity.ok(response);
   }
@@ -128,7 +128,7 @@ public class MetadataController implements MetadataControllerApi {
     if (metadata == null) {
       return getResponseForNonExistingData(id);
     }
-    MetadataService.MetadataUpdateResult result = metadataService.createOrUpdate(MetadataHelper.toMetadata(metadataDto));
+    MetadataService.MetadataUpdateResult result = metadataService.createOrUpdate(metadataFieldService.toMetadata(metadataDto));
     if (Boolean.FALSE.equals(result.getSuccess())) {
       throw new IllegalArgumentException(String.join(", ", result.getMessages()));
     }
@@ -159,21 +159,23 @@ public class MetadataController implements MetadataControllerApi {
   }
 
   @Override
-  public ResponseEntity<Void> deleteManyMainEntityOfPage(MetadataMainEntityOfPageBulkDeleteDto body, Boolean updatePublic) {
-    if (body.getProviderName() != null) {
-      metadataService.deleteMainEntityOfPageByProviderName(body.getProviderName(), updatePublic);
+  public ResponseEntity<Void> deleteManySourceInformation(MetadataSourceBulkDeleteDto body, Boolean updatePublic) {
+    if (body.getQueryName() != null && body.getQueryParam() != null) {
+      if (!metadataService.deleteSourceEntriesByNamedQuery(body.getQueryName(), body.getQueryParam(), updatePublic)) {
+        return ResponseEntity.badRequest().build();
+      }
       return ResponseEntity.ok().build();
     }
     return ResponseEntity.badRequest().build();
   }
 
   @Override
-  public ResponseEntity<Void> deleteMainEntityOfPage(String id, Boolean updatePublic) {
-    String mainEntityOfPageId = new String(Base64.getUrlDecoder().decode(id.getBytes(StandardCharsets.UTF_8)));
-    if (!new UrlValidator().isValid(mainEntityOfPageId)) {
+  public ResponseEntity<Void> deleteSourceInformation(String id, Boolean updatePublic) {
+    String sourceInfoIdentifier = new String(Base64.getUrlDecoder().decode(id.getBytes(StandardCharsets.UTF_8)));
+    if (!new UrlValidator().isValid(sourceInfoIdentifier)) {
       return ResponseEntity.badRequest().build();
     }
-    if (!metadataService.deleteMainEntityOfPageByIdentifier(mainEntityOfPageId, updatePublic)) {
+    if (!metadataService.deleteSourceEntryByIdentifier(sourceInfoIdentifier, updatePublic)) {
       return ResponseEntity.notFound().build();
     }
     return ResponseEntity.ok().build();

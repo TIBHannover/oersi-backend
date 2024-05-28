@@ -10,7 +10,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import java.time.LocalDateTime;
 
 @Data
-@Document(indexName = "oersi_backend_elasticsearch_request_log-#{T(java.time.LocalDate).now().toString()}")
+@Document(indexName = "search_index_backend_elasticsearch_request_log-#{T(java.time.LocalDate).now().toString()}")
 public class ElasticsearchRequestLog {
     @Id
     private String id;
