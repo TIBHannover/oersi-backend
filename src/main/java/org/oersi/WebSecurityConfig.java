@@ -60,13 +60,13 @@ public class WebSecurityConfig {
 
   @Bean
   public UserDetailsService userDetailsService() {
-    UserDetails metadataManageUser = User.withUsername(this.metadataManageUser)
+    UserDetails metadataManageUserDetails = User.withUsername(this.metadataManageUser)
         .passwordEncoder(PasswordEncoderFactories.createDelegatingPasswordEncoder()::encode)
         .password(metadataManagePassword)
         .roles(ROLE_MANAGE_METADATA).build();
 
     InMemoryUserDetailsManager userDetailsManager = new InMemoryUserDetailsManager();
-    userDetailsManager.createUser(metadataManageUser);
+    userDetailsManager.createUser(metadataManageUserDetails);
     return userDetailsManager;
   }
 
