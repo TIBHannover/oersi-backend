@@ -141,7 +141,7 @@ public class MetadataFieldServiceImpl implements MetadataFieldService {
 
   @Override
   public void updateMetadataSource(Map<String, Object> data, List<MetadataSourceItem> metadataSourceItems) {
-    if (data != null) {
+    if (data != null && useMetadataSource()) {
       String metadataSourceField = baseFieldConfig.getMetadataSource().getField();
       Map<String, Object> metadataSourceParent = data;
       if (metadataSourceField.contains(".")) {
