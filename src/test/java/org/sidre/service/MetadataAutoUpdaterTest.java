@@ -85,6 +85,30 @@ class MetadataAutoUpdaterTest {
   }
 
   @Test
+  void testAddFlatParentItemsForHierarchicalVocab() {
+    BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
+            new HashMap<>(Map.of(
+                    "id", "https://www.test.de",
+                    "about", List.of("https://w3id.org/kim/hochschulfaechersystematik/n009")
+            )
+            ), "id");
+    when(vocabService.getParentMap("hochschulfaechersystematik")).thenReturn(Map.of(
+            "https://w3id.org/kim/hochschulfaechersystematik/n009", "https://w3id.org/kim/hochschulfaechersystematik/n42",
+            "https://w3id.org/kim/hochschulfaechersystematik/n42", "https://w3id.org/kim/hochschulfaechersystematik/n4"
+    ));
+    BackendConfig config = new BackendConfig();
+    List<BackendConfig.FieldProperties> defaultVocabParentsFieldProperties = getDefaultVocabParentsFieldProperties();
+    defaultVocabParentsFieldProperties.get(0).setVocabItemIdentifierField(null);
+    config.setFieldProperties(defaultVocabParentsFieldProperties);
+    when(configService.getMetadataConfig()).thenReturn(config);
+
+    metadataAutoUpdater.addMissingInfos(data);
+
+    assertThat(data.get("about")).isInstanceOf(List.class);
+    assertThat((List<?>) data.get("about")).hasSize(3);
+  }
+
+  @Test
   void testAboutWithMultipleParentSubjectsButAlsoWithChildSubjects() {
     BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
             new HashMap<>(Map.of(
