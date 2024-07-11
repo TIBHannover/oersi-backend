@@ -29,16 +29,12 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
 
   private static final String FIELD_NAME_ABOUT = "about";
   private static final String FIELD_NAME_ENCODING = "encoding";
-  private static final String FIELD_NAME_PREF_LABEL = "prefLabel";
 
 
   private final @NonNull AmbOembedHelper ambOembedHelper;
   private final @NonNull VocabService vocabService;
   private final @NonNull ConfigService configService;
   private final @NonNull OrganizationInfoService organizationInfoService;
-
-  @Value("${feature.add_missing_labels}")
-  private boolean featureAddMissingLabels;
 
   @Value("${feature.add_missing_metadata_infos}")
   private boolean featureAddMissingMetadataInfos;
@@ -57,10 +53,6 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
 
   @Override
   public void postProcess(BackendMetadata metadata) {
-    // TODO
-    if (featureAddMissingLabels) {
-      addMissingLabels(metadata);
-    }
     fillInternalIndex(metadata);
   }
 
@@ -202,17 +194,6 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
     });
   }
 
-  private List<String> getLabelledConceptFields() {
-    BackendConfig config = configService.getMetadataConfig();
-    if (config != null && config.getCustomConfig() != null) {
-      List<String> fields = MetadataHelper.parseList(config.getCustomConfig(), "labelledConceptFields", new TypeReference<>() {});
-      if (fields != null) {
-        return fields;
-      }
-    }
-    return new ArrayList<>();
-  }
-
   private void replaceMultipleRootSubjectsByInterdisciplinaryItem(BackendMetadata data) {
     List<Map<String, Object>> about = MetadataHelper.parseList(data.getData(), FIELD_NAME_ABOUT, new TypeReference<>() {});
     if (about != null) {
@@ -228,55 +209,6 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
         data.getData().put(FIELD_NAME_ABOUT, about);
       }
     }
-  }
-
-  /**
-   * Add default localized labels that are not defined at the given metadata.
-   * @param metadata set label at this data
-   */
-  public void addMissingLabels(BackendMetadata metadata) {
-    getLabelledConceptFields().forEach(field -> addMissingLabels(metadata, field));
-  }
-
-  private void addMissingLabels(BackendMetadata metadata, String fieldName) {
-    Map<String, Object> data = metadata.getData();
-    if (data.get(fieldName) instanceof List) {
-      List<Map<String, Object>> labelledConceptList = MetadataHelper.parseList(data, fieldName, new TypeReference<>() {});
-      if (labelledConceptList != null) {
-        labelledConceptList.forEach(this::addMissingLabels);
-        data.put(fieldName, labelledConceptList);
-      }
-    } else {
-      Map<String, Object> labelledConcept = MetadataHelper.parse(data, fieldName, new TypeReference<>() {});
-      if (labelledConcept != null) {
-        addMissingLabels(labelledConcept);
-        data.put(fieldName, labelledConcept);
-      }
-    }
-  }
-
-  public void addMissingLabels(Map<String, Object> labelledConcept) {
-    Map<String, String> existingLabels = MetadataHelper.parse(labelledConcept, FIELD_NAME_PREF_LABEL, new TypeReference<>() {});
-    Map<String, String> defaultLocalizedLabel = getDefaultLocalizedLabel((String) labelledConcept.get("id"));
-    Map<String, String> prefLabel = existingLabels;
-    if (defaultLocalizedLabel != null ) {
-      if (prefLabel == null) {
-        prefLabel = new HashMap<>();
-      }
-      for (Map.Entry<String, String> defaultLabelEntry : defaultLocalizedLabel.entrySet()) {
-        if (prefLabel.containsKey(defaultLabelEntry.getKey())) {
-          continue;
-        }
-        prefLabel.put(defaultLabelEntry.getKey(), defaultLabelEntry.getValue());
-      }
-    }
-    if (prefLabel != null) {
-      labelledConcept.put(FIELD_NAME_PREF_LABEL, prefLabel);
-    }
-  }
-
-  private Map<String, String> getDefaultLocalizedLabel(String identifier) {
-    return vocabService.findLocalizedLabelByIdentifier(identifier);
   }
 
   protected void setFeatureAddExternalOrganizationInfo(boolean featureAddExternalOrganizationInfo) {

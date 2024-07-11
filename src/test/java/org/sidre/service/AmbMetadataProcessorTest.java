@@ -1,6 +1,5 @@
 package org.sidre.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -27,8 +26,6 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 @Import(ElasticsearchServicesMock.class)
 class AmbMetadataProcessorTest {
-
-  private static final String TEST_IDENTIFIER = "test";
 
   @Autowired
   private AmbMetadataProcessor processor;
@@ -67,95 +64,6 @@ class AmbMetadataProcessorTest {
 
     assertThat(data.get("about")).isInstanceOf(List.class);
     assertThat((List<?>) data.get("about")).hasSize(1);
-  }
-
-  @Test
-  void testUnsetLabelDefinition() {
-    Map<String, Object> testData = new HashMap<>(Map.of("id", TEST_IDENTIFIER));
-    when(vocabService.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(null);
-
-    processor.addMissingLabels(testData);
-    assertThat(testData).doesNotContainKey("prefLabel");
-  }
-
-  private Map<String, String> testDefinition() {
-    Map<String, String> map = new HashMap<>();
-    map.put("de", "test1");
-    map.put("en", "test2");
-    map.put("fi", "test3");
-    return map;
-  }
-  @Test
-  void testWithNonExistingData() {
-    Map<String, Object> testData = new HashMap<>(Map.of(
-      "id", TEST_IDENTIFIER
-    ));
-    when(vocabService.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
-    processor.addMissingLabels(testData);
-    assertThat(testData.get("prefLabel")).isInstanceOf(Map.class);
-    assertThat((Map<?, ?>) testData.get("prefLabel")).hasSize(3);
-
-    testData = new HashMap<>(Map.of(
-      "id", TEST_IDENTIFIER,
-      "prefLabel", new HashMap<String, String>()
-    ));
-    when(vocabService.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
-    processor.addMissingLabels(testData);
-    assertThat(testData.get("prefLabel")).isInstanceOf(Map.class);
-    assertThat((Map<?, ?>) testData.get("prefLabel")).hasSize(3);
-  }
-
-  @Test
-  void testWithExistingData() {
-    Map<String, Object> testData = new HashMap<>(Map.of(
-      "id", TEST_IDENTIFIER,
-      "prefLabel", new HashMap<>(Map.of(
-        "de", "test4",
-        "en", "test5"
-      ))
-    ));
-    when(vocabService.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
-    processor.addMissingLabels(testData);
-    assertThat(testData.get("prefLabel")).isInstanceOf(Map.class);
-    Map<String, String> prefLabel = MetadataHelper.parse(testData, "prefLabel", new TypeReference<>(){});
-    assertThat(prefLabel)
-      .hasSize(3)
-      .containsEntry("de", "test4")
-      .containsEntry("en", "test5")
-      .containsEntry("fi", "test3");
-  }
-
-  @Test
-  void testUpdateMetadata() {
-    BackendConfig config = new BackendConfig();
-    config.setCustomConfig(Map.of(
-      "labelledConceptFields", List.of("about", "audience", "conditionsOfAccess", "learningResourceType")
-    ));
-    when(configRepository.findById("search_index_backend_config")).thenReturn(Optional.of(config));
-    BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
-      new HashMap<>(Map.of(
-        "id", "https://www.test.de",
-        "about", List.of(new HashMap<>(Map.of("id", TEST_IDENTIFIER))),
-        "audience", List.of(new HashMap<>(Map.of("id", TEST_IDENTIFIER))),
-        "conditionsOfAccess", List.of(new HashMap<>(Map.of("id", TEST_IDENTIFIER))),
-        "learningResourceType", List.of(new HashMap<>(Map.of("id", TEST_IDENTIFIER)))
-      )), "id");
-    when(vocabService.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
-    processor.addMissingLabels(data);
-    List.of("about", "audience", "conditionsOfAccess", "learningResourceType").forEach(field -> {
-      List<Map<String, Object>> labelledConcept = MetadataHelper.parseList(data.getData(), field, new TypeReference<>(){});
-      assertThat(labelledConcept).hasSize(1);
-      Map<String, String> prefLabel = MetadataHelper.parse(labelledConcept.get(0), "prefLabel", new TypeReference<>(){});
-      assertThat(prefLabel).isNotNull().hasSize(3);
-    });
-  }
-
-  @Test
-  void testUpdateMetadataWithoutLabelFields() {
-    Map<String, Object> testData = new HashMap<>(Map.of("id", TEST_IDENTIFIER));
-    when(vocabService.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
-    processor.addMissingLabels(testData);
-    List.of("about", "audience", "conditionsOfAccess", "learningResourceType").forEach(field -> assertThat(testData.get(field)).isNull());
   }
 
   @Test

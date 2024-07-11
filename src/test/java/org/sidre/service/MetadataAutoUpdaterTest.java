@@ -1,5 +1,6 @@
 package org.sidre.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.sidre.ElasticsearchServicesMock;
@@ -13,6 +14,7 @@ import org.springframework.context.annotation.Import;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -20,6 +22,8 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 @Import(ElasticsearchServicesMock.class)
 class MetadataAutoUpdaterTest {
+
+  private static final String TEST_IDENTIFIER = "test";
 
   @Autowired
   private MetadataAutoUpdater metadataAutoUpdater;
@@ -132,6 +136,147 @@ class MetadataAutoUpdaterTest {
 
     assertThat(data.get("about")).isInstanceOf(List.class);
     assertThat((List<?>) data.get("about")).hasSize(4);
+  }
+
+  private BackendConfig.FieldProperties getDefaultVocabLabelProperties(String fieldName) {
+    BackendConfig.FieldProperties fieldProperties = new BackendConfig.FieldProperties();
+    fieldProperties.setFieldName(fieldName);
+    fieldProperties.setVocabItemIdentifierField("id");
+    fieldProperties.setVocabItemLabelField("prefLabel");
+    fieldProperties.setAddMissingVocabLabels(true);
+    return fieldProperties;
+  }
+  private List<BackendConfig.FieldProperties> getDefaultVocabLabelProperties() {
+    return List.of(getDefaultVocabLabelProperties("about"));
+  }
+
+  private BackendMetadata getVocabLabelTestData(Map<String, Object> testData) {
+    return MetadataFieldServiceImpl.toMetadata(
+            new HashMap<>(Map.of(
+                    "id", "https://www.test.de",
+                    "about", List.of(testData)
+            )
+            ), "id");
+  }
+
+  @Test
+  void testUnsetLabelDefinition() {
+    Map<String, Object> testData = new HashMap<>(Map.of("id", TEST_IDENTIFIER));
+    when(vocabService.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(null);
+    BackendConfig config = new BackendConfig();
+    config.setFieldProperties(getDefaultVocabLabelProperties());
+    when(configService.getMetadataConfig()).thenReturn(config);
+
+    BackendMetadata data = getVocabLabelTestData(testData);
+    metadataAutoUpdater.addMissingLabels(data);
+    List<Map<String, Object>> labelledConcept = MetadataHelper.parseList(data.getData(), "about", new TypeReference<>(){});
+    assertThat(labelledConcept).hasSize(1);
+    assertThat(labelledConcept.get(0)).doesNotContainKey("prefLabel");
+  }
+
+  private Map<String, String> testDefinition() {
+    Map<String, String> map = new HashMap<>();
+    map.put("de", "test1");
+    map.put("en", "test2");
+    map.put("fi", "test3");
+    return map;
+  }
+
+  @Test
+  void testWithNonExistingData() {
+    Map<String, Object> testData = new HashMap<>(Map.of(
+            "id", TEST_IDENTIFIER
+    ));
+    when(vocabService.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
+    BackendConfig config = new BackendConfig();
+    config.setFieldProperties(getDefaultVocabLabelProperties());
+    when(configService.getMetadataConfig()).thenReturn(config);
+    BackendMetadata data = getVocabLabelTestData(testData);
+    metadataAutoUpdater.addMissingLabels(data);
+    List<Map<String, Object>> labelledConcept = MetadataHelper.parseList(data.getData(), "about", new TypeReference<>(){});
+    assertThat(labelledConcept).hasSize(1);
+    Map<String, String> prefLabel = MetadataHelper.parse(labelledConcept.get(0), "prefLabel", new TypeReference<>(){});
+    assertThat(prefLabel).hasSize(3);
+
+    testData = new HashMap<>(Map.of(
+            "id", TEST_IDENTIFIER,
+            "prefLabel", new HashMap<String, String>()
+    ));
+    when(vocabService.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
+    data = getVocabLabelTestData(testData);
+    metadataAutoUpdater.addMissingLabels(data);
+    labelledConcept = MetadataHelper.parseList(data.getData(), "about", new TypeReference<>(){});
+    assertThat(labelledConcept).hasSize(1);
+    prefLabel = MetadataHelper.parse(labelledConcept.get(0), "prefLabel", new TypeReference<>(){});
+    assertThat(prefLabel).hasSize(3);
+  }
+
+  @Test
+  void testWithExistingData() {
+    Map<String, Object> testData = new HashMap<>(Map.of(
+            "id", TEST_IDENTIFIER,
+            "prefLabel", new HashMap<>(Map.of(
+                    "de", "test4",
+                    "en", "test5"
+            ))
+    ));
+    when(vocabService.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
+    BackendConfig config = new BackendConfig();
+    config.setFieldProperties(getDefaultVocabLabelProperties());
+    when(configService.getMetadataConfig()).thenReturn(config);
+    BackendMetadata data = getVocabLabelTestData(testData);
+    metadataAutoUpdater.addMissingLabels(data);
+    List<Map<String, Object>> labelledConcept = MetadataHelper.parseList(data.getData(), "about", new TypeReference<>(){});
+    assertThat(labelledConcept).hasSize(1);
+    Map<String, String> prefLabel = MetadataHelper.parse(labelledConcept.get(0), "prefLabel", new TypeReference<>(){});
+    assertThat(prefLabel)
+            .hasSize(3)
+            .containsEntry("de", "test4")
+            .containsEntry("en", "test5")
+            .containsEntry("fi", "test3");
+  }
+
+  @Test
+  void testUpdateMetadata() {
+    BackendConfig config = new BackendConfig();
+    List<BackendConfig.FieldProperties> defaultVocabParentsFieldProperties = getDefaultVocabParentsFieldProperties();
+    defaultVocabParentsFieldProperties.get(0).setVocabItemIdentifierField(null);
+    config.setFieldProperties(Stream.of("about", "audience", "conditionsOfAccess", "learningResourceType").map(this::getDefaultVocabLabelProperties).toList());
+    when(configService.getMetadataConfig()).thenReturn(config);
+
+    BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
+            new HashMap<>(Map.of(
+                    "id", "https://www.test.de",
+                    "about", List.of(new HashMap<>(Map.of("id", TEST_IDENTIFIER))),
+                    "audience", List.of(new HashMap<>(Map.of("id", TEST_IDENTIFIER))),
+                    "conditionsOfAccess", List.of(new HashMap<>(Map.of("id", TEST_IDENTIFIER))),
+                    "learningResourceType", List.of(new HashMap<>(Map.of("id", TEST_IDENTIFIER)))
+            )), "id");
+    when(vocabService.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
+    metadataAutoUpdater.addMissingLabels(data);
+    List.of("about", "audience", "conditionsOfAccess", "learningResourceType").forEach(field -> {
+      List<Map<String, Object>> labelledConcept = MetadataHelper.parseList(data.getData(), field, new TypeReference<>(){});
+      assertThat(labelledConcept).hasSize(1);
+      Map<String, String> prefLabel = MetadataHelper.parse(labelledConcept.get(0), "prefLabel", new TypeReference<>(){});
+      assertThat(prefLabel).isNotNull().hasSize(3);
+    });
+  }
+
+  @Test
+  void testUpdateMetadataWithoutLabelFields() {
+    when(vocabService.findLocalizedLabelByIdentifier(TEST_IDENTIFIER)).thenReturn(testDefinition());
+    BackendConfig config = new BackendConfig();
+    List<BackendConfig.FieldProperties> defaultVocabParentsFieldProperties = getDefaultVocabParentsFieldProperties();
+    defaultVocabParentsFieldProperties.get(0).setVocabItemIdentifierField(null);
+    config.setFieldProperties(Stream.of("about", "audience", "conditionsOfAccess", "learningResourceType").map(this::getDefaultVocabLabelProperties).toList());
+    when(configService.getMetadataConfig()).thenReturn(config);
+    BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
+            new HashMap<>(Map.of(
+                    "id", "https://www.test.de"
+            )
+            ), "id");
+    metadataAutoUpdater.addMissingLabels(data);
+    List.of("about", "audience", "conditionsOfAccess", "learningResourceType").forEach(field -> assertThat(data.get(field)).isNull());
   }
 
 }

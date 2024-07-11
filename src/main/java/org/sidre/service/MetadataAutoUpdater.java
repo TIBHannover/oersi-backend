@@ -16,6 +16,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +57,7 @@ public class MetadataAutoUpdater {
   }
   public void addMissingInfos(BackendMetadata data) {
     addMissingParentItemsForHierarchicalVocab(data);
+    addMissingLabels(data);
   }
 
   public OembedInfo initOembedInfo(BackendMetadata data) {
@@ -135,6 +137,57 @@ public class MetadataAutoUpdater {
       idsToAdd.addAll(getParentIdsToAdd(allIds, parentMap));
     }
     return idsToAdd;
+  }
+
+  /**
+   * Add default localized labels that are not defined at the given metadata.
+   * @param metadata set label at this data
+   */
+  public void addMissingLabels(BackendMetadata metadata) {
+    getFieldProperties(BackendConfig.FieldProperties::isAddMissingVocabLabels).forEach(field -> addMissingLabels(metadata, field));
+  }
+
+  private void addMissingLabels(BackendMetadata metadata, BackendConfig.FieldProperties fieldProperties) {
+    String fieldName = fieldProperties.getFieldName();
+    Map<String, Object> data = metadata.getData();
+    if (data.get(fieldName) instanceof List) {
+      List<Map<String, Object>> labelledConceptList = MetadataHelper.parseList(data, fieldName, new TypeReference<>() {});
+      if (labelledConceptList != null) {
+        labelledConceptList.forEach(c -> addMissingLabels(c, fieldProperties));
+        data.put(fieldName, labelledConceptList);
+      }
+    } else {
+      Map<String, Object> labelledConcept = MetadataHelper.parse(data, fieldName, new TypeReference<>() {});
+      if (labelledConcept != null) {
+        addMissingLabels(labelledConcept, fieldProperties);
+        data.put(fieldName, labelledConcept);
+      }
+    }
+  }
+
+  public void addMissingLabels(Map<String, Object> labelledConcept, BackendConfig.FieldProperties fieldProperties) {
+    final String labelField = fieldProperties.getVocabItemLabelField();
+    Map<String, String> existingLabels = MetadataHelper.parse(labelledConcept, labelField, new TypeReference<>() {});
+    Map<String, String> defaultLocalizedLabel = getDefaultLocalizedLabel((String) labelledConcept.get(fieldProperties.getVocabItemIdentifierField()));
+    Map<String, String> prefLabel = existingLabels;
+    if (defaultLocalizedLabel != null ) {
+      if (prefLabel == null) {
+        prefLabel = new HashMap<>();
+      }
+      for (Map.Entry<String, String> defaultLabelEntry : defaultLocalizedLabel.entrySet()) {
+        if (prefLabel.containsKey(defaultLabelEntry.getKey())) {
+          continue;
+        }
+        prefLabel.put(defaultLabelEntry.getKey(), defaultLabelEntry.getValue());
+      }
+    }
+    if (prefLabel != null) {
+      labelledConcept.put(labelField, prefLabel);
+    }
+  }
+
+  private Map<String, String> getDefaultLocalizedLabel(String identifier) {
+    return vocabService.findLocalizedLabelByIdentifier(identifier);
   }
 
 }
