@@ -59,6 +59,8 @@ public class MetadataServiceImpl implements MetadataService {
 
       metadataAutoUpdater.initAutoUpdateInfo(metadata);
       metadataCustomProcessor.process(metadata);
+      metadataAutoUpdater.addMissingInfos(metadata);
+      metadataCustomProcessor.postProcess(metadata);
 
       ValidatorResult validatorResult = metadataValidator.validate(metadata);
       if (!validatorResult.isValid()) {

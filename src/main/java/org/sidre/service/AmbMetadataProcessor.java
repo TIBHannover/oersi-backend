@@ -43,9 +43,6 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
   @Value("${feature.add_missing_metadata_infos}")
   private boolean featureAddMissingMetadataInfos;
 
-  @Value("${feature.add_missing_parent_items_of_hierarchical_vocabs}")
-  private boolean featureAddMissingParentItems;
-
   @Value("${feature.amb.add_external_organization_info}")
   private boolean featureAddExternalOrganizationInfo;
 
@@ -56,9 +53,11 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
       addMissingInfos(metadata);
     }
     replaceMultipleRootSubjectsByInterdisciplinaryItem(metadata);
-    if (featureAddMissingParentItems) {
-      addMissingParentItemsForHierarchicalVocab(metadata);
-    }
+  }
+
+  @Override
+  public void postProcess(BackendMetadata metadata) {
+    // TODO
     if (featureAddMissingLabels) {
       addMissingLabels(metadata);
     }
@@ -214,23 +213,12 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
     return new ArrayList<>();
   }
 
-  private Map<String, String> aboutParentMap = null;
-  private Map<String, String> getAboutParentMap() {
-    if (aboutParentMap == null) {
-      aboutParentMap = vocabService.getParentMap("hochschulfaechersystematik");
-    }
-    return aboutParentMap;
-  }
-  protected void resetAboutParentMap() {
-    aboutParentMap = null;
-  }
-
   private void replaceMultipleRootSubjectsByInterdisciplinaryItem(BackendMetadata data) {
     List<Map<String, Object>> about = MetadataHelper.parseList(data.getData(), FIELD_NAME_ABOUT, new TypeReference<>() {});
     if (about != null) {
       Set<String> ids = about.stream().map(e -> (String) e.get("id")).collect(Collectors.toSet());
       if (ids.size() >= 3) {
-        Map<String, String> parentMap = getAboutParentMap();
+        Map<String, String> parentMap = vocabService.getParentMap("hochschulfaechersystematik");
         for (String id : ids) {
           if (parentMap.get(id) != null) {
             return;
@@ -240,34 +228,6 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
         data.getData().put(FIELD_NAME_ABOUT, about);
       }
     }
-  }
-
-  private void addMissingParentItemsForHierarchicalVocab(BackendMetadata data) {
-    List<Map<String, Object>> about = MetadataHelper.parseList(data.getData(), FIELD_NAME_ABOUT, new TypeReference<>() {});
-    if (about != null) {
-      Set<String> ids = about.stream().map(e -> (String) e.get("id")).collect(Collectors.toSet());
-      Set<String> idsToAdd = getParentIdsToAdd(ids, getAboutParentMap());
-      for (String id: idsToAdd) {
-        about.add(Map.of("id", id));
-      }
-      data.getData().put(FIELD_NAME_ABOUT, about);
-    }
-  }
-  private Set<String> getParentIdsToAdd(Set<String> ids, Map<String, String> parentMap) {
-    Set<String> idsToAdd = new HashSet<>();
-    for (String id : ids) {
-      String parentId = parentMap.get(id);
-      if (parentId != null && !ids.contains(parentId)) {
-        idsToAdd.add(parentId);
-      }
-    }
-    if (!idsToAdd.isEmpty()) {
-      Set<String> allIds = new HashSet<>();
-      allIds.addAll(ids);
-      allIds.addAll(idsToAdd);
-      idsToAdd.addAll(getParentIdsToAdd(allIds, parentMap));
-    }
-    return idsToAdd;
   }
 
   /**
@@ -317,10 +277,6 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
 
   private Map<String, String> getDefaultLocalizedLabel(String identifier) {
     return vocabService.findLocalizedLabelByIdentifier(identifier);
-  }
-
-  protected void setFeatureAddMissingParentItems(boolean featureAddMissingParentItems) {
-    this.featureAddMissingParentItems = featureAddMissingParentItems;
   }
 
   protected void setFeatureAddExternalOrganizationInfo(boolean featureAddExternalOrganizationInfo) {

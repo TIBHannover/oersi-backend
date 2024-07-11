@@ -16,6 +16,15 @@ public class BackendConfig {
   public static class FieldProperties {
     private String fieldName;
     private String vocabIdentifier;
+    private String vocabItemIdentifierField;
+    private String vocabItemLabelField;
+    private boolean addMissingVocabLabels;
+    private boolean addMissingVocabParents;
+  }
+  @Data
+  public static class DefaultFieldProperties {
+    private String vocabItemIdentifierField;
+    private String vocabItemLabelField;
   }
 
   @Id
@@ -25,5 +34,6 @@ public class BackendConfig {
   private String extendedMetadataIndexName = null;
   private Map<String, Object> customConfig;
   private List<FieldProperties> fieldProperties;
+  private DefaultFieldProperties defaultFieldProperties;
 
 }

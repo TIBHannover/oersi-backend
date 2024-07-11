@@ -45,29 +45,6 @@ class AmbMetadataProcessorTest {
   @BeforeEach
   void setup() {
     configService.updateMetadataConfig(null);
-    processor.resetAboutParentMap();
-  }
-
-  @Test
-  void testAddParentItemsForHierarchicalVocab() {
-    BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
-      new HashMap<>(Map.of(
-        "id", "https://www.test.de",
-        "about", List.of(
-          Map.of("id", "https://w3id.org/kim/hochschulfaechersystematik/n009")
-        )
-      )
-    ), "id");
-    when(vocabService.getParentMap("hochschulfaechersystematik")).thenReturn(Map.of(
-            "https://w3id.org/kim/hochschulfaechersystematik/n009", "https://w3id.org/kim/hochschulfaechersystematik/n42",
-            "https://w3id.org/kim/hochschulfaechersystematik/n42", "https://w3id.org/kim/hochschulfaechersystematik/n4"
-            ));
-
-    processor.setFeatureAddMissingParentItems(true);
-    processor.process(data);
-
-    assertThat(data.get("about")).isInstanceOf(List.class);
-    assertThat((List<?>) data.get("about")).hasSize(3);
   }
 
   @Test
@@ -86,35 +63,10 @@ class AmbMetadataProcessorTest {
             "https://w3id.org/kim/hochschulfaechersystematik/n42", "https://w3id.org/kim/hochschulfaechersystematik/n4"
     ));
 
-    processor.setFeatureAddMissingParentItems(true);
     processor.process(data);
 
     assertThat(data.get("about")).isInstanceOf(List.class);
     assertThat((List<?>) data.get("about")).hasSize(1);
-  }
-
-  @Test
-  void testAboutWithMultipleParentSubjectsButAlsoWithChildSubjects() {
-    BackendMetadata data = MetadataFieldServiceImpl.toMetadata(
-            new HashMap<>(Map.of(
-                    "id", "https://www.test.de",
-                    "about", List.of(
-                            Map.of("id", "https://w3id.org/kim/hochschulfaechersystematik/n4"),
-                            Map.of("id", "https://w3id.org/kim/hochschulfaechersystematik/n42"),
-                            Map.of("id", "https://w3id.org/kim/hochschulfaechersystematik/n6"),
-                            Map.of("id", "https://w3id.org/kim/hochschulfaechersystematik/n9")
-                    )
-            )
-            ), "id");
-    when(vocabService.getParentMap("hochschulfaechersystematik")).thenReturn(Map.of(
-            "https://w3id.org/kim/hochschulfaechersystematik/n42", "https://w3id.org/kim/hochschulfaechersystematik/n4"
-    ));
-
-    processor.setFeatureAddMissingParentItems(true);
-    processor.process(data);
-
-    assertThat(data.get("about")).isInstanceOf(List.class);
-    assertThat((List<?>) data.get("about")).hasSize(4);
   }
 
   @Test
@@ -256,6 +208,7 @@ class AmbMetadataProcessorTest {
         )
       )), "id");
     processor.process(data);
+    processor.postProcess(data);
     assertThat(data.getExtendedData()).isNotNull().containsEntry("persons", List.of(Map.of("type", "Person", "name", "GivenName FamilyName")));
   }
   @Test
@@ -289,6 +242,7 @@ class AmbMetadataProcessorTest {
         )
       )), "id");
     processor.process(data);
+    processor.postProcess(data);
     assertThat(
       data.getExtendedData()).isNotNull()
       .containsEntry(
@@ -393,6 +347,7 @@ class AmbMetadataProcessorTest {
             )), "id");
     processor.setFeatureAddExternalOrganizationInfo(true);
     processor.process(data);
+    processor.postProcess(data);
     assertThat(
             data.getExtendedData()).isNotNull()
             .containsEntry(
