@@ -24,8 +24,22 @@ public class ConfigServiceImpl implements ConfigService {
   @Override
   public void updateMetadataConfig(BackendConfig backendConfig) {
     log.debug("updating config {}", backendConfig);
+    updateFieldPropertiesWithDefaultProperties(backendConfig);
     currentConfig = backendConfigRepository.createOrUpdate(backendConfig);
     log.info("using new config {}", currentConfig);
+  }
+
+  private void updateFieldPropertiesWithDefaultProperties(BackendConfig backendConfig) {
+    if (backendConfig != null && backendConfig.getFieldProperties() != null && backendConfig.getDefaultFieldProperties() != null) {
+      for (BackendConfig.FieldProperties fieldProperties : backendConfig.getFieldProperties()) {
+        if (fieldProperties.getVocabItemIdentifierField() == null) {
+          fieldProperties.setVocabItemIdentifierField(backendConfig.getDefaultFieldProperties().getVocabItemIdentifierField());
+        }
+        if (fieldProperties.getVocabItemLabelField() == null) {
+          fieldProperties.setVocabItemLabelField(backendConfig.getDefaultFieldProperties().getVocabItemLabelField());
+        }
+      }
+    }
   }
 
   @Override

@@ -52,3 +52,30 @@ components:
                 type: "string"
                 description: "if using a controlled vocabulary for this field, the identifier of this vocabulary"
                 example: "hochschulfaechersystematik"
+              vocabItemIdentifierField:
+                type: "string"
+                description: "if vocabulary items are identified by a field in the object, specify the field here. If using raw string identifier, don't set a value here."
+                example: "id"
+              vocabItemLabelField:
+                type: "string"
+                description: "if vocabulary items have a field for labels, specify it here."
+                example: "prefLabel"
+              addMissingVocabParents:
+                type: "boolean"
+                description: "activate/deactivate if missing parents of hierarchical vocabulary items should be added automatically"
+                example: true
+              addMissingVocabLabels:
+                type: "boolean"
+                description: "activate/deactivate if missing labels of vocabulary items should be added automatically"
+                example: true
+        defaultFieldProperties:
+          type: "object"
+          properties:
+            vocabItemIdentifierField:
+              type: "string"
+              description: "if vocabulary items are identified by a field in the object, specify the field here. Will be used for all fieldProperties without this information."
+              example: "id"
+            vocabItemLabelField:
+              type: "string"
+              description: "if vocabulary items have a field for labels, specify it here. Will be used for all fieldProperties without this information."
+              example: "prefLabel"

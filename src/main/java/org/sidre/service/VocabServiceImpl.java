@@ -26,6 +26,7 @@ public class VocabServiceImpl implements VocabService {
   private final @NonNull VocabItemRepository vocabItemRepository;
 
   private Map<String, Map<String, String>> localizedLabelByIdentifier;
+  private Map<String, Map<String, String>> parentMapsByVocabIdentifier = Collections.synchronizedMap(new HashMap<>());
 
   @Transactional
   @Override
@@ -42,10 +43,17 @@ public class VocabServiceImpl implements VocabService {
   @Transactional
   @Override
   public Map<String, String> getParentMap(String vocabIdentifier) {
-    List<VocabItem> items = vocabItemRepository.findByVocabIdentifier(vocabIdentifier);
-    Map<String, String> result = new HashMap<>();
-    for (VocabItem item: items) {
-      result.put(item.getItemKey(), item.getParentKey());
+    Map<String, String> result = parentMapsByVocabIdentifier.get(vocabIdentifier);
+    if (result == null) {
+      synchronized (vocabItemRepository) {
+        List<VocabItem> items = vocabItemRepository.findByVocabIdentifier(vocabIdentifier);
+        result = Collections.synchronizedMap(new HashMap<>());
+        for (VocabItem item : items) {
+          result.put(item.getItemKey(), item.getParentKey());
+        }
+        parentMapsByVocabIdentifier.put(vocabIdentifier, result);
+      }
+      log.debug("Initialized parent map for vocab identifier {}", vocabIdentifier);
     }
     return result;
   }
@@ -83,6 +91,7 @@ public class VocabServiceImpl implements VocabService {
   }
 
   public void clearCache() {
+    parentMapsByVocabIdentifier.clear();
     localizedLabelByIdentifier = null;
     labelService.clearCache();
   }

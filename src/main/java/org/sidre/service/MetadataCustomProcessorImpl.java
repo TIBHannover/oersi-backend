@@ -34,6 +34,9 @@ public class MetadataCustomProcessorImpl implements MetadataCustomProcessor {
             public void process(BackendMetadata metadata) { /* default processor: do nothing */ }
 
             @Override
+            public void postProcess(BackendMetadata metadata) { /* default processor: do nothing */ }
+
+            @Override
             public OembedInfo processOembedInfo(OembedInfo oembedInfo, BackendMetadata metadata) {
                 return oembedInfo;
             }
@@ -43,6 +46,11 @@ public class MetadataCustomProcessorImpl implements MetadataCustomProcessor {
     @Override
     public void process(BackendMetadata metadata) {
         getProcessor().process(metadata);
+    }
+
+    @Override
+    public void postProcess(BackendMetadata metadata) {
+        getProcessor().postProcess(metadata);
     }
 
     @Override

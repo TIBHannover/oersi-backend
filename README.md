@@ -89,7 +89,7 @@ API definition in [src/main/resources/model/api.yaml](src/main/resources/model/a
 
 #### Default Labels
 
-* Activate via feature-toggle `feature.add_missing_labels`.
+* Activate via `BackendConfig.fieldProperties.addMissingVocabLabels` for a field.
 * If active, set all prefLabels during the metadata creation/update that are not included in the given data, but that are defined in `VocabItem` (see also `vocab` endpoint in API).
 
 #### Auto Update missing infos
