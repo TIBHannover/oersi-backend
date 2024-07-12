@@ -13,8 +13,10 @@ import org.junit.jupiter.api.Test;
 import org.sidre.ElasticsearchContainerTest;
 import org.sidre.domain.BackendConfig;
 import org.sidre.domain.BackendMetadata;
+import org.sidre.domain.VocabItem;
 import org.sidre.repository.BackendConfigRepository;
 import org.sidre.repository.MetadataRepository;
+import org.sidre.repository.VocabItemRepository;
 import org.sidre.service.MetadataFieldServiceImpl;
 import org.sidre.service.MetadataHelper;
 import org.sidre.service.PublicMetadataIndexService;
@@ -67,6 +69,8 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
   private MetadataRepository repository;
   @Autowired
   private BackendConfigRepository configRepository;
+  @Autowired
+  private VocabItemRepository vocabItemRepository;
   @Autowired
   private ElasticsearchOperations elasticsearchOperations;
   @Autowired
@@ -307,6 +311,33 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
         .content(asJson(metadata))).andExpect(status().isOk())
         .andExpect(content().json(
             "{\"learningResourceType\":[{\"id\":\"https://w3id.org/kim/hcrt/testType\",\"prefLabel\":{\"de\":\"test\"}}]}"));
+  }
+
+  @Test
+  void testPostRequestAddVocabParentForFlatField() throws Exception {
+    configRepository.deleteAll();
+    BackendConfig initialConfig = new BackendConfig();
+    BackendConfig.FieldProperties fieldProperties = new BackendConfig.FieldProperties();
+    fieldProperties.setFieldName("flatType");
+    fieldProperties.setVocabIdentifier("hcrt");
+    fieldProperties.setAddMissingVocabParents(true);
+    initialConfig.setFieldProperties(List.of(fieldProperties));
+    configRepository.save(initialConfig);
+    vocabItemRepository.deleteAll();
+    VocabItem vocabItem = new VocabItem();
+    vocabItem.setVocabIdentifier("hcrt");
+    vocabItem.setItemKey("https://w3id.org/kim/hcrt/testType");
+    vocabItem.setParentKey("https://w3id.org/kim/hcrt/testType2");
+    vocabItemRepository.save(vocabItem);
+
+    Map<String, Object> metadata = getTestMetadataDto();
+    List<String> learningResourceTypes = List.of("https://w3id.org/kim/hcrt/testType");
+    metadata.put("flatType", learningResourceTypes);
+
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+                    .content(asJson(metadata))).andExpect(status().isOk())
+            .andExpect(content().json(
+                    "{\"flatType\":[\"https://w3id.org/kim/hcrt/testType\", \"https://w3id.org/kim/hcrt/testType2\"]}"));
   }
 
   @Test
