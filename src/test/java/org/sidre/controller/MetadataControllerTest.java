@@ -14,12 +14,12 @@ import org.sidre.ElasticsearchContainerTest;
 import org.sidre.domain.BackendConfig;
 import org.sidre.domain.BackendMetadata;
 import org.sidre.domain.VocabItem;
-import org.sidre.repository.BackendConfigRepository;
 import org.sidre.repository.MetadataRepository;
-import org.sidre.repository.VocabItemRepository;
+import org.sidre.service.ConfigService;
 import org.sidre.service.MetadataFieldServiceImpl;
 import org.sidre.service.MetadataHelper;
 import org.sidre.service.PublicMetadataIndexService;
+import org.sidre.service.VocabService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -45,13 +45,8 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * Test of {@link MetadataController}.
@@ -68,9 +63,9 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
   @Autowired
   private MetadataRepository repository;
   @Autowired
-  private BackendConfigRepository configRepository;
+  private ConfigService configService;
   @Autowired
-  private VocabItemRepository vocabItemRepository;
+  private VocabService vocabService;
   @Autowired
   private ElasticsearchOperations elasticsearchOperations;
   @Autowired
@@ -98,7 +93,7 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
     BackendConfig initialConfig = new BackendConfig();
     initialConfig.setMetadataIndexName("oer_data_123");
     initialConfig.setExtendedMetadataIndexName("oer_data_extended_123");
-    configRepository.save(initialConfig);
+    configService.updateMetadataConfig(initialConfig);
     Document mapping = Document.parse("{\"dynamic\": \"false\"}");
     IndexOperations indexOperations = elasticsearchOperations.indexOps(IndexCoordinates.of(initialConfig.getMetadataIndexName()));
     var request = PutIndexTemplateRequest.builder().withName(initialConfig.getMetadataIndexName()).withIndexPatterns(initialConfig.getMetadataIndexName()).withMapping(mapping).build();
@@ -315,20 +310,18 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
 
   @Test
   void testPostRequestAddVocabParentForFlatField() throws Exception {
-    configRepository.deleteAll();
     BackendConfig initialConfig = new BackendConfig();
     BackendConfig.FieldProperties fieldProperties = new BackendConfig.FieldProperties();
     fieldProperties.setFieldName("flatType");
     fieldProperties.setVocabIdentifier("hcrt");
     fieldProperties.setAddMissingVocabParents(true);
     initialConfig.setFieldProperties(List.of(fieldProperties));
-    configRepository.save(initialConfig);
-    vocabItemRepository.deleteAll();
+    configService.updateMetadataConfig(initialConfig);
     VocabItem vocabItem = new VocabItem();
     vocabItem.setVocabIdentifier("hcrt");
     vocabItem.setItemKey("https://w3id.org/kim/hcrt/testType");
     vocabItem.setParentKey("https://w3id.org/kim/hcrt/testType2");
-    vocabItemRepository.save(vocabItem);
+    vocabService.updateVocab("hcrt", List.of(vocabItem));
 
     Map<String, Object> metadata = getTestMetadataDto();
     List<String> learningResourceTypes = List.of("https://w3id.org/kim/hcrt/testType");
