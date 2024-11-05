@@ -180,6 +180,7 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
       metadata.getData().put("isAccessibleForFree", true);
     }
     MetadataHelper.modifyObjectList(metadata.getData(), FIELD_NAME_ENCODING, e -> e.putIfAbsent("type", "MediaObject"));
+    MetadataHelper.modifyObjectList(metadata.getData(), "mainEntityOfPage", e -> e.putIfAbsent("type", "WebContent"));
     // default organization IDs
     List<InstitutionMapping> institutionMappings = getInstitutionMapping();
     List.of("creator", "sourceOrganization", "publisher").forEach(fieldName -> {
