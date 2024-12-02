@@ -3,6 +3,7 @@ package org.sidre.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.sidre.ElasticsearchServicesMock;
 import org.sidre.domain.BackendMetadata;
 import org.sidre.repository.MetadataRepository;
@@ -10,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.elasticsearch.core.*;
+import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.mail.javamail.JavaMailSender;
 
 import java.util.*;
@@ -29,6 +32,10 @@ class MetadataServiceTest {
   private MetadataRepository repository; // mock from ElasticsearchServicesMock
   @MockBean
   private ConfigService configService;
+  @Autowired
+  private ElasticsearchOperations elasticsearchOperations; // mock from ElasticsearchServicesMock
+  @MockBean
+  private PublicMetadataIndexService publicMetadataIndexService;
   @MockBean
   private LabelService labelService;
   @MockBean
@@ -267,6 +274,55 @@ class MetadataServiceTest {
     BackendMetadata metadata = newMetadata();
     service.delete(metadata, false);
     verify(repository, times(1)).deleteAll(anyList());
+  }
+
+  @Test
+  void testDeleteSourceEntriesByNamedQueryWithoutPublicUpdate() {
+    BackendMetadata data = newMetadata();
+    ((List<Map<String, Object>>) data.getData().get("mainEntityOfPage")).add(Map.of(
+            "id", "http://example.url/desc/987",
+            "provider", Map.of("id", "http://example.url/provider/testprovider2", "name", "provider name 2")
+    ));
+    SearchHitsIterator<BackendMetadata> dataStream = new SearchHitsIterator<BackendMetadata>() {
+      private List<BackendMetadata> dataList = new ArrayList<>(List.of(data));
+      @Override
+      public AggregationsContainer<?> getAggregations() {
+        return null;
+      }
+
+      @Override
+      public float getMaxScore() {
+        return 0;
+      }
+
+      @Override
+      public long getTotalHits() {
+        return 1;
+      }
+
+      @Override
+      public TotalHitsRelation getTotalHitsRelation() {
+        return null;
+      }
+
+      @Override
+      public void close() {}
+
+      @Override
+      public boolean hasNext() {
+        return !dataList.isEmpty();
+      }
+
+      @Override
+      public SearchHit<BackendMetadata> next() {
+        BackendMetadata d = dataList.remove(0);
+        return new SearchHit<>(null, null, null, 0, null, null, null, null, null, null, d);
+      }
+    };
+    when(elasticsearchOperations.searchForStream(Mockito.any(Query.class), Mockito.eq(BackendMetadata.class))).thenReturn(dataStream);
+    service.deleteSourceEntriesByNamedQuery("providerName", "provider name", false);
+    verify(repository, times(1)).save(any());
+    verify(publicMetadataIndexService, times(0)).updatePublicIndices(anyList());
   }
 
   @Test
