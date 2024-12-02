@@ -201,7 +201,9 @@ public class MetadataServiceImpl implements MetadataService {
         } else {
           updateMetadataSourceItems(data, metadataSourceItems);
           metadataRepository.save(data);
-          publicMetadataIndexService.updatePublicIndices(List.of(data));
+          if (updatePublicIndices) {
+            publicMetadataIndexService.updatePublicIndices(List.of(data));
+          }
         }
       }
     }
