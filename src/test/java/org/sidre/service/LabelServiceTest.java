@@ -71,16 +71,6 @@ class LabelServiceTest {
   }
 
   @Test
-  void testFindByLanguageAndGroup() {
-    VocabItem item = newLabelVocabItem();
-    when(repository.findAll()).thenReturn(List.of(item));
-    Map<String, String> result = service.findByLanguageAndGroup("en", "subject");
-    assertThat(result).isNotNull().containsExactlyEntriesOf(Map.of("key", "value"));
-    result = service.findByLanguageAndGroup("en", "subject");
-    assertThat(result).isNotNull().containsExactlyEntriesOf(Map.of("key", "value"));
-  }
-
-  @Test
   void testFindByLanguageAndField() {
     VocabItem item = newLabelVocabItem();
     when(repository.findAll()).thenReturn(List.of(item));

@@ -39,7 +39,6 @@ public class WebSecurityConfig {
                 .requestMatchers(
                         AntPathRequestMatcher.antMatcher("/api/search/**"),
                         AntPathRequestMatcher.antMatcher("/api/label/**"),
-                        AntPathRequestMatcher.antMatcher("/api/deprecated/label/**"),
                         AntPathRequestMatcher.antMatcher("/api/contact"),
                         AntPathRequestMatcher.antMatcher("/api/oembed-json"),
                         AntPathRequestMatcher.antMatcher("/api/oembed-xml"),

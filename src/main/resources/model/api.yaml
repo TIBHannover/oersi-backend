@@ -27,8 +27,6 @@ tags:
 paths:
   /api/label/{language}:
     $ref: "label.yaml#/~1api~1label~1{language}"
-  /api/deprecated/label/{language}:
-    $ref: "label.yaml#/~1api~1deprecated~1label~1{language}"
 
   /api/contact:
     $ref: "contact.yaml#/~1api~1contact"

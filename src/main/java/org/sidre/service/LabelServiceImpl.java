@@ -17,27 +17,6 @@ import java.util.*;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class LabelServiceImpl implements LabelService {
 
-  /** @deprecated replaced by field */
-  @Deprecated(forRemoval = true)
-  private static final String LABEL_GROUP_ID_AUDIENCE = "audience";
-  /** @deprecated replaced by field */
-  @Deprecated(forRemoval = true)
-  private static final String LABEL_GROUP_ID_CONDITIONS_OF_ACCESS = "conditionsOfAccess";
-  /** @deprecated replaced by field */
-  @Deprecated(forRemoval = true)
-  private static final String LABEL_GROUP_ID_LRT = "lrt";
-  /** @deprecated replaced by field */
-  @Deprecated(forRemoval = true)
-  private static final String LABEL_GROUP_ID_SUBJECT = "subject";
-  /** @deprecated replaced by field */
-  @Deprecated(forRemoval = true)
-  private static final Map<String, String> GROUP_TO_FIELD_MAPPING = Map.of(
-    LABEL_GROUP_ID_AUDIENCE, LABEL_GROUP_ID_AUDIENCE,
-    LABEL_GROUP_ID_CONDITIONS_OF_ACCESS, LABEL_GROUP_ID_CONDITIONS_OF_ACCESS,
-    LABEL_GROUP_ID_LRT, "learningResourceType",
-    LABEL_GROUP_ID_SUBJECT, "about"
-  );
-
   private final @NonNull ConfigService configService;
   private final @NonNull VocabItemRepository vocabItemRepository;
 
@@ -99,13 +78,6 @@ public class LabelServiceImpl implements LabelService {
   @Override
   public Map<String, String> findByLanguage(String languageCode) {
     return new HashMap<>(getLabelByLanguageCache().computeIfAbsent(languageCode, k -> new HashMap<>()));
-  }
-
-  @Transactional(readOnly = true)
-  @Override
-  public Map<String, String> findByLanguageAndGroup(String languageCode, String groupId) {
-    String field = GROUP_TO_FIELD_MAPPING.get(groupId);
-    return findByLanguageAndField(languageCode, field);
   }
 
   @Transactional(readOnly = true)
