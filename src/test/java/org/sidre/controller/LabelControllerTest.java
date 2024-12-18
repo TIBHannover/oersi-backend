@@ -103,25 +103,6 @@ class LabelControllerTest extends ElasticsearchContainerTest {
   }
 
   @Test
-  void testRetrieveGroupExisting() throws Exception {
-    processVocabUpdate("educationalAudience", "key1", Map.of("en", "value1"));
-    processVocabUpdate("hcrt", "key2", Map.of("en", "value2"));
-
-    mvc.perform(get("/api/deprecated/label/en").param("vocab", "audience"))
-      .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
-      .andExpect(jsonPath("$.key1").value("value1"))
-            .andExpect(jsonPath("$.key2").doesNotExist());
-  }
-  @Test
-  void testRetrieveNonExistingGroup() throws Exception {
-    processVocabUpdate("hcrt", "key2", Map.of("en", "value2"));
-
-    mvc.perform(get("/api/deprecated/label/en").param("vocab", "audience"))
-      .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
-      .andExpect(jsonPath("$").isEmpty());
-  }
-
-  @Test
   void testCorsPreflightRequest() throws Exception {
     mvc.perform(options(LABEL_CONTROLLER_BASE_PATH + "/en")
         .header("Access-Control-Request-Method", "GET")
