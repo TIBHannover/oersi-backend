@@ -32,6 +32,7 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
   private static final String FIELD_NAME_ENCODING = "encoding";
   private static final String FIELD_NAME_PUBLISHER = "publisher";
   private static final String FIELD_NAME_SOURCE_ORGANIZATION = "sourceOrganization";
+  private static final String FIELD_VALUE_ORGANIZATION = "Organization";
 
 
   private final @NonNull AmbOembedHelper ambOembedHelper;
@@ -96,7 +97,7 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
     internalData.put("persons", persons);
 
     List<Map<String, Object>> institutions = new ArrayList<>();
-    institutions.addAll(creators.stream().filter(c -> "Organization".equals(c.get("type"))).toList());
+    institutions.addAll(creators.stream().filter(c -> FIELD_VALUE_ORGANIZATION.equals(c.get("type"))).toList());
     institutions.addAll(creators.stream().filter(c -> c.get("affiliation") != null)
       .map(c -> MetadataHelper.parse(c, "affiliation", new TypeReference<Map<String, Object>>() {}))
       .toList());
@@ -120,7 +121,7 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
   }
 
   private void addOrganizationLocations(Map<String, Object> organization, boolean includeGeoPoint) {
-    if (!"Organization".equals(organization.get("type"))) {
+    if (!FIELD_VALUE_ORGANIZATION.equals(organization.get("type"))) {
       return;
     }
     OrganizationInfo organizationInfo = organizationInfoService.getOrganizationInfo((String) organization.get("id"));
@@ -211,16 +212,16 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
     MetadataHelper.modifyObjectList(metadata.getData(), "mainEntityOfPage", e -> e.putIfAbsent("type", "WebContent"));
     // default organization IDs
     List<InstitutionMapping> institutionMappings = getInstitutionMapping();
-    List.of(FIELD_NAME_CREATOR, FIELD_NAME_SOURCE_ORGANIZATION, FIELD_NAME_PUBLISHER).forEach(fieldName -> {
+    List.of(FIELD_NAME_CREATOR, FIELD_NAME_SOURCE_ORGANIZATION, FIELD_NAME_PUBLISHER).forEach(fieldName ->
       MetadataHelper.modifyObjectList(metadata.getData(), fieldName, institution -> {
-        if ("Organization".equals(institution.get("type"))) {
+        if (FIELD_VALUE_ORGANIZATION.equals(institution.get("type"))) {
           addDefaultInstitutionId(institutionMappings, List.of(institution));
         }
         if (institution.get("affiliation") != null) {
           MetadataHelper.modifyObject(institution, "affiliation", affiliation -> addDefaultInstitutionId(institutionMappings, List.of(affiliation)));
         }
-      });
-    });
+      })
+    );
   }
 
   private void replaceMultipleRootSubjectsByInterdisciplinaryItem(BackendMetadata data) {
