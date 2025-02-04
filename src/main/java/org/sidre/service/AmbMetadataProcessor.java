@@ -28,7 +28,10 @@ import java.util.stream.Collectors;
 public class AmbMetadataProcessor implements MetadataCustomProcessor {
 
   private static final String FIELD_NAME_ABOUT = "about";
+  private static final String FIELD_NAME_CREATOR = "creator";
   private static final String FIELD_NAME_ENCODING = "encoding";
+  private static final String FIELD_NAME_PUBLISHER = "publisher";
+  private static final String FIELD_NAME_SOURCE_ORGANIZATION = "sourceOrganization";
 
 
   private final @NonNull AmbOembedHelper ambOembedHelper;
@@ -48,6 +51,9 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
     if (featureAddMissingMetadataInfos) {
       addMissingInfos(metadata);
     }
+    if (featureAddExternalOrganizationInfo) {
+      addLocationsToPublicOrganizationFields(metadata);
+    }
     replaceMultipleRootSubjectsByInterdisciplinaryItem(metadata);
   }
 
@@ -59,6 +65,13 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
   @Override
   public OembedInfo processOembedInfo(OembedInfo oembedInfo, BackendMetadata metadata) {
     return ambOembedHelper.processOembedInfo(oembedInfo, metadata);
+  }
+
+  private void addLocationsToPublicOrganizationFields(BackendMetadata metadata) {
+    List.of(FIELD_NAME_CREATOR, "creator.affiliation", FIELD_NAME_PUBLISHER, FIELD_NAME_SOURCE_ORGANIZATION)
+        .forEach(fieldName ->
+            MetadataHelper.modifyObjectTree(metadata.getData(), fieldName, organization -> addOrganizationLocations(organization, false))
+        );
   }
 
   private void addMissingInfos(BackendMetadata metadata) {
@@ -75,7 +88,7 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
 
   private void fillInternalIndex(BackendMetadata metadata) {
     Map<String, Object> internalData = new HashMap<>(metadata.getData());
-    List<Map<String, Object>> creators = MetadataHelper.parseList(internalData, "creator", new TypeReference<>() {});
+    List<Map<String, Object>> creators = MetadataHelper.parseList(internalData, FIELD_NAME_CREATOR, new TypeReference<>() {});
     if (creators == null) {
       creators = new ArrayList<>();
     }
@@ -87,24 +100,39 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
     institutions.addAll(creators.stream().filter(c -> c.get("affiliation") != null)
       .map(c -> MetadataHelper.parse(c, "affiliation", new TypeReference<Map<String, Object>>() {}))
       .toList());
-    List<Map<String, Object>> sourceOrganization = MetadataHelper.parseList(internalData, "sourceOrganization", new TypeReference<>() {});
+    List<Map<String, Object>> sourceOrganization = MetadataHelper.parseList(internalData, FIELD_NAME_SOURCE_ORGANIZATION, new TypeReference<>() {});
     if (sourceOrganization != null) {
       institutions.addAll(sourceOrganization);
     }
-    List<Map<String, Object>> publishers = MetadataHelper.parseList(internalData, "publisher", new TypeReference<>() {});
+    List<Map<String, Object>> publishers = MetadataHelper.parseList(internalData, FIELD_NAME_PUBLISHER, new TypeReference<>() {});
     institutions.addAll(determineInstitutionsForWhitelistedPublisher(publishers));
     if (featureAddExternalOrganizationInfo) {
-      for (Map<String, Object> institution: institutions) {
-        OrganizationInfo organizationInfo = organizationInfoService.getOrganizationInfo((String) institution.get("id"));
-        if (organizationInfo != null) {
-          institution.put("location", organizationInfo.getLocations());
-        }
-      }
+      institutions.forEach(this::addOrganizationLocations);
     }
     mapInstitutionNameToInternalName(institutions);
     internalData.put("institutions", institutions);
 
     metadata.setExtendedData(internalData);
+  }
+
+  private void addOrganizationLocations(Map<String, Object> organization) {
+    addOrganizationLocations(organization, true);
+  }
+
+  private void addOrganizationLocations(Map<String, Object> organization, boolean includeGeoPoint) {
+    if (!"Organization".equals(organization.get("type"))) {
+      return;
+    }
+    OrganizationInfo organizationInfo = organizationInfoService.getOrganizationInfo((String) organization.get("id"));
+    if (organizationInfo != null && organizationInfo.getLocations() != null) {
+      organization.put("location", organizationInfo.getLocations().stream().map(location -> {
+        Map<String, Object> formattedLocation = MetadataHelper.format(location);
+        if (!includeGeoPoint) {
+          formattedLocation.remove("geo");
+        }
+        return formattedLocation;
+      }).toList());
+    }
   }
 
   @Data
@@ -183,7 +211,7 @@ public class AmbMetadataProcessor implements MetadataCustomProcessor {
     MetadataHelper.modifyObjectList(metadata.getData(), "mainEntityOfPage", e -> e.putIfAbsent("type", "WebContent"));
     // default organization IDs
     List<InstitutionMapping> institutionMappings = getInstitutionMapping();
-    List.of("creator", "sourceOrganization", "publisher").forEach(fieldName -> {
+    List.of(FIELD_NAME_CREATOR, FIELD_NAME_SOURCE_ORGANIZATION, FIELD_NAME_PUBLISHER).forEach(fieldName -> {
       MetadataHelper.modifyObjectList(metadata.getData(), fieldName, institution -> {
         if ("Organization".equals(institution.get("type"))) {
           addDefaultInstitutionId(institutionMappings, List.of(institution));
