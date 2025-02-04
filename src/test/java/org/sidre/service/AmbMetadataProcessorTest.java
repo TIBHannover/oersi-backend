@@ -256,6 +256,7 @@ class AmbMetadataProcessorTest {
     processor.setFeatureAddExternalOrganizationInfo(true);
     processor.process(data);
     processor.postProcess(data);
+    Map<String, Object> expectedLocation = MetadataHelper.format(location);
     assertThat(
             data.getExtendedData()).isNotNull()
             .containsEntry(
@@ -265,7 +266,7 @@ class AmbMetadataProcessorTest {
                             Map.of("id", "https://ror.org/04aj4c181",
                                     "type", "Organization",
                                     "name", "organization with ror id",
-                                    "location", List.of(location)
+                                    "location", List.of(expectedLocation)
                             )
                     )
             );
