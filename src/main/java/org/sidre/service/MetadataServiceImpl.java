@@ -8,6 +8,7 @@ import org.sidre.domain.BackendMetadata;
 import org.sidre.domain.OembedInfo;
 import org.sidre.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
@@ -39,6 +40,10 @@ public class MetadataServiceImpl implements MetadataService {
   private final @NonNull ElasticsearchOperations elasticsearchOperations;
   private final @NonNull MetadataValidator metadataValidator;
   private final @NonNull MetadataFieldService metadataFieldService;
+  private final @NonNull MetadataEnrichmentService metadataEnrichmentService;
+
+  @Value("${feature.add_metadata_enrichments}")
+  private boolean featureAddMetadataEnrichments;
 
   @Transactional
   @Override
@@ -61,6 +66,9 @@ public class MetadataServiceImpl implements MetadataService {
       metadataCustomProcessor.process(metadata);
       metadataAutoUpdater.addMissingInfos(metadata);
       metadataCustomProcessor.postProcess(metadata);
+      if (featureAddMetadataEnrichments) {
+        metadataEnrichmentService.addMetadataEnrichments(metadata);
+      }
 
       ValidatorResult validatorResult = metadataValidator.validate(metadata);
       if (!validatorResult.isValid()) {
@@ -85,6 +93,14 @@ public class MetadataServiceImpl implements MetadataService {
       publicMetadataIndexService.updatePublicIndices(dataToUpdate);
     }
     return results;
+  }
+
+  @Transactional
+  @Override
+  public void persist(List<BackendMetadata> metadata) {
+    metadata.forEach(m -> m.setDateModified(LocalDateTime.now()));
+    metadataRepository.saveAll(metadata);
+    publicMetadataIndexService.updatePublicIndices(metadata);
   }
 
   @Transactional(readOnly = true)

@@ -51,6 +51,7 @@ public class WebSecurityConfig {
         .httpBasic(withDefaults())
         .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/api/metadata/**")).hasRole(ROLE_MANAGE_METADATA)
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/metadata-enrichment/**")).hasRole(ROLE_MANAGE_METADATA)
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/api/metadata-config/**")).hasRole(ROLE_MANAGE_METADATA)
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/api/vocab/**")).hasRole(ROLE_MANAGE_METADATA)
         );

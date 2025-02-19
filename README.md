@@ -58,6 +58,7 @@ API definition in [src/main/resources/model/api.yaml](src/main/resources/model/a
         * default schema in [oersi-schema](https://gitlab.com/oersi/oersi-schema) ([conversion](https://gitlab.com/oersi/oersi-backend/-/issues/8#note_344342881))
         * custom processor for amb-schema can be configured via `metadata.custom.processor=amb` in _search_index.properties_
     * bulk-update and -deletion via **/api/metadata/bulk**. Recommended bulk-update-size: 25
+    * metadata enrichments controlled via **/api/metadata-enrichment**
 * **_LabelController_**: Retrieve labels for controlled vocabularies **/api/label/**
     * In the data there are some fields that use controlled vocabularies with labels (for example `learningResourceType` or `about`) -> these labels can be accessed here directly
     * Labels can be retrieved for a given language - and optionally for a given field/group.
@@ -96,6 +97,13 @@ API definition in [src/main/resources/model/api.yaml](src/main/resources/model/a
 
 * Activate via feature-toggle `feature.add_missing_metadata_infos`. 
 * If active, set embed url during the metadata creation/update. Only missing data will be set. Update by rules that apply if the id matches a regex: Is configured in the _search_index.properties_ -> **autoupdate**-properties
+
+#### Metadata Enrichments
+
+* Activate via feature-toggle `feature.add_metadata_enrichments`.
+* Enrichments can be created/updated/deleted via the **/api/metadata-enrichment** endpoint.
+* Allows to set additional metadata information to the metadata.
+* Can be used for the extended index only, or for both indices.
 
 ## Technologies
 

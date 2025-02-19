@@ -10,6 +10,8 @@ public class ElasticsearchServicesMock {
   @MockBean
   private MetadataRepository metadataRepository;
   @MockBean
+  private MetadataEnrichmentRepository metadataEnrichmentRepository;
+  @MockBean
   private BackendConfigRepository configRepository;
   @MockBean
   private OrganizationInfoRepository organizationInfoRepository;

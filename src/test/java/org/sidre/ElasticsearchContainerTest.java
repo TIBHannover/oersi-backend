@@ -7,6 +7,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.sidre.domain.BackendConfig;
+import org.sidre.domain.BackendMetadataEnrichment;
 import org.sidre.service.MetadataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -86,6 +87,10 @@ public abstract class ElasticsearchContainerTest {
   void clearIndices() {
     metadataService.deleteAll(false);
     IndexOperations indexOperations = elasticsearchOperations.indexOps(BackendConfig.class);
+    indexOperations.delete();
+    indexOperations.create();
+    indexOperations.refresh();
+    indexOperations = elasticsearchOperations.indexOps(BackendMetadataEnrichment.class);
     indexOperations.delete();
     indexOperations.create();
     indexOperations.refresh();

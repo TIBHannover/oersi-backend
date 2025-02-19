@@ -92,6 +92,120 @@
       "403":
         description: Forbidden
         content: {}
+/api/metadata-enrichment:
+  get:
+    tags:
+      - metadata-controller
+    summary: Find Metadata enrichments
+    description: retrieve existing Metadata enrichments
+    operationId: findMetadataEnrichments
+    parameters:
+      - name: metadataId
+        in: query
+        description: ID of the metadata the enrichment is restricted to
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: page
+        in: query
+        description: result page number
+        required: false
+        schema:
+          type: integer
+          default: 0
+      - name: size
+        in: query
+        description: result page size
+        required: false
+        schema:
+          type: integer
+          default: 10
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/MetadataEnrichment"
+      "400":
+        description: Bad Request
+        content: {}
+      "401":
+        description: Unauthorized
+        content: {}
+      "403":
+        description: Forbidden
+        content: {}
+      "404":
+        description: Not Found
+        content: {}
+  post:
+    tags:
+      - metadata-controller
+    summary: Bulk create or update metadata enrichments
+    description: Create or update the given metadata enrichments. Enrichments that are restricted to a metadata ID will overwrite an existing enrichment for this metadata, other enrichments will be created new.
+    operationId: createOrUpdateMetadataEnrichments
+    parameters:
+      - name: update-metadata
+        in: query
+        description: directly update existing metadata with the given enrichments, only enrichments that are restricted to a metadata ID will be applied
+        schema:
+          type: boolean
+          default: false
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: array
+            description: Create or update many Metadata enrichments.
+            items:
+              $ref: "#/components/schemas/MetadataEnrichment"
+      required: true
+    responses:
+      "200":
+        description: OK
+        content: {}
+      "400":
+        description: Bad Request
+        content: {}
+      "401":
+        description: Unauthorized
+        content: {}
+      "403":
+        description: Forbidden
+        content: {}
+  delete:
+    tags:
+      - metadata-controller
+    summary: Bulk delete metadata enrichments
+    description: Delete the metadata-enrichment-entry (or -entries) in the metadata identified by the given parameters.
+    operationId: deleteManyMetadataEnrichments
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+                type: string
+                description: ID of the metadata-enrichment that should be deleted
+      required: true
+    responses:
+      "200":
+        description: OK
+        content: {}
+      "400":
+        description: Bad Request
+        content: {}
+      "401":
+        description: Unauthorized
+        content: {}
+      "403":
+        description: Forbidden
+        content: {}
 /api/metadata/source:
   delete:
     tags:
@@ -280,6 +394,24 @@
         content: {}
 components:
   schemas:
+    MetadataEnrichment:
+      required:
+        - fieldValues
+      type: object
+      properties:
+        id:
+          type: string
+          description: id of the enrichment
+        restrictionMetadataId:
+          type: string
+          description: restrict this enrichment to the ID of the metadata that should be enriched
+        onlyExtended:
+          additionalProperties:
+            type: boolean
+          description: If true specified for a field, only the extended metadata will be enriched for this field
+        fieldValues:
+          additionalProperties: true
+          description: Specify the field name to enrich and the value to use for the enrichment
     MetadataSourceBulkDelete:
       type: object
       properties:
