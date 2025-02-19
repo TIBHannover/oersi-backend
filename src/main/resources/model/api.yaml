@@ -41,6 +41,8 @@ paths:
     $ref: "metadata.yaml#/~1api~1metadata~1source~1{id}"
   /api/metadata/{id}:
     $ref: "metadata.yaml#/~1api~1metadata~1{id}"
+  /api/metadata-enrichment:
+    $ref: "metadata.yaml#/~1api~1metadata-enrichment"
 
   /api/metadata-config:
     $ref: "config.yaml#/~1api~1metadata-config"

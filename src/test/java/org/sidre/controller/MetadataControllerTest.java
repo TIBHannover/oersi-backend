@@ -13,7 +13,10 @@ import org.junit.jupiter.api.Test;
 import org.sidre.ElasticsearchContainerTest;
 import org.sidre.domain.BackendConfig;
 import org.sidre.domain.BackendMetadata;
+import org.sidre.domain.BackendMetadataEnrichment;
 import org.sidre.domain.VocabItem;
+import org.sidre.dto.MetadataEnrichmentDto;
+import org.sidre.repository.MetadataEnrichmentRepository;
 import org.sidre.repository.MetadataRepository;
 import org.sidre.service.ConfigService;
 import org.sidre.service.MetadataFieldServiceImpl;
@@ -43,8 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -62,6 +64,8 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
   private MockMvc mvc;
   @Autowired
   private MetadataRepository repository;
+  @Autowired
+  private MetadataEnrichmentRepository enrichmentRepository;
   @Autowired
   private ConfigService configService;
   @Autowired
@@ -107,8 +111,8 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
   private BackendMetadata createTestMetadata() {
     BackendMetadata data = getTestMetadata();
     BackendMetadata clone = MetadataFieldServiceImpl.toMetadata(data.getData(), "id");
-    clone.setExtendedData(clone.getData());
-    publicMetadataIndexService.updatePublicIndices(List.of(clone));
+    data.setExtendedData(clone.getData());
+    publicMetadataIndexService.updatePublicIndices(List.of(data));
     return repository.save(data);
   }
 
@@ -662,4 +666,66 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
     mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "/source/" + encodedIdentifier))
       .andExpect(status().isBadRequest());
   }
+
+  @Test
+  void testFindEnrichments() throws Exception {
+    BackendMetadataEnrichment enrichment = new BackendMetadataEnrichment();
+    enrichment.setRestrictionMetadataId("https://example.org");
+    enrichment.setFieldValues(Map.of("name", "test"));
+    enrichmentRepository.save(enrichment);
+
+    mvc.perform(get(METADATA_CONTROLLER_BASE_PATH + "-enrichment"))
+        .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$").isNotEmpty())
+        .andExpect(jsonPath("$[0].restrictionMetadataId").value("https://example.org"));
+  }
+
+  @Test
+  void testFindEnrichmentsForMetadata() throws Exception {
+    BackendMetadataEnrichment enrichment = new BackendMetadataEnrichment();
+    enrichment.setRestrictionMetadataId("https://example.org");
+    enrichment.setFieldValues(Map.of("name", "test"));
+    enrichmentRepository.save(enrichment);
+    enrichment = new BackendMetadataEnrichment();
+    enrichment.setFieldValues(Map.of("name", "test2"));
+    enrichmentRepository.save(enrichment);
+
+    mvc.perform(get(METADATA_CONTROLLER_BASE_PATH + "-enrichment").param("metadataId", "https://example.org"))
+        .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$").isNotEmpty())
+        .andExpect(jsonPath("$[0].restrictionMetadataId").value("https://example.org"));
+  }
+
+  @Test
+  void testCreateEnrichments() throws Exception {
+    BackendMetadata testMetadata = createTestMetadata();
+    MetadataEnrichmentDto enrichment = new MetadataEnrichmentDto();
+    enrichment.setRestrictionMetadataId(testMetadata.getId());
+    enrichment.setFieldValues(Map.of("test1", "test1", "test2", "test2"));
+    enrichment.setOnlyExtended(Map.of("test2", true));
+
+    mvc.perform(post(METADATA_CONTROLLER_BASE_PATH + "-enrichment").contentType(MediaType.APPLICATION_JSON)
+            .content(asJson(List.of(enrichment))).param("update-metadata", "true"))
+        .andExpect(status().isOk());
+
+    Assertions.assertEquals(1, enrichmentRepository.count());
+    testMetadata = repository.findById(testMetadata.getId()).orElse(null);
+    assertNotNull(testMetadata);
+    assertEquals("test1", testMetadata.get("test1"));
+    assertNull(testMetadata.get("test2"));
+    assertEquals("test2", testMetadata.getExtendedData().get("test2"));
+  }
+
+  @Test
+  void testDeleteEnrichments() throws Exception {
+    BackendMetadataEnrichment enrichment = new BackendMetadataEnrichment();
+    enrichment.setFieldValues(Map.of("name", "test"));
+    enrichmentRepository.save(enrichment);
+
+    mvc.perform(delete(METADATA_CONTROLLER_BASE_PATH + "-enrichment").contentType(MediaType.APPLICATION_JSON)
+            .content(asJson(List.of(enrichment.getId()))))
+        .andExpect(status().isOk());
+    Assertions.assertEquals(0, enrichmentRepository.count());
+  }
+
 }

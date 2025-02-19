@@ -23,9 +23,20 @@ public interface MetadataService {
     }
   }
 
+  /**
+   * Create or update the given {@link BackendMetadata}. If the metadata already exists, it will be updated. Specific processes can modify the metadata (like adding default values) before it is stored.
+   */
   MetadataUpdateResult createOrUpdate(BackendMetadata metadata);
 
+  /**
+   * Create or update the given list of {@link BackendMetadata}. If the metadata already exists, it will be updated. Specific processes can modify the metadata (like adding default values) before it is stored.
+   */
   List<MetadataUpdateResult> createOrUpdate(List<BackendMetadata> metadata);
+
+  /**
+   * Persist the given {@link BackendMetadata} without further adjustments.
+   */
+  void persist(List<BackendMetadata> metadata);
 
   /**
    * Retrieve {@link BackendMetadata} for the given id.

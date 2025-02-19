@@ -8,9 +8,9 @@ import org.apache.commons.validator.routines.UrlValidator;
 import org.modelmapper.MappingException;
 import org.sidre.api.MetadataControllerApi;
 import org.sidre.domain.BackendMetadata;
-import org.sidre.dto.MetadataBulkUpdateResponseDto;
-import org.sidre.dto.MetadataBulkUpdateResponseMessagesDto;
-import org.sidre.dto.MetadataSourceBulkDeleteDto;
+import org.sidre.domain.BackendMetadataEnrichment;
+import org.sidre.dto.*;
+import org.sidre.service.MetadataEnrichmentService;
 import org.sidre.service.MetadataFieldService;
 import org.sidre.service.MetadataService;
 import org.sidre.service.MetadataValidator;
@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ public class MetadataController implements MetadataControllerApi {
 
   private final @NonNull MetadataService metadataService;
   private final @NonNull MetadataFieldService metadataFieldService;
+  private final @NonNull MetadataEnrichmentService metadataEnrichmentService;
   private final @NonNull MetadataValidator metadataValidator;
 
   /**
@@ -178,6 +180,63 @@ public class MetadataController implements MetadataControllerApi {
     if (!metadataService.deleteSourceEntryByIdentifier(sourceInfoIdentifier, updatePublic)) {
       return ResponseEntity.notFound().build();
     }
+    return ResponseEntity.ok().build();
+  }
+
+  @Override
+  public ResponseEntity<List<MetadataEnrichmentDto>> findMetadataEnrichments(String metadataId, Integer page, Integer size) {
+    List<BackendMetadataEnrichment> enrichments;
+    if (metadataId != null) {
+      enrichments = metadataEnrichmentService.findMetadataEnrichmentsByRestrictionMetadataId(metadataId);
+      if (enrichments.isEmpty()) {
+        return ResponseEntity.notFound().build();
+      }
+    } else {
+      enrichments = metadataEnrichmentService.findMetadataEnrichments(page, size);
+    }
+    List<MetadataEnrichmentDto> enrichmentsDto = enrichments.stream().map(enrichment -> {
+      MetadataEnrichmentDto enrichmentDto = new MetadataEnrichmentDto();
+      enrichmentDto.setId(enrichment.getId());
+      enrichmentDto.setRestrictionMetadataId(enrichment.getRestrictionMetadataId());
+      enrichmentDto.setOnlyExtended(enrichment.getOnlyExtended());
+      enrichmentDto.setFieldValues(enrichment.getFieldValues());
+      return enrichmentDto;
+    }).toList();
+    return ResponseEntity.ok(enrichmentsDto);
+  }
+
+  @Override
+  public ResponseEntity<Void> createOrUpdateMetadataEnrichments(List<MetadataEnrichmentDto> metadataEnrichmentDtos, Boolean updateMetadata) {
+    List<BackendMetadataEnrichment> metadataEnrichments = metadataEnrichmentDtos.stream().map(enrichmentDto -> {
+      BackendMetadataEnrichment enrichment = new BackendMetadataEnrichment();
+      enrichment.setRestrictionMetadataId(enrichmentDto.getRestrictionMetadataId());
+      enrichment.setOnlyExtended(enrichmentDto.getOnlyExtended());
+      enrichment.setFieldValues(enrichmentDto.getFieldValues());
+      return enrichment;
+    }).toList();
+    metadataEnrichmentService.createOrUpdate(metadataEnrichments);
+
+    if (Boolean.TRUE.equals(updateMetadata)) {
+      List<BackendMetadata> dataToUpdate = new ArrayList<>();
+      metadataEnrichments.stream()
+          .filter(e -> e.getRestrictionMetadataId() != null)
+          .forEach(enrichment -> {
+        BackendMetadata metadata = metadataService.findById(enrichment.getRestrictionMetadataId());
+        if (metadata != null) {
+          metadataEnrichmentService.addMetadataEnrichments(metadata, enrichment);
+          dataToUpdate.add(metadata);
+        }
+      });
+      if (!dataToUpdate.isEmpty()) {
+        metadataService.persist(dataToUpdate);
+      }
+    }
+    return ResponseEntity.ok().build();
+  }
+
+  @Override
+  public ResponseEntity<Void> deleteManyMetadataEnrichments(List<String> enrichmentIds) {
+    metadataEnrichmentService.deleteByIds(enrichmentIds);
     return ResponseEntity.ok().build();
   }
 
