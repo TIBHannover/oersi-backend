@@ -17,7 +17,6 @@ import org.sidre.service.MetadataValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -122,7 +121,7 @@ public class MetadataController implements MetadataControllerApi {
    * @return response
    */
   @Override
-  public ResponseEntity<Map<String, Object>> update(@PathVariable final String id, @RequestBody final Map<String, Object> metadataDto) {
+  public ResponseEntity<Map<String, Object>> update(final String id, @RequestBody final Map<String, Object> metadataDto) {
     if (!metadataValidator.validateBaseFields(metadataDto).isValid()) {
       return ResponseEntity.badRequest().build();
     }
@@ -145,7 +144,7 @@ public class MetadataController implements MetadataControllerApi {
    * @return response
    */
   @Override
-  public ResponseEntity<Map<String, Object>> delete(@PathVariable final String id, Boolean updatePublic) {
+  public ResponseEntity<Map<String, Object>> delete(final String id, Boolean updatePublic) {
     BackendMetadata metadata = metadataService.findById(id);
     if (metadata == null) {
       return getResponseForNonExistingData(id);
