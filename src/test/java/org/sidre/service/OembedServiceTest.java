@@ -10,7 +10,6 @@ import org.sidre.dto.OembedResponseDto;
 import org.sidre.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -24,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
-@Import(ElasticsearchServicesMock.class)
+@ElasticsearchServicesMock
 class OembedServiceTest {
 
   @Autowired

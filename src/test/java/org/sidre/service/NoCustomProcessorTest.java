@@ -6,7 +6,6 @@ import org.sidre.domain.BackendMetadata;
 import org.sidre.domain.OembedInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +13,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(properties = {"metadata.custom.processor="})
-@Import(ElasticsearchServicesMock.class)
+@ElasticsearchServicesMock
 class NoCustomProcessorTest {
 
     @Autowired

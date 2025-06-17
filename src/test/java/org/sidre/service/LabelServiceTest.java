@@ -9,9 +9,8 @@ import org.sidre.domain.VocabItem;
 import org.sidre.repository.VocabItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,16 +21,16 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
-@Import(ElasticsearchServicesMock.class)
+@ElasticsearchServicesMock
 class LabelServiceTest {
 
-  @MockBean
+  @MockitoBean
   private ConfigService configService;
   @Autowired
   private LabelService service;
   @Autowired
   private VocabItemRepository repository; // mock from ElasticsearchServicesMock
-  @MockBean
+  @MockitoBean
   private JavaMailSender mailSender;
 
   @BeforeEach

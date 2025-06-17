@@ -2,15 +2,14 @@ package org.sidre;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest
-@Import(ElasticsearchServicesMock.class)
+@ElasticsearchServicesMock
 class SearchIndexBackendApplicationTests {
 
-	@MockBean
+	@MockitoBean
 	private JavaMailSender mailSender;
 
 	@Test
