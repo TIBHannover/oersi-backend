@@ -10,7 +10,6 @@ import org.sidre.domain.OrganizationInfo;
 import org.sidre.repository.OrganizationInfoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 
 import java.time.LocalDateTime;
@@ -24,7 +23,7 @@ class MetadataServiceWithCustomConfigTest {
 
   @Nested
   @SpringBootTest(properties = {"feature.amb.add_external_organization_info=true"})
-  @Import(ElasticsearchServicesMock.class)
+  @ElasticsearchServicesMock
   class MetadataServiceAddLocationTest {
 
     @Autowired

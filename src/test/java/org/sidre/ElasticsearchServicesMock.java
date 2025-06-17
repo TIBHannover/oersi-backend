@@ -1,26 +1,25 @@
 package org.sidre;
 
 import org.sidre.repository.*;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-@TestConfiguration
-public class ElasticsearchServicesMock {
-  @MockBean
-  private MetadataRepository metadataRepository;
-  @MockBean
-  private MetadataEnrichmentRepository metadataEnrichmentRepository;
-  @MockBean
-  private BackendConfigRepository configRepository;
-  @MockBean
-  private OrganizationInfoRepository organizationInfoRepository;
-  @MockBean
-  private VocabItemRepository vocabItemRepository;
-  @MockBean
-  private ElasticsearchRequestLogRepository requestLogRepository;
-  @MockBean
-  private ElasticsearchOperations elasticsearchOperations;
-  @MockBean
-  private ElasticsearchStartupApplicationListener elasticsearchStartupApplicationListener;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@MockitoBean(types = {
+    MetadataRepository.class,
+    MetadataEnrichmentRepository.class,
+    BackendConfigRepository.class,
+    OrganizationInfoRepository.class,
+    VocabItemRepository.class,
+    ElasticsearchRequestLogRepository.class,
+    ElasticsearchOperations.class,
+    ElasticsearchStartupApplicationListener.class
+})
+public @interface ElasticsearchServicesMock {
 }

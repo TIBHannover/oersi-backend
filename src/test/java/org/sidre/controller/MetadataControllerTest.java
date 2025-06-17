@@ -25,7 +25,6 @@ import org.sidre.service.PublicMetadataIndexService;
 import org.sidre.service.VocabService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.data.elasticsearch.core.document.Document;
@@ -34,6 +33,7 @@ import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.io.IOException;
@@ -74,7 +74,7 @@ class MetadataControllerTest extends ElasticsearchContainerTest {
   private ElasticsearchOperations elasticsearchOperations;
   @Autowired
   private PublicMetadataIndexService publicMetadataIndexService;
-  @MockBean
+  @MockitoBean
   private JavaMailSender mailSender;
 
 

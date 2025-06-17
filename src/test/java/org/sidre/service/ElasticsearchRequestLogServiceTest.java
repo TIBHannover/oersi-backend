@@ -9,10 +9,9 @@ import org.sidre.domain.ElasticsearchRequestLog;
 import org.sidre.repository.ElasticsearchRequestLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 
 @SpringBootTest
-@Import(ElasticsearchServicesMock.class)
+@ElasticsearchServicesMock
 class ElasticsearchRequestLogServiceTest {
 
     @Autowired

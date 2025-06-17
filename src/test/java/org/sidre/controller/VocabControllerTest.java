@@ -13,10 +13,10 @@ import org.sidre.repository.VocabItemRepository;
 import org.sidre.service.VocabService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ class VocabControllerTest extends ElasticsearchContainerTest {
   private VocabItemRepository repository;
   @Autowired
   private VocabService vocabService;
-  @MockBean
+  @MockitoBean
   private JavaMailSender mailSender;
 
   @BeforeEach

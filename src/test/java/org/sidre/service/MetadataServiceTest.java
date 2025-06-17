@@ -9,12 +9,12 @@ import org.sidre.domain.BackendMetadata;
 import org.sidre.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.elasticsearch.core.*;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.time.Duration;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,22 +23,22 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
-@Import(ElasticsearchServicesMock.class)
+@ElasticsearchServicesMock
 class MetadataServiceTest {
 
   @Autowired
   private MetadataService service;
   @Autowired
   private MetadataRepository repository; // mock from ElasticsearchServicesMock
-  @MockBean
+  @MockitoBean
   private ConfigService configService;
   @Autowired
   private ElasticsearchOperations elasticsearchOperations; // mock from ElasticsearchServicesMock
-  @MockBean
+  @MockitoBean
   private PublicMetadataIndexService publicMetadataIndexService;
-  @MockBean
+  @MockitoBean
   private LabelService labelService;
-  @MockBean
+  @MockitoBean
   private JavaMailSender mailSender;
 
   @BeforeEach
@@ -294,6 +294,9 @@ class MetadataServiceTest {
       public float getMaxScore() {
         return 0;
       }
+
+      @Override
+      public Duration getExecutionDuration() { return null; }
 
       @Override
       public long getTotalHits() {

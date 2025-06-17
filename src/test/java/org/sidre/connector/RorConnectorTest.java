@@ -7,8 +7,7 @@ import org.sidre.ElasticsearchServicesMock;
 import org.sidre.domain.OrganizationInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -19,13 +18,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
-@Import(ElasticsearchServicesMock.class)
+@ElasticsearchServicesMock
 class RorConnectorTest {
 
   @Autowired
   private RorConnector rorConnector;
 
-  @MockBean
+  @MockitoBean
   private WebClient webClient;
 
   private void mockResponse(RorConnector.RorOrganization resp) {

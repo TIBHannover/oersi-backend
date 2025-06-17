@@ -12,8 +12,7 @@ import org.sidre.domain.OrganizationInfo;
 import org.sidre.repository.BackendConfigRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
-@Import(ElasticsearchServicesMock.class)
+@ElasticsearchServicesMock
 class AmbMetadataProcessorTest {
 
   @Autowired
@@ -32,9 +31,9 @@ class AmbMetadataProcessorTest {
   @Autowired
   private ConfigService configService;
 
-  @MockBean
+  @MockitoBean
   private RorConnector rorConnector;
-  @MockBean
+  @MockitoBean
   private VocabService vocabService;
   @Autowired
   private BackendConfigRepository configRepository; // mock from ElasticsearchServicesMock

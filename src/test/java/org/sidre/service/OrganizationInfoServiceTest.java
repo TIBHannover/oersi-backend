@@ -8,8 +8,7 @@ import org.sidre.domain.OrganizationInfo;
 import org.sidre.repository.OrganizationInfoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,10 +18,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
-@Import(ElasticsearchServicesMock.class)
+@ElasticsearchServicesMock
 class OrganizationInfoServiceTest {
 
-  @MockBean
+  @MockitoBean
   private RorConnector rorConnector;
   @Autowired
   private OrganizationInfoRepository organizationInfoRepository; // mock from ElasticsearchServicesMock

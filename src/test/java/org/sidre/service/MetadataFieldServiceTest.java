@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.sidre.ElasticsearchServicesMock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 
 import java.util.HashMap;
 import java.util.List;
@@ -20,7 +19,7 @@ class MetadataFieldServiceTest {
           "base-field-config.metadataSource.useMultipleItems=true", "base-field-config.metadataSource.isObject=true",
           "base-field-config.metadataSource.queries[0].name=providerName", "base-field-config.metadataSource.queries[0].field=provider.name"
   })
-  @Import(ElasticsearchServicesMock.class)
+  @ElasticsearchServicesMock
   class MetadataSourceObjectListTest {
     @Autowired
     MetadataFieldService metadataFieldService;
@@ -69,7 +68,7 @@ class MetadataFieldServiceTest {
           "base-field-config.metadataSource.useMultipleItems=false", "base-field-config.metadataSource.isObject=true",
           "base-field-config.metadataSource.queries[0].name=providerName", "base-field-config.metadataSource.queries[0].field=provider.name"
   })
-  @Import(ElasticsearchServicesMock.class)
+  @ElasticsearchServicesMock
   class MetadataSourceSingleObjectTest {
     @Autowired
     MetadataFieldService metadataFieldService;
@@ -109,7 +108,7 @@ class MetadataFieldServiceTest {
           "base-field-config.metadataSource.useMultipleItems=true", "base-field-config.metadataSource.isObject=true",
           "base-field-config.metadataSource.queries[0].name=providerName", "base-field-config.metadataSource.queries[0].field=provider.name"
   })
-  @Import(ElasticsearchServicesMock.class)
+  @ElasticsearchServicesMock
   class MetadataSourceComplexObjectListTest {
     @Autowired
     MetadataFieldService metadataFieldService;
@@ -155,7 +154,7 @@ class MetadataFieldServiceTest {
           "base-field-config.metadataSource.field=metadataSource", "base-field-config.metadataSource.objectIdentifier=",
           "base-field-config.metadataSource.useMultipleItems=true", "base-field-config.metadataSource.isObject=false",
   })
-  @Import(ElasticsearchServicesMock.class)
+  @ElasticsearchServicesMock
   class MetadataSourceValueListTest {
     @Autowired
     MetadataFieldService metadataFieldService;
@@ -195,7 +194,7 @@ class MetadataFieldServiceTest {
           "base-field-config.metadataSource.field=metadataSource", "base-field-config.metadataSource.objectIdentifier=",
           "base-field-config.metadataSource.useMultipleItems=false", "base-field-config.metadataSource.isObject=false",
   })
-  @Import(ElasticsearchServicesMock.class)
+  @ElasticsearchServicesMock
   class MetadataSourceSingleValueTest {
     @Autowired
     MetadataFieldService metadataFieldService;
@@ -234,7 +233,7 @@ class MetadataFieldServiceTest {
           "base-field-config.metadataSource.field=metadataSource", "base-field-config.metadataSource.objectIdentifier=",
           "base-field-config.metadataSource.useMultipleItems=false", "base-field-config.metadataSource.isObject=false",
   })
-  @Import(ElasticsearchServicesMock.class)
+  @ElasticsearchServicesMock
   class MetadataSourceValuesTest {
 
     @Test
