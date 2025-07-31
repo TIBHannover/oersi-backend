@@ -30,7 +30,7 @@ public class RorConnector implements OrganizationInfoConnector {
     if (rorId.startsWith("https://ror.org/")) {
       var id = rorId.replace("https://ror.org/", "");
       Mono<OrganizationInfo> rorResponse = webClient.get()
-              .uri("https://api.ror.org/organizations/" + id)
+              .uri("https://api.ror.org/v1/organizations/" + id)
               .retrieve()
               .onStatus(HttpStatusCode::isError, clientResponse -> Mono.error(new IOException("No successful result from ror API " + clientResponse.statusCode().value())))
               .bodyToMono(RorOrganization.class)
