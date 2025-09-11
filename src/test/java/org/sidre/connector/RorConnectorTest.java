@@ -77,7 +77,7 @@ class RorConnectorTest {
   @Test
   void testLoadOrganizationInfoWithMissingId() {
     var testData = getTestData();
-    testData.setLocations(null);
+    testData.setId(null);
     mockResponse(testData);
     OrganizationInfo info = rorConnector.loadOrganizationInfo("https://ror.org/04aj4c181");
     assertThat(info).isNull();
