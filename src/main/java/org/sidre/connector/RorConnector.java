@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -30,11 +31,11 @@ public class RorConnector implements OrganizationInfoConnector {
     if (rorId.startsWith("https://ror.org/")) {
       var id = rorId.replace("https://ror.org/", "");
       Mono<OrganizationInfo> rorResponse = webClient.get()
-              .uri("https://api.ror.org/v1/organizations/" + id)
+              .uri("https://api.ror.org/organizations/" + id)
               .retrieve()
               .onStatus(HttpStatusCode::isError, clientResponse -> Mono.error(new IOException("No successful result from ror API " + clientResponse.statusCode().value())))
               .bodyToMono(RorOrganization.class)
-              .map(this::toOrganizationInfo)
+              .flatMap(rorOrganization -> Mono.justOrEmpty(toOrganizationInfo(rorOrganization)))
               .onErrorResume(IOException.class, e -> {
                 log.warn("Cannot load organization info for '" + rorId + "' from ror API: " + e.getMessage());
                 return Mono.empty();
@@ -46,18 +47,21 @@ public class RorConnector implements OrganizationInfoConnector {
   }
 
   private OrganizationInfo toOrganizationInfo(RorOrganization rorOrganization) {
+    if (rorOrganization == null || rorOrganization.id == null || rorOrganization.locations == null) {
+      return null;
+    }
     OrganizationInfo info = new OrganizationInfo();
     info.setOrganizationId(rorOrganization.id);
     List<OrganizationInfo.Location> locations = new ArrayList<>();
-    for (RorOrganization.Address address : rorOrganization.addresses) {
+    for (RorOrganization.Location.GeonamesDetails geonamesDetails : rorOrganization.locations.stream().map(loc -> loc.geonamesDetails).filter(Objects::nonNull).toList()) {
       OrganizationInfo.Location location = new OrganizationInfo.Location();
-      if (address.lat != null && address.lng != null) {
-        location.setGeo(new GeoPoint(address.lat, address.lng));
+      if (geonamesDetails.lat != null && geonamesDetails.lng != null) {
+        location.setGeo(new GeoPoint(geonamesDetails.lat, geonamesDetails.lng));
       }
       OrganizationInfo.Location.Address locationAddress = new OrganizationInfo.Location.Address();
-      locationAddress.setAddressCountry(rorOrganization.country.countryCode);
-      locationAddress.setAddressLocality(address.city);
-      locationAddress.setAddressRegion(address.geonamesCity.geonamesAdmin1.name);
+      locationAddress.setAddressCountry(geonamesDetails.country);
+      locationAddress.setAddressLocality(geonamesDetails.name);
+      locationAddress.setAddressRegion(geonamesDetails.region);
       location.setAddress(locationAddress);
       locations.add(location);
     }
@@ -68,33 +72,22 @@ public class RorConnector implements OrganizationInfoConnector {
   @Data
   protected static class RorOrganization {
     private String id;
-    private String name;
-    private Country country;
-    private List<Address> addresses;
+    private List<Location> locations;
 
     @Data
-    protected static class Country {
-      @JsonProperty("country_code")
-      private String countryCode;
-    }
-
-    @Data
-    protected static class Address {
-      private Double lat;
-      private Double lng;
-      private String city;
-      @JsonProperty("geonames_city")
-      private GeonamesCity geonamesCity;
+    protected static class Location {
+      @JsonProperty("geonames_details")
+      private GeonamesDetails geonamesDetails;
 
       @Data
-      protected static class GeonamesCity {
-        @JsonProperty("geonames_admin1")
-        private GeonamesAdmin1 geonamesAdmin1;
-
-        @Data
-        protected static class GeonamesAdmin1 {
-          private String name;
-        }
+      protected static class GeonamesDetails {
+        private Double lat;
+        private Double lng;
+        private String name;
+        @JsonProperty("country_name")
+        private String country;
+        @JsonProperty("country_subdivision_name")
+        private String region;
       }
     }
   }

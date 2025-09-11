@@ -36,28 +36,24 @@ class RorConnectorTest {
     when(uriSpecMock.uri(ArgumentMatchers.<String>notNull())).thenReturn(headersSpecMock);
     when(headersSpecMock.retrieve()).thenReturn(responseSpecMock);
     when(responseSpecMock.onStatus(Mockito.any(), Mockito.any())).thenReturn(onStatusSpecMock);
-    when(onStatusSpecMock.bodyToMono(ArgumentMatchers.<Class<RorConnector.RorOrganization>>notNull()))
-            .thenReturn(Mono.just(resp));
+    when(onStatusSpecMock.bodyToMono(RorConnector.RorOrganization.class))
+            .thenReturn(Mono.justOrEmpty(resp));
   }
 
   private RorConnector.RorOrganization getTestData() {
     var testData = new RorConnector.RorOrganization();
     testData.setId("https://ror.org/04aj4c181");
-    var country = new RorConnector.RorOrganization.Country();
-    country.setCountryCode("DE");
-    testData.setCountry(country);
-    List<RorConnector.RorOrganization.Address> addresses = new ArrayList<>();
-    var address = new RorConnector.RorOrganization.Address();
-    address.setCity("Hanover");
+    List<RorConnector.RorOrganization.Location> locations = new ArrayList<>();
+    var address = new RorConnector.RorOrganization.Location.GeonamesDetails();
+    address.setName("Hanover");
+    address.setCountry("DE");
     address.setLat(52.37052);
     address.setLng(9.73322);
-    var geonamesCity = new RorConnector.RorOrganization.Address.GeonamesCity();
-    var geonamesAdmin1 = new RorConnector.RorOrganization.Address.GeonamesCity.GeonamesAdmin1();
-    geonamesAdmin1.setName("Lower Saxony");
-    geonamesCity.setGeonamesAdmin1(geonamesAdmin1);
-    address.setGeonamesCity(geonamesCity);
-    addresses.add(address);
-    testData.setAddresses(addresses);
+    address.setRegion("Lower Saxony");
+    RorConnector.RorOrganization.Location location = new RorConnector.RorOrganization.Location();
+    location.setGeonamesDetails(address);
+    locations.add(location);
+    testData.setLocations(locations);
     return testData;
   }
 
@@ -71,10 +67,27 @@ class RorConnectorTest {
   }
 
   @Test
+  void testLoadOrganizationInfoWithMissingData() {
+    mockResponse(null);
+    OrganizationInfo info = rorConnector.loadOrganizationInfo("https://ror.org/04aj4c181");
+    assertThat(info).isNull();
+  }
+
+
+  @Test
+  void testLoadOrganizationInfoWithMissingId() {
+    var testData = getTestData();
+    testData.setLocations(null);
+    mockResponse(testData);
+    OrganizationInfo info = rorConnector.loadOrganizationInfo("https://ror.org/04aj4c181");
+    assertThat(info).isNull();
+  }
+
+  @Test
   void testLoadOrganizationInfoWithoutLatLon() {
     RorConnector.RorOrganization testData = getTestData();
-    testData.getAddresses().get(0).setLat(null);
-    testData.getAddresses().get(0).setLng(null);
+    testData.getLocations().get(0).getGeonamesDetails().setLat(null);
+    testData.getLocations().get(0).getGeonamesDetails().setLng(null);
     mockResponse(testData);
 
     OrganizationInfo info = rorConnector.loadOrganizationInfo("https://ror.org/04aj4c181");
