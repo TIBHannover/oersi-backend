@@ -84,7 +84,7 @@ public class RorConnector implements OrganizationInfoConnector {
         private Double lat;
         private Double lng;
         private String name;
-        @JsonProperty("country_name")
+        @JsonProperty("country_code")
         private String country;
         @JsonProperty("country_subdivision_name")
         private String region;
