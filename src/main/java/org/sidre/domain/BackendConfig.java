@@ -35,5 +35,6 @@ public class BackendConfig {
   private Map<String, Object> customConfig;
   private List<FieldProperties> fieldProperties;
   private DefaultFieldProperties defaultFieldProperties;
+  private List<String> metadataBlacklist = null;
 
 }

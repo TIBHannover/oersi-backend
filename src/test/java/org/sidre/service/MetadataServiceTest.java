@@ -5,7 +5,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.sidre.ElasticsearchServicesMock;
+import org.sidre.domain.BackendConfig;
 import org.sidre.domain.BackendMetadata;
+import org.sidre.repository.BackendConfigRepository;
 import org.sidre.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,7 +32,7 @@ class MetadataServiceTest {
   private MetadataService service;
   @Autowired
   private MetadataRepository repository; // mock from ElasticsearchServicesMock
-  @MockitoBean
+  @Autowired
   private ConfigService configService;
   @Autowired
   private ElasticsearchOperations elasticsearchOperations; // mock from ElasticsearchServicesMock
@@ -40,9 +42,12 @@ class MetadataServiceTest {
   private LabelService labelService;
   @MockitoBean
   private JavaMailSender mailSender;
+  @Autowired
+  private BackendConfigRepository configRepository; // mock from ElasticsearchServicesMock
 
   @BeforeEach
   public void setup() {
+    configService.updateMetadataConfig(null);
   }
 
   private BackendMetadata newMetadata() {
@@ -341,6 +346,26 @@ class MetadataServiceTest {
     when(repository.findById(metadata.getId())).thenReturn(Optional.empty());
     result = service.findById(metadata.getId());
     assertThat(result).isNull();
+  }
+
+  @Test
+  void testCreateBlacklistedMetadata() {
+    BackendMetadata metadata = newMetadata();
+    BackendConfig config = new BackendConfig();
+    config.setMetadataBlacklist(List.of(metadata.getId()));
+    when(configRepository.findById("search_index_backend_config")).thenReturn(Optional.of(config));
+    service.createOrUpdate(metadata);
+    verify(repository, times(0)).saveAll(anyList());
+  }
+
+  @Test
+  void testPersistBlacklistedMetadata() {
+    BackendMetadata metadata = newMetadata();
+    BackendConfig config = new BackendConfig();
+    config.setMetadataBlacklist(List.of(metadata.getId()));
+    when(configRepository.findById("search_index_backend_config")).thenReturn(Optional.of(config));
+    service.persist(List.of(metadata));
+    verify(repository, times(0)).saveAll(anyList());
   }
 
 }

@@ -4,6 +4,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.sidre.domain.BackendConfig;
 import org.sidre.domain.BackendMetadata;
 import org.sidre.domain.OembedInfo;
 import org.sidre.repository.MetadataRepository;
@@ -41,6 +42,7 @@ public class MetadataServiceImpl implements MetadataService {
   private final @NonNull MetadataValidator metadataValidator;
   private final @NonNull MetadataFieldService metadataFieldService;
   private final @NonNull MetadataEnrichmentService metadataEnrichmentService;
+  private final @NonNull ConfigService configService;
 
   @Value("${feature.add_metadata_enrichments}")
   private boolean featureAddMetadataEnrichments;
@@ -57,6 +59,13 @@ public class MetadataServiceImpl implements MetadataService {
     List<MetadataUpdateResult> results = new ArrayList<>();
     for (BackendMetadata metadata : records) {
       MetadataUpdateResult result = new MetadataUpdateResult(metadata);
+      if (isBlackListed(metadata)) {
+        log.debug("Blacklisted resource: {}", metadata);
+        result.setSuccess(false);
+        result.setMessages(List.of("Blacklisted resource"));
+        results.add(result);
+        continue;
+      }
       BackendMetadata existingMetadata = findMatchingMetadata(metadata);
       if (existingMetadata != null) {
         metadataFieldService.updateMetadataSource(metadata.getData(), mergeMetadataSources(existingMetadata, metadata));
@@ -75,15 +84,13 @@ public class MetadataServiceImpl implements MetadataService {
         log.debug("invalid data: {}, violations: {}", metadata, validatorResult.getViolations());
         result.setSuccess(false);
         result.addMessages(validatorResult.getViolations());
-        results.add(result);
-        continue;
+      } else {
+        OembedInfo oembedInfo = metadataAutoUpdater.initOembedInfo(metadata);
+        oembedInfo = metadataCustomProcessor.processOembedInfo(oembedInfo, metadata);
+        metadata.setOembedInfo(oembedInfo);
+
+        metadata.setDateModified(LocalDateTime.now());
       }
-
-      OembedInfo oembedInfo = metadataAutoUpdater.initOembedInfo(metadata);
-      oembedInfo = metadataCustomProcessor.processOembedInfo(oembedInfo, metadata);
-      metadata.setOembedInfo(oembedInfo);
-
-      metadata.setDateModified(LocalDateTime.now());
 
       results.add(result);
     }
@@ -95,12 +102,21 @@ public class MetadataServiceImpl implements MetadataService {
     return results;
   }
 
+  private boolean isBlackListed(BackendMetadata metadata) {
+    BackendConfig config = configService.getMetadataConfig();
+    List<String> blacklist = config == null ? null : config.getMetadataBlacklist();
+    return blacklist != null && blacklist.stream().anyMatch(blacklistItem -> blacklistItem.equals(metadata.getId()));
+  }
+
   @Transactional
   @Override
   public void persist(List<BackendMetadata> metadata) {
-    metadata.forEach(m -> m.setDateModified(LocalDateTime.now()));
-    metadataRepository.saveAll(metadata);
-    publicMetadataIndexService.updatePublicIndices(metadata);
+    List<BackendMetadata> filteredMetadata = metadata.stream().filter(m -> !isBlackListed(m)).toList();
+    if (!filteredMetadata.isEmpty()) {
+      filteredMetadata.forEach(m -> m.setDateModified(LocalDateTime.now()));
+      metadataRepository.saveAll(filteredMetadata);
+      publicMetadataIndexService.updatePublicIndices(filteredMetadata);
+    }
   }
 
   @Transactional(readOnly = true)
