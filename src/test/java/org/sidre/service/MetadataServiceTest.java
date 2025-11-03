@@ -352,7 +352,7 @@ class MetadataServiceTest {
   void testCreateBlacklistedMetadata() {
     BackendMetadata metadata = newMetadata();
     BackendConfig config = new BackendConfig();
-    config.setMetadataBlacklist(List.of(metadata.getId()));
+    config.setMetadataBlacklist(List.of("https://www.test.de"));
     when(configRepository.findById("search_index_backend_config")).thenReturn(Optional.of(config));
     service.createOrUpdate(metadata);
     verify(repository, times(0)).saveAll(anyList());
@@ -362,7 +362,7 @@ class MetadataServiceTest {
   void testPersistBlacklistedMetadata() {
     BackendMetadata metadata = newMetadata();
     BackendConfig config = new BackendConfig();
-    config.setMetadataBlacklist(List.of(metadata.getId()));
+    config.setMetadataBlacklist(List.of("https://www.test.de"));
     when(configRepository.findById("search_index_backend_config")).thenReturn(Optional.of(config));
     service.persist(List.of(metadata));
     verify(repository, times(0)).saveAll(anyList());

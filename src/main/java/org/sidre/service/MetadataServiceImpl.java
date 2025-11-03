@@ -105,7 +105,8 @@ public class MetadataServiceImpl implements MetadataService {
   private boolean isBlackListed(BackendMetadata metadata) {
     BackendConfig config = configService.getMetadataConfig();
     List<String> blacklist = config == null ? null : config.getMetadataBlacklist();
-    return blacklist != null && blacklist.stream().anyMatch(blacklistItem -> blacklistItem.equals(metadata.getId()));
+    String identifier = metadataFieldService.getIdentifier(metadata.getData());
+    return blacklist != null && blacklist.stream().anyMatch(blacklistItem -> blacklistItem.equals(identifier));
   }
 
   @Transactional
