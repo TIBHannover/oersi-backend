@@ -79,3 +79,9 @@ components:
               type: "string"
               description: "if vocabulary items have a field for labels, specify it here. Will be used for all fieldProperties without this information."
               example: "prefLabel"
+        metadataBlacklist:
+          type: "array"
+          description: "a list of resource identifiers that should be blacklisted"
+          items:
+            type: "string"
+            description: "resource identifier that should be blacklisted"
