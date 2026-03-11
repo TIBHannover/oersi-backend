@@ -1,9 +1,5 @@
 package org.sidre.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +9,11 @@ import org.sidre.repository.ElasticsearchRequestLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -49,8 +50,9 @@ public class ElasticsearchRequestLogServiceImpl implements ElasticsearchRequestL
 
     private final @NonNull ElasticsearchRequestLogRepository requestLogRepository;
 
-    private static final ObjectMapper objectMapper = new ObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private static final ObjectMapper objectMapper = JsonMapper.builder()
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        .build();
 
     @Async
     @Override
@@ -69,7 +71,7 @@ public class ElasticsearchRequestLogServiceImpl implements ElasticsearchRequestL
             ElasticsearchResult elasticsearchResult = null;
             try {
                 elasticsearchResult = objectMapper.readValue(responseBody, new TypeReference<>() {});
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 log.debug("Cannot parse elasticsearch result");
             }
             ElasticsearchRequestLog requestLog = initRequestLog(timestamp, body, method, path, urlRequestQueryString, userAgent, referer);
@@ -116,7 +118,7 @@ public class ElasticsearchRequestLogServiceImpl implements ElasticsearchRequestL
     private List<ElasticsearchResult> parseMultiSearchResponseBody(String responseBody) {
         try {
             return objectMapper.readValue(responseBody, new TypeReference<ElasticsearchMultiSearchResult>() {}).getResponses();
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.debug("Cannot parse elasticsearch multi search result");
             return new ArrayList<>();
         }

@@ -13,7 +13,7 @@ import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.sidre.ElasticsearchServicesMock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -51,7 +51,7 @@ class SearchControllerTest {
             .thenReturn(response);
 
     mvc.perform(get(SearchController.BASE_PATH + testPath))
-        .andExpect(status().is(response.getStatusCodeValue()));
+        .andExpect(status().is(response.getStatusCode().value()));
   }
 
   @Test
@@ -62,7 +62,7 @@ class SearchControllerTest {
       .thenReturn(response);
 
     mvc.perform(get(SearchController.BASE_PATH + testPath + "?q=test:test"))
-      .andExpect(status().is(response.getStatusCodeValue()));
+      .andExpect(status().is(response.getStatusCode().value()));
   }
 
   @Test
@@ -73,7 +73,7 @@ class SearchControllerTest {
             .thenReturn(response);
 
     mvc.perform(post(SearchController.BASE_PATH + testPath).content("{ \"test\":\"test\" }"))
-        .andExpect(status().is(response.getStatusCodeValue()));
+        .andExpect(status().is(response.getStatusCode().value()));
   }
 
   @Test
@@ -84,7 +84,7 @@ class SearchControllerTest {
       .thenReturn(response);
 
     mvc.perform(delete(SearchController.BASE_PATH + testPath).content("{ \"test\":\"test\" }"))
-      .andExpect(status().is(response.getStatusCodeValue()));
+      .andExpect(status().is(response.getStatusCode().value()));
   }
 
   @Test
@@ -95,7 +95,7 @@ class SearchControllerTest {
       .thenReturn(response);
 
     mvc.perform(post(SearchController.BASE_PATH + testPath))
-      .andExpect(status().is(response.getStatusCodeValue()));
+      .andExpect(status().is(response.getStatusCode().value()));
   }
 
   @Test

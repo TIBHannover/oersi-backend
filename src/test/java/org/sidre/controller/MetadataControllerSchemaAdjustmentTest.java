@@ -1,12 +1,5 @@
 package org.sidre.controller;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.sidre.ElasticsearchContainerTest;
@@ -15,18 +8,17 @@ import org.sidre.repository.MetadataRepository;
 import org.sidre.service.MetadataFieldServiceImpl;
 import org.sidre.service.PublicMetadataIndexService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -62,18 +54,8 @@ class MetadataControllerSchemaAdjustmentTest extends ElasticsearchContainerTest 
   private JavaMailSender mailSender;
 
 
-  private static String asJson(final Object obj) throws JsonProcessingException {
+  private static String asJson(final Object obj) throws JacksonException {
     ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new JavaTimeModule());
-    SimpleModule simpleModule = new SimpleModule();
-    simpleModule.addSerializer(OffsetDateTime.class, new JsonSerializer<>() {
-      @Override
-      public void serialize(final OffsetDateTime offsetDateTime, final JsonGenerator jsonGenerator,
-          final SerializerProvider serializerProvider) throws IOException {
-        jsonGenerator.writeString(DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(offsetDateTime));
-      }
-    });
-    objectMapper.registerModule(simpleModule);
     return objectMapper.writeValueAsString(obj);
   }
 

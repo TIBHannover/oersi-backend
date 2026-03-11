@@ -13,7 +13,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -31,29 +31,29 @@ public class WebSecurityConfig {
   private String metadataManagePassword;
 
   @Bean
-  public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
+  public SecurityFilterChain filterChain(final HttpSecurity http) {
     http
         .cors(withDefaults())
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(
-                        AntPathRequestMatcher.antMatcher("/api/search/**"),
-                        AntPathRequestMatcher.antMatcher("/api/label/**"),
-                        AntPathRequestMatcher.antMatcher("/api/contact"),
-                        AntPathRequestMatcher.antMatcher("/api/oembed-json"),
-                        AntPathRequestMatcher.antMatcher("/api/oembed-xml"),
+                        PathPatternRequestMatcher.pathPattern("/api/search/**"),
+                        PathPatternRequestMatcher.pathPattern("/api/label/**"),
+                        PathPatternRequestMatcher.pathPattern("/api/contact"),
+                        PathPatternRequestMatcher.pathPattern("/api/oembed-json"),
+                        PathPatternRequestMatcher.pathPattern("/api/oembed-xml"),
                         // swagger ui
-                        AntPathRequestMatcher.antMatcher("/swagger-ui.html"),
-                        AntPathRequestMatcher.antMatcher("/swagger-ui/**"),
-                        AntPathRequestMatcher.antMatcher("/api-docs/**")
+                        PathPatternRequestMatcher.pathPattern("/swagger-ui.html"),
+                        PathPatternRequestMatcher.pathPattern("/swagger-ui/**"),
+                        PathPatternRequestMatcher.pathPattern("/api-docs/**")
                 ).permitAll()
         )
         .httpBasic(withDefaults())
         .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/metadata/**")).hasRole(ROLE_MANAGE_METADATA)
-                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/metadata-enrichment/**")).hasRole(ROLE_MANAGE_METADATA)
-                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/metadata-config/**")).hasRole(ROLE_MANAGE_METADATA)
-                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/vocab/**")).hasRole(ROLE_MANAGE_METADATA)
+                .requestMatchers(PathPatternRequestMatcher.pathPattern("/api/metadata/**")).hasRole(ROLE_MANAGE_METADATA)
+                .requestMatchers(PathPatternRequestMatcher.pathPattern("/api/metadata-enrichment/**")).hasRole(ROLE_MANAGE_METADATA)
+                .requestMatchers(PathPatternRequestMatcher.pathPattern("/api/metadata-config/**")).hasRole(ROLE_MANAGE_METADATA)
+                .requestMatchers(PathPatternRequestMatcher.pathPattern("/api/vocab/**")).hasRole(ROLE_MANAGE_METADATA)
         );
     return http.build();
   }

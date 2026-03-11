@@ -1,7 +1,5 @@
 package org.sidre.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.sidre.ElasticsearchContainerTest;
@@ -11,10 +9,12 @@ import org.sidre.dto.ConfigDto;
 import org.sidre.dto.ConfigFieldPropertiesDto;
 import org.sidre.repository.BackendConfigRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -35,7 +35,7 @@ class ConfigControllerTest extends ElasticsearchContainerTest {
   @Autowired
   private BackendConfigRepository configRepository;
 
-  private static String asJson(final Object obj) throws JsonProcessingException {
+  private static String asJson(final Object obj) throws JacksonException {
     ObjectMapper objectMapper = new ObjectMapper();
     return objectMapper.writeValueAsString(obj);
   }
