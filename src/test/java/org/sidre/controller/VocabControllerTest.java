@@ -1,7 +1,5 @@
 package org.sidre.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,12 +10,14 @@ import org.sidre.dto.VocabItemDto;
 import org.sidre.repository.VocabItemRepository;
 import org.sidre.service.VocabService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +46,7 @@ class VocabControllerTest extends ElasticsearchContainerTest {
     repository.deleteAll();
   }
 
-  private static String asJson(final Object obj) throws JsonProcessingException {
+  private static String asJson(final Object obj) throws JacksonException {
     ObjectMapper objectMapper = new ObjectMapper();
     return objectMapper.writeValueAsString(obj);
   }

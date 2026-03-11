@@ -1,6 +1,5 @@
 package org.sidre.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -14,6 +13,7 @@ import org.sidre.domain.OembedInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.type.TypeReference;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.sidre.ElasticsearchServicesMock;
 import org.sidre.service.ElasticsearchRequestLogService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -52,7 +52,7 @@ class SearchControllerFeatureLogRequestTest {
                     .header("User-Agent", "agent abc")
                     .header("referer", "https://example.org")
             )
-            .andExpect(status().is(response.getStatusCodeValue()));
+            .andExpect(status().is(response.getStatusCode().value()));
     verify(requestLogService, times(1)).logRequest(anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
   }
 
