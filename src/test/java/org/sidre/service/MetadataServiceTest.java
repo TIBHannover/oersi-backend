@@ -145,6 +145,32 @@ class MetadataServiceTest {
   }
 
   @Test
+  void testCreateOrUpdateWithInvalidPrefLabelField() {
+    BackendConfig config = new BackendConfig();
+    BackendConfig.FieldProperties fieldProperties = new BackendConfig.FieldProperties();
+    fieldProperties.setFieldName("learningResourceType");
+    fieldProperties.setVocabItemIdentifierField("id");
+    fieldProperties.setVocabItemLabelField("prefLabel");
+    fieldProperties.setAddMissingVocabLabels(true);
+    fieldProperties.setVocabIdentifier("hcrt");
+    config.setFieldProperties(List.of(fieldProperties));
+    when(configRepository.findById("search_index_backend_config")).thenReturn(Optional.of(config));
+
+    BackendMetadata metadata = newMetadata();
+    metadata.getData().put(
+        "learningResourceType", new ArrayList<>(List.of(
+            new HashMap<>(Map.of(
+                "id", "https://w3id.org/kim/hcrt/testType",
+                "prefLabel", "invalid"
+            ))
+        ))
+    );
+    MetadataService.MetadataUpdateResult result = service.createOrUpdate(metadata);
+    assertThat(result.getSuccess()).isFalse();
+    verify(repository, times(0)).saveAll(anyList());
+  }
+
+  @Test
   void testCreateOrUpdateWithEmptyMandatoryFields() {
     BackendMetadata metadata = newMetadata();
     metadata.getData().put("id", "");

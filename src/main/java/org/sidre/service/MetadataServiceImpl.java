@@ -20,6 +20,7 @@ import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -67,16 +68,21 @@ public class MetadataServiceImpl implements MetadataService {
         continue;
       }
       BackendMetadata existingMetadata = findMatchingMetadata(metadata);
-      if (existingMetadata != null) {
-        metadataFieldService.updateMetadataSource(metadata.getData(), mergeMetadataSources(existingMetadata, metadata));
-      }
-
-      metadataAutoUpdater.initAutoUpdateInfo(metadata);
-      metadataCustomProcessor.process(metadata);
-      metadataAutoUpdater.addMissingInfos(metadata);
-      metadataCustomProcessor.postProcess(metadata);
-      if (featureAddMetadataEnrichments) {
-        metadataEnrichmentService.addMetadataEnrichments(metadata);
+      try {
+        if (existingMetadata != null) {
+          metadataFieldService.updateMetadataSource(metadata.getData(), mergeMetadataSources(existingMetadata, metadata));
+        }
+        metadataAutoUpdater.initAutoUpdateInfo(metadata);
+        metadataCustomProcessor.process(metadata);
+        metadataAutoUpdater.addMissingInfos(metadata);
+        metadataCustomProcessor.postProcess(metadata);
+        if (featureAddMetadataEnrichments) {
+          metadataEnrichmentService.addMetadataEnrichments(metadata);
+        }
+      } catch (JacksonException e) {
+        result.setSuccess(false);
+        log.debug("exception while preparing data: {}, message: {}", metadata, e.getMessage());
+        result.addMessages(List.of("Parsing error while preparing metadata -> invalid metadata format?"));
       }
 
       ValidatorResult validatorResult = metadataValidator.validate(metadata);
