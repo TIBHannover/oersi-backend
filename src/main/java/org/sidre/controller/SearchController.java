@@ -118,6 +118,11 @@ public class SearchController implements SearchControllerApi {
       if (featureLogRequests) {
         requestLogService.logRequest(body, method.name(), uri.getPath(), uri.getQuery(), result.getBody(), request.getHeader("user-agent"), request.getHeader("referer"));
       }
+      var responseHeaders = result.getHeaders();
+      if (responseHeaders.containsHeaderValue("Transfer-Encoding", "chunked")) {
+        // Since the complete body is already available here, remove "Transfer-Encoding" header to avoid conflicts with nginx accessing this service
+        responseHeaders.remove("Transfer-Encoding");
+      }
       return result;
     } catch (URISyntaxException e) {
       log.error("error while building the elasticsearch URI", e);
