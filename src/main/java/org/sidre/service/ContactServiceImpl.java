@@ -25,7 +25,7 @@ public class ContactServiceImpl implements ContactService {
   public void createContactRequest(String email, String subject, String message) {
     var mailMessage = new SimpleMailMessage();
     mailMessage.setFrom(email);
-    mailMessage.setTo(supportMail);
+    mailMessage.setTo(supportMail.split(","));
     mailMessage.setSubject(subject);
     mailMessage.setText(message);
     mailSender.send(mailMessage);
