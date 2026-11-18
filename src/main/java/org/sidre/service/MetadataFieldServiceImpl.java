@@ -3,7 +3,6 @@ package org.sidre.service;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.sidre.config.BaseFieldConfig;
 import org.sidre.domain.BackendMetadata;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,7 +72,7 @@ public class MetadataFieldServiceImpl implements MetadataFieldService {
   public Document getBackendMetadataMapping() {
     Document mapping;
     try {
-      mapping = Document.parse(IOUtils.toString(indexMapping.getInputStream(), Charset.defaultCharset()));
+      mapping = Document.parse(indexMapping.getContentAsString(Charset.defaultCharset()));
       if (useMetadataSource()) {
         Set<String> queryFields = new HashSet<>();
         queryFields.add(getMetadataSourceIdentifierField());
