@@ -1,4 +1,4 @@
-image: maven:3-openjdk-17
+image: maven:3-eclipse-temurin-21
 
 # DinD service is required for Testcontainers
 services:
