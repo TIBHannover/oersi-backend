@@ -27,7 +27,7 @@ The (backend) API is not part of the public API. It is designed to be consumed b
 
 To set up a local development environment that allows you to run the app locally via `mvn spring-boot:run` or execute unit-tests locally, you need an elasticsearch-instance. Easiest would be to start a local elasticsearch-instance via Docker:
 ```
-docker run -it --rm --name elasticsearch -p 9200:9200 -e "ES_JAVA_OPTS=-Xms2g -Xmx2g" -e "discovery.type=single-node" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:7.17.7
+docker run -it --rm --name elasticsearch -p 9200:9200 -e "ES_JAVA_OPTS=-Xms2g -Xmx2g" -e "discovery.type=single-node" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:9.5.6
 ```
 
 ## Supported Metadata Schema

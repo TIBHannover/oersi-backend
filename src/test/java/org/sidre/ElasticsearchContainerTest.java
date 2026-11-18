@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Slf4j
 public abstract class ElasticsearchContainerTest {
 
-  private static final String IMAGE_NAME = "docker.elastic.co/elasticsearch/elasticsearch:7.17.7";
+  private static final String IMAGE_NAME = "docker.elastic.co/elasticsearch/elasticsearch:9.5.6";
 
   @Autowired
   private ElasticsearchOperations elasticsearchOperations;
